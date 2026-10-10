@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Stage 1: Build the Application
 # We use node:20 as the base for building and installing dependencies.
 FROM node:20 AS build
@@ -36,3 +37,11 @@ USER node
 
 # Define the command to start your application
 CMD [ "node", "npm start" ]
+=======
+FROM node:20-alpine
+WORKDIR /app
+COPY server.js game.html ./
+ENV PORT=4040
+EXPOSE 4040
+CMD ["node", "server.js"]
+>>>>>>> 0c460a35d87fc048e4a5da12e2d0b43ae564db8c
