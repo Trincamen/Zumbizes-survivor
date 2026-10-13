@@ -33,9 +33,10 @@ canvas{display:block;width:100%;height:100%}
 .mob #sk{bottom:50px}.mob #sk button{width:110px;font-size:11px;padding:6px;margin:2px}.mob #shop{top:64px!important;padding:4px;font-size:11px;left:4px!important}.mob #shB button{width:150px;font-size:11px;padding:5px;margin:2px 0}
 .opt{position:fixed;top:10px;right:150px;width:44px;height:44px;border-radius:10px;border:2px solid #34437d;background:#0b1024dd;color:#fff;font-size:22px;display:none;padding:0}.mob .opt{width:36px;height:36px;font-size:18px}
 #opp{position:fixed;top:60px;right:10px;display:none;z-index:6;width:min(340px,92vw)}.mob #opp{top:50px;font-size:12px}
+#wb{transform:scale(var(--hs,1));transform-origin:left bottom}#sk{transform:scale(var(--hs,1));transform-origin:center bottom}#shop{transform:scale(var(--hs,1));transform-origin:left top}
 </style></head><body>
 <canvas id=c></canvas><div id=bn></div><div id=sk></div><div id=shop style="position:fixed;left:10px;top:120px;background:#000b;border:2px solid #fc3;border-radius:10px;padding:8px;display:none"><b id=shT></b><div id=shB></div></div><div id=wb></div><button id=opt class=opt onclick=optOpen()>⚙</button>
-<div id=opp class=pn><b>⚙ Opções</b><div id=ctl2 style="margin:6px 0"></div>🔊 Efeitos <input type=range id=vol3 min=0 max=100 oninput="setVol(this.value)" style="width:60%"><br>🎵 Música <input type=range id=mvol3 min=0 max=100 oninput="setMus(this.value)" style="width:60%"><br><button class=sb onclick=optOpen()>FECHAR</button><button class=sb style="background:#a33" onclick=location.reload()>SAIR PARA O MENU</button></div>
+<div id=opp class=pn><b>⚙ Opções</b><div id=ctl2 style="margin:6px 0"></div><div style="margin:8px 0">🔍 Câmera: <small>perto</small> <input type=range id=cam3 min=0 max=100 oninput="setCam(this.value)" style="width:55%"> <small>longe</small><br>🧩 HUD: <small>pequeno</small> <input type=range id=hud3 min=0 max=100 oninput="setHud(this.value)" style="width:55%"> <small>grande</small><br><button class=sb style="background:#444" onclick="setCam(50);setHud(43)">Restaurar padrão</button></div>🔊 Efeitos <input type=range id=vol3 min=0 max=100 oninput="setVol(this.value)" style="width:60%"><br>🎵 Música <input type=range id=mvol3 min=0 max=100 oninput="setMus(this.value)" style="width:60%"><br><button class=sb onclick=optOpen()>FECHAR</button><button class=sb style="background:#a33" onclick=location.reload()>SAIR PARA O MENU</button></div>
 <div id=menu class=ov>
 <div id=logo><div class=l1>ZOMBIZES</div><div class=l2>SURVIVOR</div></div>
 <div id=net></div>
@@ -50,7 +51,7 @@ canvas{display:block;width:100%;height:100%}
  <div id=tab-lan><div id=lanS></div><div class=lst id=lanL></div><button class=sb onclick=scanLAN()>🔄 PROCURAR</button><span id=hl></span><br><input id=ip placeholder="IP manual (opcional)" style="font-size:15px;padding:6px;width:150px;margin-top:8px"><button class=sb onclick=joinIP()>ENTRAR</button></div>
  <div id=tab-on style=display:none><div id=onS></div><div class=lst id=onL></div><button class=sb onclick=loadRooms()>🔄 ATUALIZAR</button><span id=ho></span></div>
  <br><button class=sb style="background:#444" onclick="show('main')">← VOLTAR</button></div></div>
-<div id=s-set class=scr style=display:none><div class=pn>Seu nome:<br><input id=nm onchange="LS.set('name',this.value)"><br><br>🎮 Controle:<div id=ctl1></div><br>🔊 Efeitos:<br><input type=range id=vol min=0 max=100 oninput="setVol(this.value)" style="width:100%"><br>🎵 Música:<br><input type=range id=mvol min=0 max=100 oninput="setMus(this.value)" style="width:100%"><br><br>Endereço do servidor online:<br><input id=rl placeholder="meujogo.onrender.com" style="font-size:18px" onchange="LS.set('relay',this.value);originKind!='online'&&(onRooms=[])"><br><small>Só é preciso se você NÃO abriu o jogo pelo site online (ex.: no app ou na rede local).</small><br><button class=sb style="background:#444" onclick="show('main')">← VOLTAR</button></div></div>
+<div id=s-set class=scr style=display:none><div class=pn>Seu nome:<br><input id=nm onchange="LS.set('name',this.value)"><br><br>🎮 Controle:<div id=ctl1></div><br>🖥 Visão:<div style="margin:8px 0">🔍 Câmera: <small>perto</small> <input type=range id=cam1 min=0 max=100 oninput="setCam(this.value)" style="width:55%"> <small>longe</small><br>🧩 HUD: <small>pequeno</small> <input type=range id=hud1 min=0 max=100 oninput="setHud(this.value)" style="width:55%"> <small>grande</small><br><button class=sb style="background:#444" onclick="setCam(50);setHud(43)">Restaurar padrão</button></div>🔊 Efeitos:<br><input type=range id=vol min=0 max=100 oninput="setVol(this.value)" style="width:100%"><br>🎵 Música:<br><input type=range id=mvol min=0 max=100 oninput="setMus(this.value)" style="width:100%"><br><br>Endereço do servidor online:<br><input id=rl placeholder="meujogo.onrender.com" style="font-size:18px" onchange="LS.set('relay',this.value);originKind!='online'&&(onRooms=[])"><br><small>Só é preciso se você NÃO abriu o jogo pelo site online (ex.: no app ou na rede local).</small><br><button class=sb style="background:#444" onclick="show('main')">← VOLTAR</button></div></div>
 <div id=s-how class=scr style=display:none><div class=pn><b>Como jogar</b><br>• Toque no chão para andar e no zumbi para atacar. A arma atira sozinha para onde você olha.<br>• Pegue armas, curas e dinheiro nas casas. Hospital = curas, delegacia = armas.<br>• Arraste um slot para fora da barra para soltar o item.<br>• A cada 5 rounds vem um boss. Depois dele abre a loja por 1 minuto.<br>• Desfibrilador revive um aliado caído.<br><button class=sb style="background:#444" onclick="show('main')">← VOLTAR</button></div></div>
 <div id=s-lobby class=scr style="display:none;left:50%;top:8%;transform:translateX(-50%);text-align:center"><div class=pn><h2 style="margin:4px">SALA</h2><div id=rm style="color:#fc3;font-size:22px"></div><div id=pl></div><div id=hc style=display:none>Mínimo para iniciar:<br><button class=sb onclick="minP=Math.max(1,minP-1)">−</button> <b id=mp>1</b> <button class=sb onclick="minP=Math.min(8,minP+1)">+</button><br><button class="mb g" style="margin:10px auto" id=st onclick=start()>INICIAR</button></div><p id=wt>Aguardando o host iniciar...</p></div></div>
 <div id=tag>SOBREVIVA <b>COM SEUS AMIGOS</b><br>E DERROTE OS ZUMBIS!</div>
@@ -58,7 +59,12 @@ canvas{display:block;width:100%;height:100%}
 <div id=end class=ov style=display:none><h1>☠ FIM DE JOGO</h1><div id=er></div><button class=b id=nb onclick=reset() style=display:none>NOVA PARTIDA</button><button class=b onclick=location.reload()>MENU PRINCIPAL</button></div>
 <script>
 const $=s=>document.getElementById(s),C=$('c'),X=C.getContext('2d'),MW=4000,MH=6000,RY0=2700,RY1=3300,MOB=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent),ROWS=[0,1,2,3,4,7,8,9,10,11];
-let W,H,ZO=1,cx=2000,cy=4500,ox=0,oy=0;let DPR=1;const ZO0=()=>MOB?Math.min(1.4,Math.max(1.1,innerHeight/340)):Math.max(.5,Math.min(1,innerWidth/1100));function rs(){const ob=$('opt');if(ob)ob.style.right=Math.round((MOB?(130*.6+8):140)*ZO0()+8)+'px';DPR=Math.min(window.devicePixelRatio||1,2);ZO=MOB?Math.min(1.4,Math.max(1.1,innerHeight/340)):Math.max(.5,Math.min(1,innerWidth/1100));C.width=innerWidth*DPR|0;C.height=innerHeight*DPR|0;W=innerWidth/ZO;H=innerHeight/ZO}rs();onresize=rs;
+let W,H,ZO=1,cx=2000,cy=4500,ox=0,oy=0;let DPR=1;const _l=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+let camV=_l('cam')==null?50:+_l('cam'),hudV=_l('hud')==null?43:+_l('hud'),CAM=1.3-camV/100*.6,HUDS=.7+hudV/100*.7;
+const zbase=()=>MOB?Math.min(1.4,Math.max(1.1,innerHeight/340)):Math.max(.5,Math.min(1,innerWidth/1100)),hkF=()=>(MOB?.6:1)*HUDS;
+function rs(){DPR=Math.min(window.devicePixelRatio||1,2);const zl=Math.max(innerHeight/1900,innerWidth/3000,.45),zh=Math.max(zl,Math.min(1.8,innerWidth/420,innerHeight/220));ZO=Math.max(zl,Math.min(zh,zbase()*CAM));
+ C.width=innerWidth*DPR|0;C.height=innerHeight*DPR|0;W=innerWidth/ZO;H=innerHeight/ZO;const ob=$('opt');if(ob)ob.style.right=Math.round(140*hkF()*ZO+8)+'px';const st=document.documentElement.style;if(st.setProperty)st.setProperty('--hs',HUDS)}
+rs();onresize=rs;
 const WN=['Pistola','Escopeta','Rifle','Metralhad.','Lança-chamas','Sniper'],WC=['#ddd','#f80','#4cf','#fd0','#f44','#9f6'],WL=['P','E','R','M','L','S'];
 const WS_=[[220,12,.7],[130,48,1.5],[420,32,1],[260,4,.1],[110,4,.12],[700,120,1.8]],AM=[7,7,45,30,50,5],RT=[1.2,2.2,2.2,2,3,2.6],SPD=[2200,1600,3200,2600,1,4800];
 const SK=['Dano +2%','Velocidade +5%','Vida máx +25%','Cadência +2%','Alcance +5%','Regeneração'];
@@ -254,7 +260,7 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
  if(tick%6==0){base.I=IT.map(i=>[i.x|0,i.y|0,i.k,i.v|0]);base.ZM=Z.map(z=>[z.x/30|0,z.y/30|0,z.k]);base.DS=DEADL.map(o=>o.i)}
  const zA=Z.map(z=>[z.x|0,z.y|0,z.k,z.hp/z.mx*100|0,z.v,z.fa*10|0,z.i].concat(z.k==3?[z.bs|0,z.arm*100|0,Math.ceil(Math.max(0,z.stun||0)*10),Math.ceil(Math.max(0,z.em||0)*10)]:[]));
  onSnap(Object.assign({},base,{Z:zA}));
- if(ws&&ws.bufferedAmount<3e6)for(const q of all)if(q.id!=id)ws.send('@'+q.id+'|'+JSON.stringify(Object.assign({},base,{Z:zA.filter(z=>z[2]==3||Math.abs(z[0]-q.x)<1300&&Math.abs(z[1]-q.y)<800)})));
+ if(ws&&ws.bufferedAmount<3e6)for(const q of all)if(q.id!=id)ws.send('@'+q.id+'|'+JSON.stringify(Object.assign({},base,{Z:zA.filter(z=>z[2]==3||Math.abs(z[0]-q.x)<1500&&Math.abs(z[1]-q.y)<950)})));
  FX=[];EV=[]}
 // ---------- UI / cliente ----------
 function onSnap(s){snap=s;me=s.P.find(p=>p[0]==id);if(s.sd&&s.sd!=curSd){curSd=s.sd;O=genMap(s.sd);BLD=O.B;FIRES=O.FR;DD={};POP={};FL2=[];PT=[]}if(s.I)IL=s.I;if(s.ZM)ZMM=s.ZM;
@@ -277,12 +283,15 @@ let dr=null;function dn(e,i){dr={i,x:e.clientX,y:e.clientY,g:null};e.preventDefa
 addEventListener('pointermove',e=>{if(!dr)return;if(!dr.g&&Math.hypot(e.clientX-dr.x,e.clientY-dr.y)>15){const g=document.createElement('div');g.style.cssText='position:fixed;pointer-events:none;width:56px;height:56px;border-radius:10px;background:#fc3b;border:3px solid #fff;z-index:9;transform:translate(-50%,-50%)';document.body.appendChild(g);dr.g=g}if(dr.g){dr.g.style.left=e.clientX+'px';dr.g.style.top=e.clientY+'px'}});
 addEventListener('pointerup',e=>{if(!dr)return;const r=$('wb').getBoundingClientRect();if(dr.g){dr.g.remove();if(e.clientY<r.top-25||e.clientX>r.right+25)send({t:'d',id,n:dr.i})}else if(dr.i>=0)send({t:'u',id,n:dr.i});dr=null});
 addEventListener('pointercancel',()=>{if(dr&&dr.g)dr.g.remove();dr=null});
-let lastTap=0,joy=null,mvLast=[0,0],mvT0=0,hintT=0,ctl=LS.get('ctl')||'auto';const KS={},JR=()=>MOB?55:60,wantJoy=e=>ctl=='joy'||(ctl=='auto'&&e.pointerType!='mouse');
+let lastTap=0,joy=null,mvLast=[0,0],mvT0=0,hintT=0,ctl=LS.get('ctl')||'auto';const KS={},JR=()=>(MOB?55:60)*Math.min(1.3,HUDS),wantJoy=e=>ctl=='joy'||(ctl=='auto'&&e.pointerType!='mouse');
 const CTL=[['auto','🤖 Automático','celular: joystick • PC: WASD ou setas'],['joy','🕹 Joystick na tela','toque e arraste na metade de baixo'],['tap','👆 Toque para andar','toque onde quer ir (modo antigo)']];
 function ctlBtns(){for(const k of['ctl1','ctl2']){const e=$(k);if(e)e.innerHTML=CTL.map(c=>`<button class=sb style="display:block;width:100%;text-align:left;margin:4px 0;background:${ctl==c[0]?'#2a7':'#2a3450'}" onclick="setCtl('${c[0]}')">${c[1]}<br><small>${c[2]}</small></button>`).join('')}}
 function setCtl(m){ctl=m;LS.set('ctl',m);joy=null;ctlBtns();pushMove()}
+function syncOpt(){for(const[k,v]of[['cam1',camV],['cam3',camV],['hud1',hudV],['hud3',hudV]]){const e=$(k);if(e)e.value=v}}
+function setCam(v){camV=+v;LS.set('cam',v);CAM=1.3-camV/100*.6;rs();syncOpt()}
+function setHud(v){hudV=+v;LS.set('hud',v);HUDS=.7+hudV/100*.7;rs();syncOpt()}
 function optOpen(){const p=$('opp'),o=p.style.display!='block';p.style.display=o?'block':'none';if(o){$('vol3').value=AU.vol*100;$('mvol3').value=AU.mv*100;ctlBtns()}}
-ctlBtns();
+ctlBtns();syncOpt();
 function pushMove(){if(!snap||snap.ph!=1)return;let x=0,y=0;
  if(joy){const dx=joy.x-joy.x0,dy=joy.y-joy.y0,L=Math.hypot(dx,dy),R_=JR();if(L>8){const m=Math.min(1,(L-8)/(R_-8));x=dx/L*m;y=dy/L*m}}
  if(!x&&!y){x=(KS.KeyD||KS.ArrowRight?1:0)-(KS.KeyA||KS.ArrowLeft?1:0);y=(KS.KeyS||KS.ArrowDown?1:0)-(KS.KeyW||KS.ArrowUp?1:0);const L=Math.hypot(x,y);if(L>1){x/=L;y/=L}}
@@ -392,13 +401,14 @@ const BC={l:'#c98cff',m:'#9a4de0',d:'#6a2fa8',x:'#43207a',a:'#ff55d8',g:'#ffe45a
 function fc(p,c){X.fillStyle=c;X.beginPath();X.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)X.lineTo(p[i],p[i+1]);X.closePath();X.fill();X.strokeStyle='rgba(25,0,45,.5)';X.lineWidth=1;X.stroke()}
 function seg(ax,ay,bx,by,w,c1,c2){const dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy)||1,nx=-dy/L*w/2,ny=dx/L*w/2;fc([ax+nx,ay+ny,bx+nx,by+ny,bx,by,ax,ay],c1);fc([ax-nx,ay-ny,bx-nx,by-ny,bx,by,ax,ay],c2)}
 // ---------- BOSS: mini motor 3D low poly (faces com luz, giro real, profundidade) ----------
-const SE=Math.sin(48*Math.PI/180),CE=Math.cos(48*Math.PI/180),K2=.72,LV=(()=>{const v=[-.5,.85,.45],l=Math.hypot(...v);return v.map(a=>a/l)})(),RGBC={};let BYAW=null,DT_=.016,FS=[];
+const E_=42*Math.PI/180,SE=Math.sin(E_),CE=Math.cos(E_),K2=Math.tan(E_),LV=(()=>{const v=[-.5,.85,.45],l=Math.hypot(...v);return v.map(a=>a/l)})(),RGBC={};let BYAW=null,DT_=.016,FS=[];
 const rgbOf=h=>RGBC[h]||(RGBC[h]=[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]);
 function rot3(p,rx,ry,rz){let x=p[0],y=p[1],z=p[2],c,s,t;if(rx){c=Math.cos(rx);s=Math.sin(rx);t=y*c-z*s;z=y*s+z*c;y=t}if(ry){c=Math.cos(ry);s=Math.sin(ry);t=x*c+z*s;z=-x*s+z*c;x=t}if(rz){c=Math.cos(rz);s=Math.sin(rz);t=x*c-y*s;y=x*s+y*c;x=t}return[x,y,z]}
 const TF=(rx,ry,rz,tx,ty,tz,par)=>p=>{const q=rot3(p,rx,ry,rz);q[0]+=tx;q[1]+=ty;q[2]+=tz;return par?par(q):q};
 function boxV(w,h,d,tt,tb){const a=w/2,b=h/2,c=d/2;return{v:[[-a*tt,b,-c],[a*tt,b,-c],[a*tt,b,c],[-a*tt,b,c],[-a*tb,-b,-c],[a*tb,-b,-c],[a*tb,-b,c],[-a*tb,-b,c]],f:[[0,1,2,3],[4,5,6,7],[3,2,6,7],[0,1,5,4],[0,3,7,4],[1,2,6,5]]}}
 function prismV(r,len,n){const v=[],f=[[],[]];for(let i=0;i<n;i++){const a=i/n*6.283;v.push([Math.cos(a)*r,Math.sin(a)*r,len/2]);f[0].push(i)}for(let i=0;i<n;i++){const a=i/n*6.283;v.push([Math.cos(a)*r,Math.sin(a)*r,-len/2])}for(let i=0;i<n;i++)f.push([i,(i+1)%n,n+(i+1)%n,n+i]);f[1]=f[0].map(i=>i+n);return{v,f}}
-const B_={short:boxV(26,40,24,1,.92),shin:boxV(14,24,14,1,.85),shoe:boxV(20,12,32,1,1),pelv:boxV(44,10,26,1,1),torso:boxV(58,56,32,1.1,.88),vf:boxV(16,52,6,1,1),vb:boxV(58,52,6,1.08,.9),pack:boxV(42,46,18,1,.95),flap:boxV(38,6,20,1,1),strap:boxV(8,50,4,1,1),neck:boxV(14,8,14,1,1),head:boxV(74,58,64,.95,.72),ear:boxV(6,14,10,1,1),nose:boxV(9,8,8,1,.7),eye:prismV(13,10,12),pup:prismV(6,3,10),pupS:prismV(4,3,8),up:boxV(16,34,16,1,.9),slv:boxV(20,18,20,1,1),fore:boxV(14,34,14,1,.8),hand:boxV(15,12,10,1,.9),fing:boxV(4,12,4,1,.8)};
+function latheV(rg,n){const v=[],f=[];for(const r of rg)for(let k=0;k<n;k++){const a=(k+.5)/n*6.2832;v.push([Math.cos(a)*r[1],r[0],Math.sin(a)*r[2]])}for(let i=0;i<rg.length-1;i++)for(let k=0;k<n;k++)f.push([i*n+k,i*n+(k+1)%n,(i+1)*n+(k+1)%n,(i+1)*n+k]);f.push(Array.from({length:n},(_,k)=>k));f.push(Array.from({length:n},(_,k)=>(rg.length-1)*n+k));return{v,f}}
+const B_={short:boxV(26,40,24,1,.92),shin:boxV(14,24,14,1,.85),shoe:boxV(20,12,32,1,1),pelv:boxV(44,10,26,1,1),torso:boxV(58,56,32,1.1,.88),vf:boxV(16,52,6,1,1),vb:boxV(58,52,6,1.08,.9),pack:boxV(42,46,18,1,.95),flap:boxV(38,6,20,1,1),strap:boxV(8,50,4,1,1),neck:boxV(14,8,14,1,1),head:latheV([[0,22,22],[8,34,30],[44,40,32],[58,24,22]],8),ear:boxV(6,14,10,1,1),nose:boxV(9,8,8,1,.7),eye:prismV(13,18,12),pup:prismV(6,3,10),pupS:prismV(4,3,8),up:boxV(16,34,16,1,.9),slv:boxV(20,18,20,1,1),fore:boxV(14,34,14,1,.8),hand:boxV(15,12,10,1,.9),fing:boxV(4,12,4,1,.8)};
 function part(sh,col,xf,off,glob){const V=sh.v.map(p=>glob(xf([p[0]+off[0],p[1]+off[1],p[2]+off[2]])));let c;
  if(sh.cp)c=glob(xf([sh.cp[0]+off[0],sh.cp[1]+off[1],sh.cp[2]+off[2]]));else{c=[0,0,0];for(const p of V){c[0]+=p[0];c[1]+=p[1];c[2]+=p[2]}c=c.map(a=>a/V.length)}
  for(const f of sh.f){const P=f.map(i=>V[i]),a=P[0],b=P[1],d=P[2],u=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],w=[d[0]-a[0],d[1]-a[1],d[2]-a[2]];let n=[u[1]*w[2]-u[2]*w[1],u[2]*w[0]-u[0]*w[2],u[0]*w[1]-u[1]*w[0]];const l=Math.hypot(n[0],n[1],n[2])||1;n=[n[0]/l,n[1]/l,n[2]/l];
@@ -414,12 +424,12 @@ function drawBoss(x,y,o){const t=o.t,bs=o.bs,arm=o.arm,tgt=Math.PI/2-o.fa;if(BYA
  const tw=TF(0,bs==0?wk*.12:0,0,0,76,0,root);
  add(B_.pelv,'#363c49',root,[0,76,0]);add(B_.torso,'#e6e6e1',tw,[0,28,0]);add(B_.vf,'#c2492f',tw,[-21,26,18]);add(B_.vf,'#c2492f',tw,[21,26,18]);add(B_.vb,'#b44228',tw,[0,26,-19]);
  add(B_.pack,'#2f6fd0',tw,[0,32,-30]);add(B_.flap,'#2457a8',tw,[0,56,-30]);add(B_.strap,'#2d65bd',tw,[-13,30,18.5]);add(B_.strap,'#2d65bd',tw,[13,30,18.5]);add(B_.neck,'#8fb09f',tw,[0,60,0]);
- const hd=TF(bs==6?-.55:bs==5?0:Math.sin(t/500)*.05,bs==5?Math.sin(t/90)*.35:-wk*.08,0,0,64,0,tw),mo=bs==6?14:ang?10:6+Math.abs(Math.sin(t/300))*4;
- add(B_.head,'#9dbfae',hd,[0,29,0]);add(B_.ear,'#8fb09f',hd,[-40,29,0]);add(B_.ear,'#8fb09f',hd,[40,29,0]);add(B_.nose,'#8fb09f',hd,[0,26,35]);
- for(const e of[-1,1]){add(B_.eye,ang?'#ffc4bc':'#f6f6f0',hd,[e*16,38,32]);const lx=bs==5?Math.cos(t/110+e)*4:0,ly=bs==5?Math.sin(t/110+e)*4:-1;add(ang?B_.pupS:B_.pup,'#111',hd,[e*16+lx,38+ly,37.5])}
- add({v:[[-17,0,0],[17,0,0],[14,mo,0],[-14,mo,0]],f:[[0,1,2,3]],cp:[0,mo/2,-12]},'#2a1015',hd,[0,6,32.4]);
- for(let i=0;i<4;i++)add({v:[[-3.5,0,0],[3.5,0,0],[3.5,6,0],[-3.5,6,0]],f:[[0,1,2,3]],cp:[0,3,-12]},'#f1ead2',hd,[-12+i*8,6+mo-6,32.8]);
- for(const q of[-5,5])add({v:[[-3,0,0],[3,0,0],[3,4,0],[-3,4,0]],f:[[0,1,2,3]],cp:[0,2,-12]},'#f1ead2',hd,[q,6,32.8]);
+ const hd=TF(bs==6?-.55:bs==5?0:Math.sin(t/500)*.05,bs==5?Math.sin(t/90)*.35:-wk*.08,0,0,64,0,tw),mo=bs==6?14:ang?10:6+Math.abs(Math.sin(t/300))*4,showF=Math.cos(psi)>-.2;
+ add(B_.head,'#9dbfae',hd,[0,0,0]);add(B_.ear,'#8fb09f',hd,[-37,29,0]);add(B_.ear,'#8fb09f',hd,[37,29,0]);if(showF)add(B_.nose,'#8fb09f',hd,[0,26,31]);
+ if(showF)for(const e of[-1,1]){add(B_.eye,ang?'#ffc4bc':'#f6f6f0',hd,[e*16,38,28]);const lx=bs==5?Math.cos(t/110+e)*4:0,ly=bs==5?Math.sin(t/110+e)*4:-1;add(ang?B_.pupS:B_.pup,'#111',hd,[e*16+lx,38+ly,38.3])}
+ if(showF)add({v:[[-10,0,0],[10,0,0],[13,mo,0],[-13,mo,0]],f:[[0,1,2,3]],cp:[0,mo/2,-12]},'#2a1015',hd,[0,6,31.4]);
+ if(showF)for(let i=0;i<4;i++)add({v:[[-2.7,0,0],[2.7,0,0],[2.7,6,0],[-2.7,6,0]],f:[[0,1,2,3]],cp:[0,3,-12]},'#f1ead2',hd,[-9+i*6,6+mo-6,31.8]);
+ if(showF)for(const q of[-5,5])add({v:[[-3,0,0],[3,0,0],[3,4,0],[-3,4,0]],f:[[0,1,2,3]],cp:[0,2,-12]},'#f1ead2',hd,[q,6,31.8]);
  for(const s of[-1,1]){const sw=bs==0||run?wk*amp*s*.9:Math.sin(t/300+s)*.05;let rx=sw,sp=.12;
   if(bs==1||bs==2||arm>0){rx=sw*(1-arm)-2.85*arm;sp=.12+.1*arm}
   if(bs==4){rx=.9;sp=.2}else if(bs==3){rx=.6;sp=.3}else if(bs==5){rx=Math.sin(t/160+s)*.5;sp=.5+Math.sin(t/200)*.2}else if(bs==6){rx=-.35;sp=1.15}
@@ -574,7 +584,7 @@ function draw(){requestAnimationFrame(draw);const s=snap,t=Date.now(),dtf=Math.m
  const arrow=(tx,ty,col,lb)=>{const dx=tx-cx,dy=ty-cy;if(Math.abs(dx)>W/2||Math.abs(dy)>H/2){const a=Math.atan2(dy,dx),q=Math.min(W,H)/2-90;X.fillStyle=col;poly(W/2+Math.cos(a)*q,H/2+Math.sin(a)*q,22,3,a);if(lb)txt(lb,W/2+Math.cos(a)*(q-32),H/2+Math.sin(a)*(q-32),16,col)}};
  const bz=s.Z.find(z=>z[2]==3);if(bz&&me)arrow(bz[0],bz[1],'#f0f');if(s.sh&&me)arrow(s.sh[0],s.sh[1],'#fc3','LOJA');if(s.bp&&me)arrow(s.bp[0],s.bp[1],'#f33','BOSS');
  if(s.bp){const pu=1+Math.sin(t/110)*.08;txt('⚠ BOSS CHEGANDO EM '+s.bp[2]+'s ⚠',W/2,MOB?26:44,(MOB?18:30)*pu,'#ff4040')}
- const hk=MOB?.6:1,WW=W/hk,MMW=130,f=MMW/MW,MMH=MH*f,mx0=WW-MMW-10;X.save();X.scale(hk,hk);
+ const hk=hkF(),WW=W/hk,MMW=130,f=MMW/MW,MMH=MH*f,mx0=WW-MMW-10;X.save();X.scale(hk,hk);
  {const L=s.P.slice().sort((a,b)=>b[18]-a[18]),ry=MMH+20;X.fillStyle='#000a';X.fillRect(WW-190,ry,180,28+L.length*24);txt('🏆 Abates',WW-100,ry+14,16,'#fc3');L.forEach((p,i)=>{X.font='16px sans-serif';X.fillStyle=p[0]==id?'#ff0':p[2];X.textAlign='left';X.fillText((i+1)+'. '+p[1].replace(/&lt;/g,'<').slice(0,10),WW-182,ry+40+i*24);X.textAlign='right';X.fillText(p[18],WW-16,ry+40+i*24)})}
  if(me){const[,,,,,hp,mx,dead,cw,lv,xp,nd,df,,,wl]=me;
   txt(s.sh?'🛒 LOJA — '+s.sh[2]+'s':'ROUND '+s.rd+'   Zumbis: '+s.left,130,22,22,'#fff');bar(10,40,240,hp/mx,'#3e3');bar(10,50,240,xp/nd,'#5cf');
