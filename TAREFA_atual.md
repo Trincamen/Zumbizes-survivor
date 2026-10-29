@@ -1,40 +1,38 @@
-# TAREFA_atual.md — Jogador 3D (jogador.glb) no lugar do sprite `person()`
+# TAREFA_atual.md — Jogador 3D: trote sem deslizar, correr ao acelerar, duas mãos na arma
 
 > Agente: OpenCode `rapido` (via `escritor`). Se falhar, parar e escrever bloqueio em `saidas/relatorio.txt` (≤15 linhas).
-> `game.html` tem linhas enormes: NUNCA leia inteiro nem imprima a linha `const PGLB=` (96 KB). Use `grep -n -o 'function nome' game.html` e `sed -n 'A,Bp' | cut -c1-600`.
+> `game.html` tem linhas enormes: NUNCA leia inteiro nem imprima a linha `const PGLB=` (96 KB). Use `grep -n -o 'function drawPlayer' game.html` e `sed -n 'A,Bp' game.html | cut -c1-400`. Só mexer no bloco "Jogador 3D" (`function pgSample` … fim de `drawPlayer`) e na chamada de `drawPlayer` do jogador vivo.
 
-## Objetivo
-Desenhar os jogadores (vivos, caídos e os 4 heróis do menu) com o modelo `jogador.glb`, já embutido em base64 na const `PGLB` (antes de `function bushFront`). Zumbis, vendedor e boss continuam com `person()`/`drawBoss`. Todas as animações atuais têm de continuar (andar, mirar, atirar com recuo, cair).
+## Problemas (reportados pelo usuário)
+1. Andar parece deslizar/travado: a cadência do clip não acompanha a velocidade real (jogo anda 150–336 px/s; o clip `walk` só cobre ~46 px/s).
+2. Ao acelerar (remédio ou acerto da barra azul da recarga) tem de aparecer animação de CORRER. Andar normal deve parecer um TROTE (corrida leve), não caminhada.
+3. De lado se vê que o jogador segura a arma com UMA mão: a mão esquerda tem de segurar a arma também.
 
-## Fatos do GLB (já analisados; não reanalise)
-- 11 nós, SEM skin: partes rígidas. Nós: 0 player(raiz; filhos 1,2,3,4,10), 1 hips, 2 leg_l, 3 leg_r, 4 torso(filhos 5 head, 6 arm_l, 7 arm_r), 8 weapon_socket (filho de arm_r=7), 9 muzzle_hint, 10 camera_target. Nós têm `translation`/`rotation`(quat xyzw) em repouso; sem scale. Meshes 0..6 = hips, leg_l, leg_r, torso, head, arm_l, arm_r (nó i ↔ mesh via campo `mesh` do nó).
-- Mesh: POSITION float32 vec3, COLOR_0 uint8 vec4 normalizado, índices uint16, modo 4 (triângulos), ~1850 triângulos no total, cores por vértice (sem textura). Bufferviews sem stride, offsets alinhados.
-- Unidades: metros, Y-up, pés em y=0, olha para +Z, altura 1.78.
-- Animações (LINEAR; canais translation/rotation por nó): `idle`(2.6s) `walk`(1.0s) `run`(0.6s) `idle_aim` `walk_aim`(1.0s) `run_aim`(0.6s) em loop; `shoot`(0.35s, só torso/head/arm_l/arm_r) e `die`(1.0s) uma vez.
-- Cor da camisa do jogador: vértices de cor exata (58,94,158), (44,72,124), (40,62,106) nas meshes torso(3), arm_l(5), arm_r(6). Devem ser trocados pela cor do jogador `c` (hex), preservando o tom: fator k = azul_do_vértice/158.
-
-## Arquivos
-- PODE editar: `game.html` (só o necessário). NÃO tocar: `server.js`, workflows, `package*.json`.
+## Dados do GLB (já medidos; não reanalise)
+- Pernas (rotação X, rad): walk ±0.45, run ±0.87. Braços: walk -0.66..0.24, run -1.05..0.63. Bob do nó raiz: walk 0..0.03, run 0..0.06. Torso inclina: walk 0.06..0.11, run 0.22..0.27 (versões `_aim` ≈ iguais nas pernas; braços das `_aim` já seguram a arma à frente: arm_l x≈-1.35 y -0.22 z -0.27, arm_r x≈-1.5).
+- Comprimento da perna ≈ 0.9 m; braço (mesh arm_l/arm_r) vai de y=+0.075 a y=-0.72 no seu eixo local (pende em -Y).
+- Nós: 4 torso; 6 arm_l; 7 arm_r; 8 weapon_socket (filho de 7; cano da arma em +Z local do socket). 6 não tem filhos.
+- Sinais do snapshot para o jogador: `e[21]` = segundos de boost de remédio (velocidade ×1.4), `e[30]` = boost da barra azul da recarga (×1.15). Velocidade normal 150·p.sp (150..240 px/s).
 
 ## Passos
-A. Novo bloco logo DEPOIS da linha `const PGLB=...;` (em linhas curtas, sem tocar a linha PGLB):
- 1. Loader: `atob(PGLB)` → Uint8Array; ler chunks (JSON 0x4E4F534A, BIN 0x004E4942); acessores via `slice` do ArrayBuffer (alinhamento). Montar: pais/filhos dos nós, pose de repouso (T,R), para cada mesh: posições, cor média por triângulo, fator de camisa por triângulo (0 se não é camisa), nó dono de cada vértice; clips (times/valores por canal, duração, loop). Envolver em try/catch: se falhar, `PG=null` e o jogo volta a usar `person()` (fallback).
- 2. Arma provisória no nó 8 (weapon_socket): 2 caixas em triângulos, coordenadas locais com cano em +Z: corpo escuro `#222` (0.07×0.09×0.5, de z=0.05 a 0.55) e caixa colorida com a cor `o.gun` (0.05×0.05×0.25 sobre o cano, z de 0.30 a 0.55). (As armas .glb reais virão numa tarefa futura.)
- 3. `function drawPlayer(x,y,o)`; `o`: `k` (chave de estado: pid ou 'm0'..'m3'), `fa` (ângulo do corpo, rad, 0=leste, π/2=sul), `aim` (ângulo da mira ou null), `c` (cor da camisa), `gun` (cor da arma), `ring` (cor do anel ou null), `shot` (Date.now() do último tiro ou 0), `dead` (true/false), `idle` (true no menu), `t` (Date.now()). Estado por `k` em `PGS={}`: yaw suavizado, fase dos clips, posição anterior (para velocidade), instante da morte.
- 4. Pose por frame: esqueleto = repouso + clip base; mistura (crossfade ~0.15 s, slerp/nlerp de quats e lerp de translações) entre o clip anterior e o novo quando o clip muda.
-   - Clip base: `dead` → `die` com tempo = min(dur, (t−instante da primeira vez morto)/1000), sem loop (segura a última pose; ao reviver zera). Senão velocidade `sp` (px/s, suavizada por EMA, calculada de x,y entre frames com `DT_`): sp<6 → idle; 6≤sp<200 → walk, taxa de reprodução sp/150; sp≥200 → run, taxa sp/210. Se `o.aim!=null` usar a versão `_aim` do clip. `o.idle` força `idle_aim`.
-   - Atirar: se `t−o.shot < 350` ms, sobrescrever os canais do clip `shoot` (arm_l, arm_r, head, torso) com `shoot` no tempo (t−shot)/1000 (se não há mira use `shoot` mesmo assim).
- 5. Orientação: ângulo alvo = `o.aim!=null ? o.aim : o.fa`; `psi = π/2 − ângulo`; suavizar `yaw += ad(psi,yaw)*Math.min(1,DT_*14)` (usar `ad` existente; ver como `drawBoss` faz com `BYAW`). Rotacionar todo o modelo em Y por `yaw`.
- 6. Projeção e desenho: reutilizar o do boss: `SE, CE, K2, LV` (globais existentes), coordenada em metros → tela: `sx = x + X*S`, `sy = y − (Y − Z*K2)*S` com `S=27` px/m (cabeça ~48 px acima de y). Culling: normal da face `n` (produto vetorial, normalizada) e descartar se `n[1]*SE+n[2]*CE<=0.02`; profundidade `d=média(Y*SE+Z*CE)`, ordenar crescente (painter) por jogador; cor = cor do triângulo (camisa: `rgbOf(c)*k`) × luz `l=.38+.78*max(0,n·LV)`; `fillStyle` e `strokeStyle` iguais, `lineWidth=.6` (esconde frestas). Antes do corpo: sombra `ell(x,y,13,5,'rgba(0,0,0,.4)')` e, se `o.ring`, `ell(x,y,18,7,o.ring,1)` (mesmo que `person`). Evitar alocar objetos pesados por triângulo (usar arrays tipados/indices).
- 6b. Se `PG==null` → chamar `person()` com os parâmetros equivalentes antigos (fallback).
-B. Trocar as chamadas (achar com `grep -n -o 'person(x,y,{s:1,fa:e\[17\]' game.html` e inspecionar com `cut`):
- 1. Jogador vivo (ramo `else{if((e[30]|0)>0)ell(...)...person(x,y,{s:1,fa:e[17]/10,...`): substituir `person(...)` por `drawPlayer(x,y,{k:pid,fa:e[17]/10,aim:e[25]>0?e[24]/10:null,c:c,gun:WC[cw],ring:c,shot:LSH[pid]||0,dead:false,t:t})`. Manter o anel de escudo, `reloadRing`, barra de vida, nome, `▼` e `reloadPill`.
- 2. Jogador caído (ramo `if(dead){...}`): trocar só o sprite achatado (`X.fillStyle=c;X.fillRect(x-18,y-10,36,12);X.fillStyle='#e8bb98';X.beginPath();X.arc(x+22,y-4,7,0,7);X.fill();`) por `drawPlayer(x,y,{k:pid,fa:e[17]/10,aim:null,c:c,gun:'#222',ring:null,shot:0,dead:true,t:t})`; manter `✖`, anel `ell(x,y,34,14,c,1)` e o texto "(caído)".
- 3. Heróis do menu (`const cs=[...];for(let i=0;i<4;i++)person(W*.5+i*W*.075,...`): trocar por `drawPlayer(W*.5+i*W*.075,H*.98-(i%2)*10,{k:'m'+i,fa:-1.3+i*.15,aim:null,c:cs[i],gun:'#ddd',ring:null,shot:0,dead:false,idle:true,t:t})`. Escala: o `S` do menu deve acompanhar `zs*2` (use um parâmetro `o.s` multiplicando `S`; no jogo `s=1`).
-C. Não remover `person()` (ainda usada por zumbis, vendedor, boss do menu e fallback).
+A. Chamada do jogador vivo (`drawPlayer(x,y,{k:pid,fa:e[17]/10,aim:...`): acrescentar `fast:(e[21]|0)>0||(e[30]|0)>0`. (Na chamada do caído e do menu não precisa.)
+B. Locomoção sempre com os clips `_aim` (o jogador sempre segura a arma à frente; `o.aim` só decide a direção do corpo). Remover o uso de `walk`, `run`, `idle` sem `_aim` e a variável `rate`. Estados de clip: `die` (se `o.dead`), `idle_aim` (parado: `st.sp<6` ou `o.idle`) e `loco` (movendo).
+   - Separar fases: `st.it` (segundos acumulados, só para idle_aim: `st.it+=DT_`) e `st.ph` (fase da locomoção em CICLOS, 0..1). Campos novos em `st`: `ph:0,it:0,b:0,f:2`.
+   - Para `loco`: 
+     - `bt = o.fast ? 1 : .55*clamp((st.sp-40)/80,0,1)`; `st.b += (bt-st.b)*Math.min(1,DT_*6)`.
+     - `A = .45+.42*st.b` (amplitude da perna); `D = 4*.9*Math.sin(A)*27` (px por ciclo); `ft = clamp(st.sp/D*.85, 1.2, 3.4)`; `st.f += (ft-st.f)*Math.min(1,DT_*8)`; `st.ph = (st.ph+DT_*st.f)%1`.
+     - Pose = mistura de `walk_aim` (tempo `st.ph*dur_walk_aim`) e `run_aim` (tempo `st.ph*dur_run_aim`) com peso `st.b` para o run: função nova `pgLoco(ph,b)` que usa `pgPose` para amostrar `walk_aim` em `PG.PGT/PGR`, copia para arrays temporários novos (criar em `PG`: `TMT=new Float32Array(NN*3)`, `TMR=new Float32Array(NN*4)`), amostra `run_aim` em `PG.PGT/PGR` e mistura: translação lerp; quaternion nlerp com inversão de sinal se o produto escalar < 0, normalizar. O resultado fica em `PG.PGT/PGR` (o resto do pipeline — crossfade, overlay do `shoot` — continua igual; a mudança de `cn` entre `idle_aim`↔`loco`↔`die` usa o crossfade que já existe).
+   - `idle_aim`: tempo do clip = `st.it % dur`. `die`: como está.
+C. IK da mão esquerda (só se `!o.dead`). Logo DEPOIS do loop que calcula `R` (3x3 por nó, 9 floats) e `Wt` (translação por nó) e ANTES do loop dos triângulos:
+   - Constante `PGFG=.35` (distância do apoio da arma, em metros, ao longo do cano a partir da empunhadura).
+   - `G = Wt[8] + R8·(0,0,PGFG)` (R8 = matriz 3x3 do nó 8, linhas `R[72..80]`; coluna Z = `R[74],R[77],R[80]`). Ombro esquerdo = `Wt[6]`. `d = normalize(G − Wt[6])`.
+   - Direção atual do braço `a0 = R6·(0,−1,0)` = `(−R[55],−R[58],−R[61])` (coluna −Y de R6; R6 ocupa `R[54..62]`).
+   - Rotação de arco mínimo de `a0` para `d` (Rodrigues: `v=a0×d`, `c=a0·d`; se `c<-0.999` não fazer nada; `M = I + [v]× + [v]×²/(1+c)`), e substituir `R6 := M·R6` (escrever de volta em `R[54..62]`). `Wt[6]` não muda.
+   - Isso vale para idle_aim, loco e shoot (sempre que vivo).
+D. Manter o fallback `person()` quando `PG==null`. Manter caído (`dead`) e menu (`idle:true`) funcionando (menu usa `idle_aim`).
 
 ## Critério de pronto
 1. `node --check` do script extraído de `game.html` sem erro.
-2. `grep -c 'drawPlayer(' game.html` ≥ 4 (definição + 3 usos); `person(` continua definida.
-3. Nada além de `game.html` alterado (`git status --short`).
-4. (Claude testa no navegador depois: menu e partida solo.)
+2. `grep -c "'walk'\|'run'" game.html` não pode achar uso dos clips sem `_aim` no `drawPlayer`.
+3. Só `game.html` alterado (`git status --short`).
+4. (Claude testa no navegador depois: andar, boost, mão esquerda de lado.)
