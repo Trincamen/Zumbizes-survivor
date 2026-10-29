@@ -30,7 +30,7 @@ Usuário olhar o jogador 3D na partida e, se OK, commitar. Depois, em ordem suge
 ## Decisões já tomadas (não reabrir)
 - O jogo é infinito, sem condição de vitória; não criar "fim"/"vitória" sem pedido do usuário.
 - Metodologia multiagente = a da referência (formato fixo abaixo); só o conteúdo é novo.
-- `game.html` é arquivo único de propósito (o `server.js` e o APK o servem/copiam por nome: `cp game.html apk/www/index.html`). Não dividir em módulos sem decisão do usuário.
+- Código-fonte em `src/` (decisão do usuário, 2026-10-29); `game.html` é GERADO por `node build.js` e commitado, porque o `server.js`, o Dockerfile (`COPY server.js game.html`) e o APK (`cp game.html apk/www/index.html`) o usam por nome. Hospedagem continua igual (deploy do git pelo Dockerfile). Próximos passos combinados: armas GLB, cenário como imagens pré-desenhadas, minificação/ofuscação no build.
 - Host-autoritativo: simulação roda no host, clientes recebem snapshots (`onSnap`); relay não interpreta o jogo.
 - Sem dependências no servidor (só Node 18+); mapa determinístico por semente.
 - Multiplayer é só online: sem aba/busca de LAN nem IP manual (decisão do usuário, 2026-10-29). O botão MULTIPLAYER continua.
@@ -38,7 +38,8 @@ Usuário olhar o jogador 3D na partida e, se OK, commitar. Depois, em ordem suge
 - Não criar agentes duplicados; os existentes foram só adaptados (texto de domínio), modelos mantidos.
 
 ## Arquivos que importam
-- `game.html` — todo o jogo (seções: mapa, caminhos, rede, HOST, UI/cliente, desenho 2.5D, boss 3D, sons). Buscar com `grep -n 'function nome' game.html`.
+- `src/` — código-fonte: `index.html` (molde), `style.css`, `js/00-base … 99-iniciar` (mapa, caminhos, rede, host, cliente, desenho, boss, jogador, sons), `assets/jogador.glb`. `build.js` gera `game.html` (`--check` confere). Buscar com `grep -n 'function nome' src/js/*.js`.
+- `game.html` — GERADO (não editar à mão).
 - `server.js` — relay de salas/WebSocket (`/rooms`, `/info`).
 - `Dockerfile` — hospedagem. (`Iniciar.bat`, `LiberarPorta.bat`, `servidor.ps1` — lançadores Windows duplicados do `server.js` — foram removidos em 2026-10-29; recuperáveis pelo git.)
 - `build-apk.yml`, `capacitor.config.json`, `package.json` — APK.

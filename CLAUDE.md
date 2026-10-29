@@ -4,7 +4,7 @@
 
 - O usuário fala português (Brasil). Responda sempre em português.
 - Projeto: jogo de horda de zumbis cooperativo para navegador/Android. `game.html`
-  (arquivo único), `server.js` (relay WebSocket de salas), Capacitor para o APK.
+  (GERADO a partir de `src/` por `node build.js`), `server.js` (relay WebSocket de salas), Capacitor para o APK.
 - Metodologia multiagente herdada de `~/Projetos/spuermetroid navegador/`
   (somente referência de método; não copie dados, decisões ou tarefas dele).
 - **Reaproveite o que existe. Não recrie nem renomeie nada sem perguntar.**
@@ -21,7 +21,7 @@
 ## Fluxo normal de trabalho
 
 1. **Retomar:** leia `RETOMADA.md` e `TAREFA_atual.md`.
-2. **Analisar:** subagente `analista`, um item por vez (grep em `game.html`).
+2. **Analisar:** subagente `analista`, um item por vez (grep em `src/js/`).
 3. **Especificar:** atualize `TAREFA_atual.md` com objetivo, arquivos e critério
    de pronto, curto e sem ambiguidade.
 4. **Delegar:** commit antes. Depois o subagente `escritor` roda o OpenCode.
@@ -30,8 +30,11 @@
 
 ## Regras para economizar cota
 
-- `game.html` tem linhas enormes (~109 KB). Nunca leia inteiro: use
-  `grep -n 'function nome' game.html` e ranges curtos.
+- **Código-fonte fica em `src/`** (`src/js/NN-secao.js`, `src/style.css`, `src/index.html`,
+  `src/assets/*.glb`). Edite SEMPRE `src/`, depois rode `node build.js` e commite `src/` +
+  `game.html` juntos (Docker e APK usam o `game.html` gerado). `node build.js --check` confere.
+  Nunca edite `game.html` à mão. Nunca imprima `game.html` (linhas enormes, ~216 KB com o GLB
+  em base64): use `grep -n 'function nome' src/js/*.js` e ranges curtos.
 - Nunca traga a saída completa do OpenCode para o contexto.
 - Ao fechar um assunto, atualize `RETOMADA.md` e sugira sessão nova.
 - Use Sonnet por padrão. Opus só para problema realmente difícil, com permissão.

@@ -1,7 +1,7 @@
 # Regras do projeto — Zombizes Survivor / Horda Cooperativa (jogo web co-op de zumbis)
-- Jogo inteiro em `game.html` (arquivo único; linhas muito longas): achar código com `grep -n 'function nome' game.html` e ler só ranges curtos.
+- Código-fonte em `src/` (`src/js/NN-secao.js` em ordem alfabética, `src/style.css`, `src/index.html`, `src/assets/*.glb`). `game.html` é GERADO: edite só `src/` e rode `node build.js` (confira com `node build.js --check`). Achar código com `grep -n 'function nome' src/js/*.js` e ler só ranges curtos. Nunca imprima `game.html`.
 - `server.js` = relay WebSocket de salas, sem dependências (Node 18+). Host-autoritativo: a simulação roda no host (`// HOST: simulação`), clientes recebem snapshots.
-- APK: workflow `build-apk.yml` copia `game.html` para `apk/www/index.html` (Capacitor). Não renomear `game.html`.
+- APK: workflow `build-apk.yml` copia `game.html` para `apk/www/index.html` (Capacitor). Não renomear `game.html` (gerado, commitado).
 - Não editar `server.js`, workflows, `Dockerfile`, `package*.json` sem estar na spec.
 - Referência de método (NÃO é estado deste projeto): `~/Projetos/spuermetroid navegador/RETOMADA.md`.
 
