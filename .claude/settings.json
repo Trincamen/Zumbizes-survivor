@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Grep",
+      "Glob",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(opencode run:*)",
+      "Bash(python3 sm_*.py:*)",
+      "Bash(node /tmp/opencode/harness_*.js:*)",
+      "Bash(tail:*)",
+      "Bash(stat:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git push:*)",
+      "Edit(//**/*.sfc)",
+      "Edit(viewer_ok_*/**)"
+    ]
+  }
+}
