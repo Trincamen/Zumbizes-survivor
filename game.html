@@ -519,7 +519,7 @@ try{PG=(()=>{
   for(const ch of an.channels){const sm=an.samplers[ch.sampler],ti=acc(sm.input),va=acc(sm.output),nq=ch.target.path==='rotation';
    if(ti.length)dur=Math.max(dur,ti[ti.length-1]);chs.push({node:ch.target.node,q:nq,t:ti,v:va,nc:nq?4:3})}
   CLP[an.name]={ch:chs,dur:dur||.001,loop:an.name!=='shoot'&&an.name!=='die'}}
- return {NN,PAR,RT,RR,ORD,GEO,CLP,TOT,WRT:new Float32Array(NN*9),WT:new Float32Array(NN*3),PGT:new Float32Array(NN*3),PGR:new Float32Array(NN*4),XY:new Float32Array(TOT*6),CL:new Uint8Array(TOT*3),DP:new Float32Array(TOT),OR:new Int32Array(TOT)}
+ return {NN,PAR,RT,RR,ORD,GEO,CLP,TOT,WRT:new Float32Array(NN*9),WT:new Float32Array(NN*3),PGT:new Float32Array(NN*3),PGR:new Float32Array(NN*4),TMT:new Float32Array(NN*3),TMR:new Float32Array(NN*4),XY:new Float32Array(TOT*6),CL:new Uint8Array(TOT*3),DP:new Float32Array(TOT),OR:new Int32Array(TOT)}
 })()}catch(e){PG=null}
 const pgHex=h=>h.length==4?'#'+h[1]+h[1]+h[2]+h[2]+h[3]+h[3]:h;
 function pgSample(ch,time,out,off){const ts=ch.t,v=ch.v,n=ts.length,nc=ch.nc;if(!n)return;
@@ -534,23 +534,34 @@ function pgSample(ch,time,out,off){const ts=ch.t,v=ch.v,n=ts.length,nc=ch.nc;if(
  else for(let c=0;c<nc;c++)out[off+c]=v[p+c]+(v[q+c]-v[p+c])*f}
 function pgPose(clip,time,filt){const T=PG.PGT,R=PG.PGR;T.set(PG.RT);R.set(PG.RR);if(!clip)return;
  for(const ch of clip.ch){if(filt&&!filt[ch.node])continue;pgSample(ch,time,ch.q?R:T,ch.node*(ch.q?4:3))}}
+function pgLoco(ph,b){const w=PG.CLP.walk_aim,r=PG.CLP.run_aim,TM=PG.TMT,TR=PG.TMR,NN=PG.NN;
+ if(!w||!r){pgPose(w||r||null,ph);return}
+ pgPose(w,ph*w.dur);TM.set(PG.PGT);TR.set(PG.PGR);
+ pgPose(r,ph*r.dur);
+ const T=PG.PGT,R=PG.PGR;
+ for(let i=0;i<NN;i++){const i3=i*3;
+  T[i3]=TM[i3]+(T[i3]-TM[i3])*b;T[i3+1]=TM[i3+1]+(T[i3+1]-TM[i3+1])*b;T[i3+2]=TM[i3+2]+(T[i3+2]-TM[i3+2])*b;
+  const i4=i*4;let x0=TR[i4],y0=TR[i4+1],z0=TR[i4+2],w0=TR[i4+3],x1=R[i4],y1=R[i4+1],z1=R[i4+2],w1=R[i4+3];
+  if(x0*x1+y0*y1+z0*z1+w0*w1<0){x1=-x1;y1=-y1;z1=-z1;w1=-w1}
+  const nx=x0+(x1-x0)*b,ny=y0+(y1-y0)*b,nz=z0+(z1-z0)*b,nw=w0+(w1-w0)*b,l=Math.hypot(nx,ny,nz,nw)||1;
+  R[i4]=nx/l;R[i4+1]=ny/l;R[i4+2]=nz/l;R[i4+3]=nw/l}}
 function drawPlayer(x,y,o){const t=o.t||Date.now(),s=o.s||1;
  if(!PG){person(x,y,{s,fa:o.fa,ph:t/150,sh:o.c,pn:'#223',sk:'#e8bb98',hr:'#321',ey:'#111',gun:o.gun,ring:o.ring,aim:o.aim,rec:o.shot?Math.max(0,1-(t-o.shot)/130):0});return}
- const NN=PG.NN,st=PGS[o.k]||(PGS[o.k]={yaw:null,sp:0,px:x,py:y,ph:0,clip:'',blend:0,dt:0,lt:new Float32Array(NN*3),lr:new Float32Array(NN*4),paT:null,paR:null});
+ const NN=PG.NN,clamp=(v,a,b)=>v<a?a:v>b?b:v,st=PGS[o.k]||(PGS[o.k]={yaw:null,sp:0,px:x,py:y,ph:0,it:0,b:0,f:2,clip:'',blend:0,dt:0,lt:new Float32Array(NN*3),lr:new Float32Array(NN*4),paT:null,paR:null});
  const dd=Math.hypot(x-st.px,y-st.py);st.px=x;st.py=y;
  const iv=dd/Math.max(.001,DT_);st.sp+=(iv-st.sp)*Math.min(1,DT_*8);
- let cn,rate=1;
+ let cn;
  if(o.dead){cn='die';if(!st.dt)st.dt=t}
- else{st.dt=0;const am=o.aim!=null;
-  if(o.idle)cn='idle_aim';
-  else if(st.sp<6)cn=am?'idle_aim':'idle';
-  else if(st.sp<200){cn=am?'walk_aim':'walk';rate=st.sp/150}
-  else{cn=am?'run_aim':'run';rate=st.sp/210}}
- const clip=PG.CLP[cn]||PG.CLP.idle||{ch:[],dur:.001,loop:true};
- st.ph+=DT_*rate;
- const ct=o.dead?Math.min(clip.dur,(t-st.dt)/1000):(clip.loop?st.ph%clip.dur:Math.min(clip.dur,st.ph));
+ else{st.dt=0;cn=(o.idle||st.sp<6)?'idle_aim':'loco'}
+ const clip=cn==='loco'?null:(PG.CLP[cn]||PG.CLP.idle_aim||{ch:[],dur:.001,loop:true});
+ let ct=0;
+ if(o.dead)ct=clip?Math.min(clip.dur,(t-st.dt)/1000):0;
+ else if(cn==='loco'){const bt=o.fast?1:.55*clamp((st.sp-40)/80,0,1);st.b+=(bt-st.b)*Math.min(1,DT_*6);
+  const A=.45+.42*st.b,D=4*.9*Math.sin(A)*27,ft=clamp(st.sp/D*.85,1.2,3.4);
+  st.f+=(ft-st.f)*Math.min(1,DT_*8);st.ph=(st.ph+DT_*st.f)%1}
+ else{st.it+=DT_;if(clip)ct=st.it%clip.dur}
  if(cn!==st.clip){if(st.paT){st.paT=st.lt;st.paR=st.lr;st.lt=new Float32Array(NN*3);st.lr=new Float32Array(NN*4);st.blend=.15}else{st.paT=st.lt;st.paR=st.lr;st.lt=new Float32Array(NN*3);st.lr=new Float32Array(NN*4);st.blend=0}st.clip=cn}
- pgPose(clip,ct);
+ if(cn==='loco')pgLoco(st.ph,st.b);else pgPose(clip,ct);
  if(st.blend>0&&st.paT){const w=1-st.blend/.15,T=PG.PGT,R=PG.PGR;
   for(let i=0;i<NN;i++){for(let c=0;c<3;c++){const ix=i*3+c;T[ix]+=(st.paT[ix]-T[ix])*(1-w)}
    const q=st.paR;let x0=R[i*4],y0=R[i*4+1],z0=R[i*4+2],w0=R[i*4+3],x1=q[i*4],y1=q[i*4+1],z1=q[i*4+2],w1=q[i*4+3];
@@ -572,6 +583,19 @@ function drawPlayer(x,y,o){const t=o.t||Date.now(),s=o.s||1;
    R[i*9+3]=a3*l0+a4*l3+a5*l6;R[i*9+4]=a3*l1+a4*l4+a5*l7;R[i*9+5]=a3*l2+a4*l5+a5*l8;
    R[i*9+6]=a6*l0+a7*l3+a8*l6;R[i*9+7]=a6*l1+a7*l4+a8*l7;R[i*9+8]=a6*l2+a7*l5+a8*l8;
    Wt[i*3]=a0*tx+a1*ty+a2*tz+Wt[p*3];Wt[i*3+1]=a3*tx+a4*ty+a5*tz+Wt[p*3+1];Wt[i*3+2]=a6*tx+a7*ty+a8*tz+Wt[p*3+2]}}
+ if(!o.dead){const PGFG=.35,ox=Wt[18],oy=Wt[19],oz=Wt[20],gx=Wt[24]+R[74]*PGFG,gy=Wt[25]+R[77]*PGFG,gz=Wt[26]+R[80]*PGFG;
+  let dx=gx-ox,dy=gy-oy,dz=gz-oz;const gl=Math.hypot(dx,dy,dz);
+  if(gl>1e-4){dx/=gl;dy/=gl;dz/=gl;
+   const ax=-R[55],ay=-R[58],az=-R[61],cx=ay*dz-az*dy,cy=az*dx-ax*dz,cz=ax*dy-ay*dx,dc=ax*dx+ay*dy+az*dz;
+   if(dc>-0.999){const s2=cx*cx+cy*cy+cz*cz,k=1/(1+dc),
+    m00=1+(cx*cx-s2)*k,m01=-cz+cx*cy*k,m02=cy+cx*cz*k,
+    m10=cz+cy*cx*k,m11=1+(cy*cy-s2)*k,m12=-cx+cy*cz*k,
+    m20=-cy+cz*cx*k,m21=cx+cz*cy*k,m22=1+(cz*cz-s2)*k,
+    r0=R[54],r1=R[55],r2=R[56],r3=R[57],r4=R[58],r5=R[59],r6=R[60],r7=R[61],r8=R[62];
+    R[54]=m00*r0+m01*r3+m02*r6;R[55]=m00*r1+m01*r4+m02*r7;R[56]=m00*r2+m01*r5+m02*r8;
+    R[57]=m10*r0+m11*r3+m12*r6;R[58]=m10*r1+m11*r4+m12*r7;R[59]=m10*r2+m11*r5+m12*r8;
+    R[60]=m20*r0+m21*r3+m22*r6;R[61]=m20*r1+m21*r4+m22*r7;R[62]=m20*r2+m21*r5+m22*r8}}
+ }
  const S=27*s,cy_=Math.cos(st.yaw),sy_=Math.sin(st.yaw),XY=PG.XY,CL=PG.CL,DP=PG.DP,OR=PG.OR,TOT=PG.TOT;
  let fc=0;
  for(let ni=0;ni<NN;ni++){const g=PG.GEO[ni];if(!g)continue;
@@ -780,7 +804,7 @@ function draw(){requestAnimationFrame(draw);const s=snap,t=Date.now(),dtf=Math.m
     person(x,y,Object.assign({ph:ph_,fa:fz/10,ey:'#f22',zm:1},c));if(h<100||k==2)bar(x-14*c.s,y-52*c.s,28*c.s,h/100,'#e33')}}
   else{const[pid,n,c,,,hp,mx,dead,cw]=e,x=r.x,y=r.y,hh=pid.charCodeAt(0)%3,rlf=e[22]|0;
    if(dead){ell(x,y,20,9,'rgba(0,0,0,.4)');drawPlayer(x,y,{k:pid,fa:e[17]/10,aim:null,c:c,gun:'#222',ring:null,shot:0,dead:true,t:t});txt('✖',x,y-26,24,'#ddd');ell(x,y,34,14,c,1);txt(n+' (caído)',x,y-48,14,'#bbb')}
-   else{if((e[30]|0)>0)ell(x,y,30+Math.sin(t/160)*2,11,'rgba(80,170,255,.6)',1);if(rlf>0)reloadRing(x,y,rlf);drawPlayer(x,y,{k:pid,fa:e[17]/10,aim:e[25]>0?e[24]/10:null,c:c,gun:WC[cw],ring:c,shot:LSH[pid]||0,dead:false,t:t});bar(x-18,y-56,36,hp/mx,'#3e3');txt(n,x,y-66,14,pid==id?'#ff0':'#fff');if(pid==id)txt('▼',x,y-80,14,'#ff0');if(rlf>0)reloadPill(x,y,rlf,t,e[27]|0,e[28]|0,e[29]|0,pid==id)}}}
+   else{if((e[30]|0)>0)ell(x,y,30+Math.sin(t/160)*2,11,'rgba(80,170,255,.6)',1);if(rlf>0)reloadRing(x,y,rlf);drawPlayer(x,y,{k:pid,fa:e[17]/10,aim:e[25]>0?e[24]/10:null,c:c,gun:WC[cw],ring:c,shot:LSH[pid]||0,dead:false,fast:(e[21]|0)>0||(e[30]|0)>0,t:t});bar(x-18,y-56,36,hp/mx,'#3e3');txt(n,x,y-66,14,pid==id?'#ff0':'#fff');if(pid==id)txt('▼',x,y-80,14,'#ff0');if(rlf>0)reloadPill(x,y,rlf,t,e[27]|0,e[28]|0,e[29]|0,pid==id)}}}
  drawMark(s,t);edges('b');drawFX();drawProj(s,dtf);if(s.sh){const b=bAt(s.sh[0],s.sh[1]);if(b&&b!==meB)txt('🛒 LOJA',b.x+b.w/2,b.y-b.H-22+Math.sin(t/200)*4,26,'#fc3')}
  for(const[x,y,pg]of s.K){if(pg<1){X.fillStyle='rgba(255,40,40,'+(.12+pg*.25)+')';X.beginPath();X.arc(x,y,70,0,7);X.fill();X.strokeStyle='#f88';X.lineWidth=3;X.beginPath();X.arc(x,y,70,0,7);X.stroke();X.strokeStyle='#f22';X.beginPath();X.arc(x,y,70*pg,0,7);X.stroke();}
   else{const q=pg-1;X.strokeStyle='rgba(210,185,140,'+(1-q)+')';X.lineWidth=8;X.beginPath();X.arc(x,y,40+q*50,0,7);X.stroke()}}
