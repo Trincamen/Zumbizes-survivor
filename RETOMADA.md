@@ -11,20 +11,21 @@ O trabalho é DIVIDIDO entre Claude e OpenCode para não estourar nenhuma cota (
 - Verificar evidência (diff, teste), nunca aceitar só "terminei".
 
 ## Estado atual
-Jogo funcional em um único `game.html` (~700 linhas longas, ~109 KB): mapa por semente igual em todos os aparelhos, pathfinding em grade (`bfs`), lobby LAN/online/IP/solo, simulação no host (`// HOST: simulação`: zumbis `spawnZ`, loot, loja `openShop`, XP/skills, recarga ativa, boss `startBoss`/`bossAct`), UI/cliente (`onSnap`, controles `setCtl`, opções de câmera `setCam` e HUD `setHud`, joystick), desenho 2.5D, mini motor 3D low poly do boss e sons gerados no código. `server.js` é um relay WebSocket de salas (sem dependências, até 8 jogadores; host = quem cria a sala). Distribuição: Docker (`Dockerfile`), `.bat`/`servidor.ps1` (Windows) e APK Android via Capacitor (workflow `build-apk.yml`, manual). **Nenhuma tarefa em andamento.** O fluxo multiagente foi adaptado a este projeto; a delegação ainda não foi testada de ponta a ponta (ver "Delegação").
+Jogo funcional em um único `game.html` (~700 linhas longas, ~109 KB): mapa por semente igual em todos os aparelhos, pathfinding em grade (`bfs`), lobby LAN/online/IP/solo, simulação no host (`// HOST: simulação`: zumbis `spawnZ`, loot, loja `openShop`, XP/skills, recarga ativa, boss `startBoss`/`bossAct`), UI/cliente (`onSnap`, controles `setCtl`, opções de câmera `setCam` e HUD `setHud`, joystick), desenho 2.5D, mini motor 3D low poly do boss e sons gerados no código. `server.js` é um relay WebSocket de salas (sem dependências, até 8 jogadores; host = quem cria a sala). Distribuição: Docker (`Dockerfile`), `.bat`/`servidor.ps1` (Windows) e APK Android via Capacitor (workflow `build-apk.yml`, manual). **Nenhuma tarefa em andamento** (última: limpeza do menu, ver Registro). O fluxo multiagente foi adaptado a este projeto; a delegação ainda não foi testada de ponta a ponta (ver "Delegação").
 
 ## Último marco concluído
-Commit `16d3233` (2026-10-12): opções de ajuste de HUD e câmera. Antes: `f7a671a` novas formas de andar (controles); `e874114` workflow do APK. (Fonte: `git log`.)
+Commit `5ec2eb3` (2026-10-29): menu sem LAN/rede local e sem campo de servidor online nas Configurações. Antes: `16d3233` (2026-10-12) opções de ajuste de HUD e câmera. Antes: `f7a671a` novas formas de andar (controles); `e874114` workflow do APK. (Fonte: `git log`.)
 
 ## Próximo passo
-**Ao ler este arquivo, diga em 1 linha que entendeu o projeto e PERGUNTE ao usuário: "Qual é a primeira tarefa do jogo?"** (ele ainda não definiu; análise do jogo já feita, ver "Entendimento do jogo"). Não reanalise o jogo. Ao receber a tarefa: (1) `analista` localiza as funções afetadas em `game.html` por grep (nunca ler o arquivo inteiro); (2) escrever spec em `TAREFA_atual.md`; (3) commit antes de delegar (os arquivos de metodologia ainda estão não rastreados; commitá-los junto); (4) `escritor`; (5) revisar o diff e testar no navegador com o método descrito em "Como testar sem humano".
+Perguntar ao usuário qual é a próxima tarefa do jogo. Não reanalisar o jogo. Fluxo: (1) `analista` localiza funções por grep; (2) spec em `TAREFA_atual.md`; (3) commit antes de delegar; (4) `escritor`; (5) revisar diff e testar no navegador (ver "Como testar sem humano").
 
 ## Pendências em ordem
 1. `.claude/settings.json` ainda traz regras do Metroid (`sm_*.py`, `*.sfc`, `viewer_ok_*`; inofensivas); a edição foi bloqueada pelo classificador. Se o usuário quiser limpar, que edite ou autorize.
 2. Confirmar como rodar/testar localmente (`node server.js`, porta 4040 por padrão; Docker usa 8080) e abrir `game.html` em modo solo.
-3. `.githubtest.yml` (duplicata do `build-apk.yml`) foi removido pelo usuário em 2026-10-29; a remoção ainda não foi commitada.
+3. Código morto no menu após a limpeza: `hostLAN`, `joinLAN`, lista `lanSrv` (ainda preenchida em `/info`) e leitura de `LS.get('relay')`. Apagar só se o usuário pedir.
 4. `mnt/user-data/outputs/Horda/apk/package.json` (deps do Capacitor) está em caminho estranho; o `build-apk.yml` faz `cd apk && npm install` e não acha `apk/package.json`/`capacitor.config.json` no repo — **o workflow do APK provavelmente está quebrado (a confirmar rodando no GitHub)**.
-5. `RETOMADA.md`, `TAREFA_atual.md`, `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.opencode/`, `opencode.json` estão **não rastreados** no git.
+5. **APK/app:** sem o campo "Endereço do servidor online", no APK ou `localhost` a lista Online fica vazia (o endereço vinha de `LS.get('relay')`). Precisa fixar o endereço no código; perguntar ao usuário qual é.
+6. Testes no navegador da limpeza do menu ainda não feitos (só `node --check`).
 
 ## Decisões já tomadas (não reabrir)
 - O jogo é infinito, sem condição de vitória; não criar "fim"/"vitória" sem pedido do usuário.
@@ -32,6 +33,7 @@ Commit `16d3233` (2026-10-12): opções de ajuste de HUD e câmera. Antes: `f7a6
 - `game.html` é arquivo único de propósito (o `server.js` e o APK o servem/copiam por nome: `cp game.html apk/www/index.html`). Não dividir em módulos sem decisão do usuário.
 - Host-autoritativo: simulação roda no host, clientes recebem snapshots (`onSnap`); relay não interpreta o jogo.
 - Sem dependências no servidor (só Node 18+); mapa determinístico por semente.
+- Multiplayer é só online: sem aba/busca de LAN nem IP manual (decisão do usuário, 2026-10-29). O botão MULTIPLAYER continua.
 - Os `viewer_ok_*`, ROM e scripts `sm_*` pertencem ao projeto Metroid e **não existem aqui**.
 - Não criar agentes duplicados; os existentes foram só adaptados (texto de domínio), modelos mantidos.
 
@@ -68,3 +70,4 @@ Estado atual · Último marco · Próximo passo · Pendências · Decisões · A
 
 ## Registro
 - 2026-10-29 (fim da sessão 1): análise do jogo por execução real concluída; usuário confirmou que o jogo é infinito; nenhuma tarefa de jogo definida; nada commitado. Arquitetura multiagente replicada da referência; `RETOMADA.md`/`TAREFA_atual.md`/`CLAUDE.md`/`AGENTS.md`/agentes Claude adaptados ao jogo. Histórico do Metroid permanece só na referência.
+- 2026-10-29 (sessão 2): tarefa 1 concluída. Removidos do menu: caixa do topo "LAN: N servidor(es)" (agora só "Online: N sala(s)"), aba REDE LOCAL (LAN), ícone LAN da faixa `#feat`, textos "rede local", funções `scanLAN`/`probe`/`joinIP` e o campo "Endereço do servidor online" das Configurações. Commits `24a99e1` (metodologia + spec) e `5ec2eb3` (código). Delegado ao `escritor`/`rapido`, revisado por `git diff` + `node --check`; o campo de servidor foi removido direto pelo Claude (edição mínima). Sem teste no navegador.
