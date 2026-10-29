@@ -143,7 +143,7 @@ async function probe(ip,b){const c=new AbortController(),tm=setTimeout(()=>c.abo
 async function scanLAN(){if(scanning)return;if(location.protocol=='https:'){$('lanS').textContent='Para procurar servidores da rede local, abra o jogo pelo endereço http:// do host (ou use o app).';return}
  scanning=1;$('lanS').textContent='🔎 Procurando servidores...';const bs=[],hn=location.hostname;if(/^\d+\.\d+\.\d+\.\d+$/.test(hn))bs.push(hn.split('.').slice(0,3).join('.'));if(LS.get('lanBase'))bs.push(LS.get('lanBase'));bs.push('192.168.0','192.168.1','192.168.15','10.0.0','10.0.1','192.168.100','192.168.2','172.16.0');
  for(const b of[...new Set(bs)]){for(let i=1;i<255;i+=64){await Promise.all(Array.from({length:64},(_,k)=>i+k).filter(n=>n<255).map(n=>probe(b+'.'+n,b)))}if(lanSrv.length)break}
- scanning=0;$('lanS').textContent=lanSrv.length?'':'Nenhum servidor encontrado. Confira se o host abriu o Iniciar.bat (ou digite o IP).';rl()}
+ scanning=0;$('lanS').textContent=lanSrv.length?'':'Nenhum servidor encontrado. Confira se o host iniciou o servidor (node server.js) ou digite o IP.';rl()}
 async function loadRooms(){const b=relayBase();if(!b){$('onS').textContent='Informe o endereço do servidor online em CONFIGURAÇÕES.';return}$('onS').textContent='Carregando...';
  try{onRooms=await(await fetch(b+'/rooms')).json();$('onS').textContent=onRooms.length?'':'Nenhuma sala aberta agora. Crie a sua!'}catch(e){onRooms=[];$('onS').textContent='Não foi possível falar com o servidor online.'}rl()}
 const relayWs=()=>relayBase().replace(/^http/,'ws');

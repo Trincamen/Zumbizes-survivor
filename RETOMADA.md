@@ -23,7 +23,7 @@ Commit `16d3233` (2026-10-12): opções de ajuste de HUD e câmera. Antes: `f7a6
 1. `.claude/settings.json` ainda traz regras do Metroid (`sm_*.py`, `*.sfc`, `viewer_ok_*`; inofensivas); a edição foi bloqueada pelo classificador. Se o usuário quiser limpar, que edite ou autorize.
 2. Confirmar como rodar/testar localmente (`node server.js`, porta 4040 por padrão; Docker usa 8080) e abrir `game.html` em modo solo.
 3. `.githubtest.yml` (duplicata do `build-apk.yml`) foi removido pelo usuário em 2026-10-29; a remoção ainda não foi commitada.
-4. Pasta `mnt/user-data/outputs/Horda/apk/package.json` está versionada; propósito **(a confirmar)**.
+4. `mnt/user-data/outputs/Horda/apk/package.json` (deps do Capacitor) está em caminho estranho; o `build-apk.yml` faz `cd apk && npm install` e não acha `apk/package.json`/`capacitor.config.json` no repo — **o workflow do APK provavelmente está quebrado (a confirmar rodando no GitHub)**.
 5. `RETOMADA.md`, `TAREFA_atual.md`, `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.opencode/`, `opencode.json` estão **não rastreados** no git.
 
 ## Decisões já tomadas (não reabrir)
@@ -38,7 +38,7 @@ Commit `16d3233` (2026-10-12): opções de ajuste de HUD e câmera. Antes: `f7a6
 ## Arquivos que importam
 - `game.html` — todo o jogo (seções: mapa, caminhos, rede, HOST, UI/cliente, desenho 2.5D, boss 3D, sons). Buscar com `grep -n 'function nome' game.html`.
 - `server.js` — relay de salas/WebSocket (`/rooms`, `/info`).
-- `Dockerfile`, `Iniciar.bat`, `LiberarPorta.bat`, `servidor.ps1` — execução/hospedagem.
+- `Dockerfile` — hospedagem. (`Iniciar.bat`, `LiberarPorta.bat`, `servidor.ps1` — lançadores Windows duplicados do `server.js` — foram removidos em 2026-10-29; recuperáveis pelo git.)
 - `build-apk.yml`, `capacitor.config.json`, `package.json` — APK.
 - `AGENTS.md`, `CLAUDE.md`, `opencode.json`, `.claude/`, `.opencode/` — arquitetura multiagente.
 - `TAREFA_atual.md` — spec da tarefa em curso. `saidas/` — logs de agentes (não versionar).
