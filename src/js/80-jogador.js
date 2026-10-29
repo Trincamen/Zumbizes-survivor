@@ -41,7 +41,8 @@ try{PG=(()=>{
   for(const ch of an.channels){const sm=an.samplers[ch.sampler],ti=acc(sm.input),va=acc(sm.output),nq=ch.target.path==='rotation';
    if(ti.length)dur=Math.max(dur,ti[ti.length-1]);chs.push({node:ch.target.node,q:nq,t:ti,v:va,nc:nq?4:3})}
   CLP[an.name]={ch:chs,dur:dur||.001,loop:an.name!=='shoot'&&an.name!=='die'}}
- return {NN,PAR,RT,RR,ORD,GEO,CLP,TOT,WRT:new Float32Array(NN*9),WT:new Float32Array(NN*3),PGT:new Float32Array(NN*3),PGR:new Float32Array(NN*4),TMT:new Float32Array(NN*3),TMR:new Float32Array(NN*4),XY:new Float32Array(TOT*6),CL:new Uint8Array(TOT*3),DP:new Float32Array(TOT),OR:new Int32Array(TOT)}
+ TOT+=600; // folga para a arma real (GLB) no weapon_socket
+ return {NN,PAR,RT,RR,ORD,GEO,CLP,TOT,WS:ws,WRT:new Float32Array(NN*9),WT:new Float32Array(NN*3),PGT:new Float32Array(NN*3),PGR:new Float32Array(NN*4),TMT:new Float32Array(NN*3),TMR:new Float32Array(NN*4),XY:new Float32Array(TOT*6),CL:new Uint8Array(TOT*3),DP:new Float32Array(TOT),OR:new Int32Array(TOT)}
 })()}catch(e){PG=null}
 const pgHex=h=>h.length==4?'#'+h[1]+h[1]+h[2]+h[2]+h[3]+h[3]:h;
 function pgSample(ch,time,out,off){const ts=ch.t,v=ch.v,n=ts.length,nc=ch.nc;if(!n)return;
@@ -105,7 +106,7 @@ function drawPlayer(x,y,o){const t=o.t||Date.now(),s=o.s||1;
    R[i*9+3]=a3*l0+a4*l3+a5*l6;R[i*9+4]=a3*l1+a4*l4+a5*l7;R[i*9+5]=a3*l2+a4*l5+a5*l8;
    R[i*9+6]=a6*l0+a7*l3+a8*l6;R[i*9+7]=a6*l1+a7*l4+a8*l7;R[i*9+8]=a6*l2+a7*l5+a8*l8;
    Wt[i*3]=a0*tx+a1*ty+a2*tz+Wt[p*3];Wt[i*3+1]=a3*tx+a4*ty+a5*tz+Wt[p*3+1];Wt[i*3+2]=a6*tx+a7*ty+a8*tz+Wt[p*3+2]}}
- if(!o.dead){const PGFG=.35,ox=Wt[18],oy=Wt[19],oz=Wt[20],gx=Wt[24]+R[74]*PGFG,gy=Wt[25]+R[77]*PGFG,gz=Wt[26]+R[80]*PGFG;
+ if(!o.dead){const fg=(typeof WFG!=='undefined'&&WFG[o.w])||.35,ox=Wt[18],oy=Wt[19],oz=Wt[20],gx=Wt[24]+R[73]*.05+R[74]*fg,gy=Wt[25]+R[75]*.05+R[77]*fg,gz=Wt[26]+R[76]*.05+R[80]*fg;
   let dx=gx-ox,dy=gy-oy,dz=gz-oz;const gl=Math.hypot(dx,dy,dz);
   if(gl>1e-4){dx/=gl;dy/=gl;dz/=gl;
    const ax=-R[55],ay=-R[58],az=-R[61],cx=ay*dz-az*dy,cy=az*dx-ax*dz,cz=ax*dy-ay*dx,dc=ax*dx+ay*dy+az*dz;
@@ -120,7 +121,7 @@ function drawPlayer(x,y,o){const t=o.t||Date.now(),s=o.s||1;
  }
  const S=27*s,cy_=Math.cos(st.yaw),sy_=Math.sin(st.yaw),XY=PG.XY,CL=PG.CL,DP=PG.DP,OR=PG.OR,TOT=PG.TOT;
  let fc=0;
- for(let ni=0;ni<NN;ni++){const g=PG.GEO[ni];if(!g)continue;
+ for(let ni=0;ni<NN;ni++){const g=(ni===PG.WS&&typeof WPG!=='undefined'&&WPG[o.w])||PG.GEO[ni];if(!g)continue;
   const o9=ni*9,m0=R[o9],m1=R[o9+1],m2=R[o9+2],m3=R[o9+3],m4=R[o9+4],m5=R[o9+5],m6=R[o9+6],m7=R[o9+7],m8=R[o9+8],tx=Wt[ni*3],ty=Wt[ni*3+1],tz=Wt[ni*3+2],P=g.P;
   for(let f=0;f<g.n&&fc<TOT;f++){const b=f*9;
    for(let k=0;k<3;k++){const p3=b+k*3,vx=P[p3],vy=P[p3+1],vz=P[p3+2],
