@@ -120,6 +120,9 @@ function drawPlayer(x,y,o){const t=o.t||Date.now(),s=o.s||1;
     R[60]=m20*r0+m21*r3+m22*r6;R[61]=m20*r1+m21*r4+m22*r7;R[62]=m20*r2+m21*r5+m22*r8}}
  }
  const S=27*s,cy_=Math.cos(st.yaw),sy_=Math.sin(st.yaw),XY=PG.XY,CL=PG.CL,DP=PG.DP,OR=PG.OR,TOT=PG.TOT;
+ if(!o.dead&&typeof WPG!=='undefined'&&WPG[o.w]){const wp=WPG[o.w],md=wp.mz||[0,.1,.5],ws=PG.WS*9,mt0=Wt[PG.WS*3],mt1=Wt[PG.WS*3+1],mt2=Wt[PG.WS*3+2],
+  mw0=R[ws]*md[0]+R[ws+1]*md[1]+R[ws+2]*md[2]+mt0,mw1=R[ws+3]*md[0]+R[ws+4]*md[1]+R[ws+5]*md[2]+mt1,mw2=R[ws+6]*md[0]+R[ws+7]*md[1]+R[ws+8]*md[2]+mt2,
+  mrx=mw0*cy_+mw2*sy_,mry=mw1,mrz=-mw0*sy_+mw2*cy_;st.mz=[x+mrx*S,y-(mry-mrz*K2)*S];st.mzt=t}
  let fc=0;
  for(let ni=0;ni<NN;ni++){const g=(ni===PG.WS&&typeof WPG!=='undefined'&&WPG[o.w])||PG.GEO[ni];if(!g)continue;
   const o9=ni*9,m0=R[o9],m1=R[o9+1],m2=R[o9+2],m3=R[o9+3],m4=R[o9+4],m5=R[o9+5],m6=R[o9+6],m7=R[o9+7],m8=R[o9+8],tx=Wt[ni*3],ty=Wt[ni*3+1],tz=Wt[ni*3+2],P=g.P;

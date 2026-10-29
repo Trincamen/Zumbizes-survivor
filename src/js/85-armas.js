@@ -23,8 +23,8 @@ const WPG=WGLB.map(src=>{try{
      r+=C?C[vi*4]|0:200;g+=C?C[vi*4+1]|0:200;bb+=C?C[vi*4+2]|0:200}
     tc.push(r/3|0,g/3|0,bb/3|0)}}
  }
- const nt=tc.length/3;
- return {P:new Float32Array(tp),C:new Uint8Array(tc),K:new Float32Array(nt),n:nt};
+ const nt=tc.length/3,mn=j.nodes.find(n=>n.name==='muzzle'),mt=mn&&mn.translation;
+ return {P:new Float32Array(tp),C:new Uint8Array(tc),K:new Float32Array(nt),n:nt,mz:mt&&mt.length===3?[mt[0],mt[1],mt[2]]:[0,.1,.5]};
 }catch(e){return null}});
 // distância (m, ao longo do cano a partir da empunhadura) onde a mão esquerda apoia cada arma
 const WFG=[.05,.35,.35,.35,.30,.40];
