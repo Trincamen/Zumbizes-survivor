@@ -43,20 +43,18 @@ canvas{display:block;width:100%;height:100%}
 <div id=net></div>
 <div id=s-main class=scr>
  <button class="mb g" onclick=solo()>▶ JOGAR<small>Sozinho, sem internet</small></button>
- <button class=mb onclick="show('multi')">👥 MULTIPLAYER<small>Rede local e online</small></button>
+ <button class=mb onclick="show('multi')">👥 MULTIPLAYER<small>Jogue online com amigos</small></button>
  <button class=mb onclick="show('set')">⚙ CONFIGURAÇÕES</button>
  <button class=mb onclick="show('how')">📖 COMO JOGAR</button>
  <button class="mb r" onclick=sair()>⏻ SAIR</button></div>
 <div id=s-multi class=scr style=display:none><div class=pn>
- <button class=tb onclick="tabSel('lan')">🏠 REDE LOCAL (LAN)</button><button class=tb onclick="tabSel('on')">🌐 ONLINE</button>
- <div id=tab-lan><div id=lanS></div><div class=lst id=lanL></div><button class=sb onclick=scanLAN()>🔄 PROCURAR</button><span id=hl></span><br><input id=ip placeholder="IP manual (opcional)" style="font-size:15px;padding:6px;width:150px;margin-top:8px"><button class=sb onclick=joinIP()>ENTRAR</button></div>
- <div id=tab-on style=display:none><div id=onS></div><div class=lst id=onL></div><button class=sb onclick=loadRooms()>🔄 ATUALIZAR</button><span id=ho></span></div>
+ <div id=tab-on><div id=onS></div><div class=lst id=onL></div><button class=sb onclick=loadRooms()>🔄 ATUALIZAR</button><span id=ho></span></div>
  <br><button class=sb style="background:#444" onclick="show('main')">← VOLTAR</button></div></div>
-<div id=s-set class=scr style=display:none><div class=pn>Seu nome:<br><input id=nm onchange="LS.set('name',this.value)"><br><br>🎮 Controle:<div id=ctl1></div><br>🖥 Visão:<div style="margin:8px 0">🔍 Câmera: <small>perto</small> <input type=range id=cam1 min=0 max=100 oninput="setCam(this.value)" style="width:55%"> <small>longe</small><br>🧩 HUD: <small>pequeno</small> <input type=range id=hud1 min=0 max=100 oninput="setHud(this.value)" style="width:55%"> <small>grande</small><br><button class=sb style="background:#444" onclick="setCam(50);setHud(43)">Restaurar padrão</button></div>🔊 Efeitos:<br><input type=range id=vol min=0 max=100 oninput="setVol(this.value)" style="width:100%"><br>🎵 Música:<br><input type=range id=mvol min=0 max=100 oninput="setMus(this.value)" style="width:100%"><br><br>Endereço do servidor online:<br><input id=rl placeholder="meujogo.onrender.com" style="font-size:18px" onchange="LS.set('relay',this.value);originKind!='online'&&(onRooms=[])"><br><small>Só é preciso se você NÃO abriu o jogo pelo site online (ex.: no app ou na rede local).</small><br><button class=sb style="background:#444" onclick="show('main')">← VOLTAR</button></div></div>
+<div id=s-set class=scr style=display:none><div class=pn>Seu nome:<br><input id=nm onchange="LS.set('name',this.value)"><br><br>🎮 Controle:<div id=ctl1></div><br>🖥 Visão:<div style="margin:8px 0">🔍 Câmera: <small>perto</small> <input type=range id=cam1 min=0 max=100 oninput="setCam(this.value)" style="width:55%"> <small>longe</small><br>🧩 HUD: <small>pequeno</small> <input type=range id=hud1 min=0 max=100 oninput="setHud(this.value)" style="width:55%"> <small>grande</small><br><button class=sb style="background:#444" onclick="setCam(50);setHud(43)">Restaurar padrão</button></div>🔊 Efeitos:<br><input type=range id=vol min=0 max=100 oninput="setVol(this.value)" style="width:100%"><br>🎵 Música:<br><input type=range id=mvol min=0 max=100 oninput="setMus(this.value)" style="width:100%"><button class=sb style="background:#444" onclick="show('main')">← VOLTAR</button></div></div>
 <div id=s-how class=scr style=display:none><div class=pn><b>Como jogar</b><br>• Toque no chão para andar e no zumbi para atacar. A arma atira sozinha para onde você olha.<br>• Pegue armas, curas e dinheiro nas casas. Hospital = curas, delegacia = armas.<br>• Arraste um slot para fora da barra para soltar o item.<br>• A cada 5 rounds vem um boss. Depois dele abre a loja por 1 minuto.<br>• Desfibrilador revive um aliado caído.<br><button class=sb style="background:#444" onclick="show('main')">← VOLTAR</button></div></div>
 <div id=s-lobby class=scr style="display:none;left:50%;top:8%;transform:translateX(-50%);text-align:center"><div class=pn><h2 style="margin:4px">SALA</h2><div id=rm style="color:#fc3;font-size:22px"></div><div id=pl></div><div id=hc style=display:none>Mínimo para iniciar:<br><button class=sb onclick="minP=Math.max(1,minP-1)">−</button> <b id=mp>1</b> <button class=sb onclick="minP=Math.min(8,minP+1)">+</button><br><button class="mb g" style="margin:10px auto" id=st onclick=start()>INICIAR</button></div><p id=wt>Aguardando o host iniciar...</p></div></div>
 <div id=tag>SOBREVIVA <b>COM SEUS AMIGOS</b><br>E DERROTE OS ZUMBIS!</div>
-<div id=feat><div>👥<br>COOP</div><div>📶<br>LAN</div><div>🌐<br>ONLINE</div><div>🗺<br>MAPAS<br>ALEATÓRIOS</div></div></div>
+<div id=feat><div>👥<br>COOP</div><div>🌐<br>ONLINE</div><div>🗺<br>MAPAS<br>ALEATÓRIOS</div></div></div>
 <div id=end class=ov style=display:none><h1>☠ FIM DE JOGO</h1><div id=er></div><button class=b id=nb onclick=reset() style=display:none>NOVA PARTIDA</button><button class=b onclick=location.reload()>MENU PRINCIPAL</button></div>
 <script>
 const $=s=>document.getElementById(s),C=$('c'),X=C.getContext('2d'),MW=4000,MH=6000,RY0=2700,RY1=3300,MOB=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent),ROWS=[0,1,2,3,4,7,8,9,10,11];
@@ -74,8 +72,8 @@ const CL={10:['✚','Curar'],11:['⚡','Desfib.'],12:['🩹','Bandagem'],13:['�
 const SH=[['🩹 Bandagem',15,9],['💊 Analgésico',60,10],['✚ Kit de cura',60,0],['⚡ Desfibrilador',400,1],['Escopeta',300,2],['Rifle',440,3],['Metralhadora',600,4],['Lança-chamas',520,5],['Sniper',900,11],['★ Melhoria da arma',100,6]];
 const id=Math.random().toString(36).slice(2,8);let host=0,ws,snap=null,me=null,lastBn=null,skKey='',shKey='',ofKey='',LSH={},LVP={},LUE=[],FT=[],PILL=null,wbKey='',O=[],curSd=0,BLD=[],meB=null,IL=[],ZMM=[],FIRES=[],DD={},POP={},FL2=[],PT=[],QK=0,lastEv=0,FXL=[],lastF=0,RP={},FR=0,LT=Date.now();
 const LS={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}},esc=x=>String(x).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
-let originKind='?',lanSrv=[],onRooms=[],scanning=0,tab='lan',rc='';
-$('nm').value=LS.get('name')||'Jogador '+(Math.random()*90+10|0);$('rl').value=LS.get('relay')||'';
+let originKind='?',lanSrv=[],onRooms=[],scanning=0,tab='on',rc='';
+$('nm').value=LS.get('name')||'Jogador '+(Math.random()*90+10|0);
 (async()=>{if(window.Capacitor)originKind='app';else try{const j=await(await fetch('/info')).json();originKind=j.kind;if(j.kind=='lan')lanSrv.push({host:location.host,name:j.name,n:j.n})}catch(e){originKind='none'}rl()})();
 const R=(a,b)=>a+Math.random()*(b-a),need=l=>150+l*90+l*l*10,kOf=c=>c==0?7:c==5?11:c<5?c+1:c==10?0:c==11?1:c==12?9:10,ad=(a,b)=>{let d=a-b;while(d>3.14)d-=6.28;while(d<-3.14)d+=6.28;return d};
 // ---------- mapa (por semente: igual em todos os aparelhos) ----------
@@ -133,24 +131,17 @@ function send(m){host?handle(m):ws.send(JSON.stringify(m))}
 const myName=()=>($('nm').value||'Jogador').slice(0,12),canHost=()=>!MOB&&(originKind=='lan'||originKind=='online'),
  relayBase=()=>{if(originKind=='online')return location.origin;let v=(LS.get('relay')||'').trim();if(!v)return'';if(!/^https?:\/\//.test(v))v='https://'+v;return v.replace(/\/$/,'')};
 function show(n){for(const e of document.querySelectorAll('.scr'))e.style.display='none';$('s-'+n).style.display='block';$('logo').style.display=n=='lobby'?'none':'block';if(n=='multi')tabSel(tab);rl()}
-function tabSel(t){tab=t;$('tab-lan').style.display=t=='lan'?'block':'none';$('tab-on').style.display=t=='on'?'block':'none';if(t=='lan'&&lanSrv.length<2&&!scanning)scanLAN();if(t=='on')loadRooms()}
-function rl(){$('lanL').innerHTML=lanSrv.map(s=>`<div class=it onclick="joinLAN('${esc(s.host)}')"><b>🖥 ${esc(s.name)}</b><span>${s.n} online • ${esc(s.host)}</span></div>`).join('');
+function tabSel(t){tab='on';$('tab-on').style.display='block';loadRooms()}
+function rl(){
  $('onL').innerHTML=onRooms.map(r=>`<div class=it onclick="joinRoom('${esc(r.code)}')"><b>🌐 ${esc(r.name)}</b><span>${r.n}/8 • ${esc(r.code)}</span></div>`).join('');
- $('hl').innerHTML=originKind=='lan'&&!MOB?'<button class=sb onclick=hostLAN()>➕ CRIAR PARTIDA NESTA REDE</button>':'';
  $('ho').innerHTML=relayBase()?'<button class=sb onclick=hostOnline()>➕ CRIAR SALA ONLINE</button>':'';
- $('net').innerHTML='📶 LAN: <b>'+lanSrv.length+'</b> servidor(es) &nbsp; 🌐 Online: <b>'+onRooms.length+'</b> sala(s)'}
-async function probe(ip,b){const c=new AbortController(),tm=setTimeout(()=>c.abort(),600);try{const j=await(await fetch('http://'+ip+':8080/info',{signal:c.signal})).json();if(j.kind=='lan'&&!lanSrv.some(s=>s.host==ip+':8080'||s.host==location.host&&ip==location.hostname)){lanSrv.push({host:ip+':8080',name:j.name,n:j.n});LS.set('lanBase',b);rl()}}catch(e){}clearTimeout(tm)}
-async function scanLAN(){if(scanning)return;if(location.protocol=='https:'){$('lanS').textContent='Para procurar servidores da rede local, abra o jogo pelo endereço http:// do host (ou use o app).';return}
- scanning=1;$('lanS').textContent='🔎 Procurando servidores...';const bs=[],hn=location.hostname;if(/^\d+\.\d+\.\d+\.\d+$/.test(hn))bs.push(hn.split('.').slice(0,3).join('.'));if(LS.get('lanBase'))bs.push(LS.get('lanBase'));bs.push('192.168.0','192.168.1','192.168.15','10.0.0','10.0.1','192.168.100','192.168.2','172.16.0');
- for(const b of[...new Set(bs)]){for(let i=1;i<255;i+=64){await Promise.all(Array.from({length:64},(_,k)=>i+k).filter(n=>n<255).map(n=>probe(b+'.'+n,b)))}if(lanSrv.length)break}
- scanning=0;$('lanS').textContent=lanSrv.length?'':'Nenhum servidor encontrado. Confira se o host iniciou o servidor (node server.js) ou digite o IP.';rl()}
+ $('net').innerHTML='🌐 Online: <b>'+onRooms.length+'</b> sala(s)'}
 async function loadRooms(){const b=relayBase();if(!b){$('onS').textContent='Informe o endereço do servidor online em CONFIGURAÇÕES.';return}$('onS').textContent='Carregando...';
  try{onRooms=await(await fetch(b+'/rooms')).json();$('onS').textContent=onRooms.length?'':'Nenhuma sala aberta agora. Crie a sua!'}catch(e){onRooms=[];$('onS').textContent='Não foi possível falar com o servidor online.'}rl()}
 const relayWs=()=>relayBase().replace(/^http/,'ws');
 function hostLAN(){connect('ws://'+location.host+'/ws?id='+id+'&h=1',1)}
 function hostOnline(){const code=Math.random().toString(36).slice(2,6).toUpperCase();connect(relayWs()+'/ws?id='+id+'&h=1&room='+code+'&name='+encodeURIComponent(myName()),1,code)}
 function joinLAN(hp){connect('ws://'+hp+'/ws?id='+id,0)}
-function joinIP(){const v=$('ip').value.trim();if(v)joinLAN(v.includes(':')?v:v+':8080')}
 function joinRoom(c){connect(relayWs()+'/ws?id='+id+'&room='+c,0,c)}
 function sair(){try{window.close()}catch(e){}if(window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.App)Capacitor.Plugins.App.exitApp();else alert('Você já pode fechar esta janela.')}
 function fs_(){try{document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{})}catch(e){}}
