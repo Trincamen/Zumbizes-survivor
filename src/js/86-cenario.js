@@ -2,8 +2,10 @@
 // Índices fixos: 0 redonda, 1 pinheiro, 2 morta, 3 caixa de munição (NÃO mudar: usados por CEN_SPR[o.i%3] e CEN_SPR[3])
 // 4 arbusto, 5 pedra_pequena, 6 pedra_media, 7 pedra_grande, 8 poste_luz, 9 poste_luz_quebrado, 10 hidrante,
 // 11 galão, 12 caixa_municao_pequena, 13 caixa_cartuchos, 14 cabine, 15 ponto_onibus
-const CENGLB=['@@GLB:assets/props/arvore_redonda.glb@@','@@GLB:assets/props/arvore_pinheiro.glb@@','@@GLB:assets/props/arvore_morta.glb@@','@@GLB:assets/props/caixa_municao.glb@@','@@GLB:assets/props/arbusto.glb@@','@@GLB:assets/props/pedra_pequena.glb@@','@@GLB:assets/props/pedra_media.glb@@','@@GLB:assets/props/pedra_grande.glb@@','@@GLB:assets/props/poste_luz.glb@@','@@GLB:assets/props/poste_luz_quebrado.glb@@','@@GLB:assets/props/hidrante.glb@@','@@GLB:assets/props/galao_combustivel.glb@@','@@GLB:assets/props/caixa_municao_pequena.glb@@','@@GLB:assets/props/caixa_cartuchos.glb@@','@@GLB:assets/props/cabine_telefonica.glb@@','@@GLB:assets/props/ponto_onibus.glb@@'];
-const CENCFG=[[100,'y'],[110,'y'],[90,'y'],[40,'x'],[34,'y'],[22,'y'],[36,'y'],[60,'y'],[130,'y'],[130,'y'],[30,'y'],[28,'y'],[26,'x'],[24,'x'],[80,'y'],[150,'x']];
+// 16 banco, 17 lixeira, 18 caçamba, 19 cone, 20 barreira, 21 placa_pare, 22 semáforo,
+// 23 caixa_correio, 24 barril, 25 pneus, 26 cerca
+const CENGLB=['@@GLB:assets/props/arvore_redonda.glb@@','@@GLB:assets/props/arvore_pinheiro.glb@@','@@GLB:assets/props/arvore_morta.glb@@','@@GLB:assets/props/caixa_municao.glb@@','@@GLB:assets/props/arbusto.glb@@','@@GLB:assets/props/pedra_pequena.glb@@','@@GLB:assets/props/pedra_media.glb@@','@@GLB:assets/props/pedra_grande.glb@@','@@GLB:assets/props/poste_luz.glb@@','@@GLB:assets/props/poste_luz_quebrado.glb@@','@@GLB:assets/props/hidrante.glb@@','@@GLB:assets/props/galao_combustivel.glb@@','@@GLB:assets/props/caixa_municao_pequena.glb@@','@@GLB:assets/props/caixa_cartuchos.glb@@','@@GLB:assets/props/cabine_telefonica.glb@@','@@GLB:assets/props/ponto_onibus.glb@@','@@GLB:assets/props/banco.glb@@','@@GLB:assets/props/lixeira.glb@@','@@GLB:assets/props/cacamba.glb@@','@@GLB:assets/props/cone.glb@@','@@GLB:assets/props/barreira.glb@@','@@GLB:assets/props/placa_pare.glb@@','@@GLB:assets/props/semaforo.glb@@','@@GLB:assets/props/caixa_correio.glb@@','@@GLB:assets/props/barril.glb@@','@@GLB:assets/props/pneus.glb@@','@@GLB:assets/props/cerca.glb@@'];
+const CENCFG=[[100,'y'],[110,'y'],[90,'y'],[40,'x'],[34,'y'],[22,'y'],[36,'y'],[60,'y'],[130,'y'],[130,'y'],[30,'y'],[28,'y'],[26,'x'],[24,'x'],[80,'y'],[150,'x'],[80,'x'],[36,'y'],[90,'x'],[22,'y'],[90,'x'],[80,'y'],[120,'y'],[44,'y'],[38,'y'],[60,'x'],[100,'x']];
 const CEN_SPR=[];
 const CEN_CSS={};
 
@@ -232,26 +234,81 @@ initCenario();
 // PRNG próprio + semente derivada de sd: host e TODOS os clientes geram a mesma lista.
 let DECOR=[];
 function cenRng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const CEN_FLIP={16:1,18:1,20:1,25:1,26:1}; // sprites 'x': só espelhamento horizontal
 function genDecor(sd){
  const rnd=cenRng((sd^0x5bd1e995)>>>0),q=(m,n)=>m+rnd()*(n-m),out=[],cells=[];
  for(const j of ROWS)for(let i=0;i<8;i++)cells.push([i,j]);
- const ok=(x,y)=>{if(x<40||y<40||x>MW-40||y>MH-40)return 0;
-  if(y>RY0-90&&y<RY1+90)return 0;
-  if(Math.hypot(x-2000,y-4500)<200)return 0;
-  if(blk(x,y,40))return 0;
-  for(const b of BLD)if(x>b.x-60&&x<b.x+b.w+60&&y>b.y-60&&y<b.y+b.h+60)return 0;
-  return 1};
- for(let n=0;out.length<350&&n<1600;n++){
+ const HV=[0,1,2,3,4,5,7,8,9,10,11,12]; // ruas horizontais desenhadas (sem a do rio)
+ const inRiv=y=>y>RY0-90&&y<RY1+90;
+ // asfalto: verticais em x=k*500 (fora do rio) e horizontais em y=k*500
+ const onRua=(x,y)=>((y<2500||y>3500)&&Math.abs(x-Math.round(x/500)*500)<64)||HV.some(k=>Math.abs(y-k*500)<64);
+ const far=(x,y)=>x>40&&y>40&&x<MW-40&&y<MH-40&&!inRiv(y)&&Math.hypot(x-2000,y-4500)>=200;
+ const free=(x,y,r)=>{if(!far(x,y))return 0;if(blk(x,y,r==null?12:r))return 0;
+  for(const b of BLD)if(x>b.x-6&&x<b.x+b.w+6&&y>b.y-6&&y<b.y+b.h+6)return 0;return 1};
+ // decoração comum: nunca sobre o asfalto (cone/barreira de obra podem)
+ const add=(x,y,s,rua)=>{if(s==null||s<0)return;
+  if(!rua&&onRua(x,y))return;
+  if(!free(x,y,12))return;
+  out.push({x:Math.round(x),y:Math.round(y),s,f:CEN_FLIP[s]&&rnd()<.5?1:0})};
+ // encostado em prédio (caçamba): aceita ficar junto da parede
+ const addN=(x,y,s)=>{if(s==null)return;if(!far(x,y)||onRua(x,y))return;
+  for(const b of BLD)if(x>b.x&&x<b.x+b.w&&y>b.y&&y<b.y+b.h)return;
+  if(blk(x,y,2))return;
+  out.push({x:Math.round(x),y:Math.round(y),s,f:CEN_FLIP[s]&&rnd()<.5?1:0})};
+ // ---------- base: grama (arbusto/pedra) e calçada (poste/hidrante/cabine/ponto) ----------
+ for(let n=0;out.length<320&&n<2000;n++){
   const c=cells[n%cells.length],bx=c[0]*500+60,by=c[1]*500+60;let x=0,y=0,s=-1;
-  if(rnd()<.7){ // grama: arbusto e pedras
+  if(rnd()<.7){ // grama
    x=bx+q(20,355);y=by+q(20,355);const r=rnd();
    s=r<.68?4:r<.84?5:r<.96?6:7}
-  else{ // calçada/rua, na borda do quarteirão
+  else{ // borda do quarteirão (≥68 px do eixo da rua, nunca no asfalto)
    const e=rnd()*4|0,u=q(30,350);
-   if(e==0){x=bx+u;y=by-26}else if(e==1){x=bx+u;y=by+404}else if(e==2){x=bx-26;y=by+u}else{x=bx+404;y=by+u}
+   if(e==0){x=bx+u;y=by+8}else if(e==1){x=bx+u;y=by+372}else if(e==2){x=bx+8;y=by+u}else{x=bx+372;y=by+u}
    const r=rnd();s=r<.6?(rnd()<1/6?9:8):r<.8?10:r<.92?14:15}
-  if(s<0||!ok(x,y))continue;
-  out.push({x:Math.round(x),y:Math.round(y),s});
+  if(s<0||!free(x,y,12))continue;
+  out.push({x:Math.round(x),y:Math.round(y),s,f:0});
+ }
+ // ---------- esquinas: semáforo + placa em cantos opostos; correio/hidrante/lixeira ----------
+ for(let k=0;k<=8;k++)for(const ky of HV){const cx=k*500,cy=ky*500;
+  if(cx<60||cx>MW-60||cy<60||cy>MH-60||inRiv(cy))continue;
+  if(rnd()<.5){const sx=rnd()<.5?-1:1,sy=rnd()<.5?-1:1;
+   add(cx+sx*70,cy+sy*70,22,0);add(cx-sx*70,cy-sy*70,21,0)}
+  if(rnd()<.3){const sx=rnd()<.5?-1:1,sy=rnd()<.5?-1:1,r=rnd();
+   add(cx+sx*70,cy+sy*70,r<.4?23:r<.7?17:10,0)}
+ }
+ // ---------- calçada dos quarteirões ----------
+ for(const c of cells){const bx=c[0]*500+60,by=c[1]*500+60;
+  // ins = recuo da borda do quarteirão (props largos em 'x' ficam mais para dentro, sem invadir o asfalto)
+  const edge=(e,u,ins)=>{const k=ins==null?8:ins,d=400-k;e=(e%4+4)%4;
+   return e==0?[bx+u,by+k]:e==1?[bx+u,by+d]:e==2?[bx+k,by+u]:[bx+d,by+u]};
+  // postes a cada ~250 px, alternando a borda
+  const e0=rnd()<.5?0:2;
+  for(let k=0;k<4;k++){const xy=edge(e0+k,q(15,360));add(xy[0],xy[1],rnd()<1/6?9:8,0)}
+  // lixeiras
+  for(let k=0;k<2;k++){const xy=edge(rnd()*4|0,q(15,360));add(xy[0],xy[1],17,0)}
+  if(rnd()<.4){const xy=edge(rnd()*4|0,q(15,360));add(xy[0],xy[1],17,0)}
+  // bancos voltados para a rua
+  if(rnd()<.55){const xy=edge(rnd()*4|0,q(70,330),26);add(xy[0],xy[1],16,0)}
+  // ponto de ônibus e cabine, raros, encostados na borda do quarteirão
+  if(rnd()<.06){const xy=edge(rnd()<.5?0:1,q(90,300),78);add(xy[0],xy[1],15,0)}
+  if(rnd()<.05){const xy=edge(rnd()*4|0,q(40,330));add(xy[0],xy[1],14,0)}
+  // trecho de obra curto na beira do asfalto (cones/barreiras)
+  if(rnd()<.16){const bx0=bx+q(30,300),yy=by-16,n=3+(rnd()*3|0);
+   for(let k=0;k<n;k++){const s=rnd()<.65?19:20;add(bx0+ (s==19?k*26:k*96),yy,s,1)}}
+  // caçambas encostadas em prédios
+  // (feito depois, na lista de prédios)
+  // barris e pneus em grupos pequenos
+  if(rnd()<.24){const gx=bx+q(40,330),gy=by+q(40,330),n=3+(rnd()*3|0);
+   for(let k=0;k<n;k++)add(gx+q(-16,16),gy+q(-16,16),rnd()<.5?24:25,0)}
+  // cerca fechando trecho de lote vazio (3–4 segmentos em fila)
+  if(rnd()<.16){const e=rnd()*4|0,u0=q(10,180),n=3+(rnd()*2|0);
+   for(let k=0;k<n;k++){const xy=edge(e,u0+k*100,36);add(xy[0],xy[1],26,0)}}
+  // galões
+  if(rnd()<.8)add(bx+q(30,340),by+q(30,340),11,0);
+ }
+ for(const b of BLD){if(rnd()>=.3)continue;
+  const sul=rnd()<.5,x=b.x+q(10,Math.max(20,b.w-100));
+  addN(x,sul?b.y+b.h+8:b.y-46,18);
  }
  return out;
 }
