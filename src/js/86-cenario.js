@@ -248,6 +248,47 @@ function cenBlocks(c,x0,y0,x1,y1){
 // props alongados/orientados: 4 yaws alinhados aos eixos (0=+Z/sul, 1=+X/leste, 2=-Z/norte, 3=-X/oeste)
 const CEN_ORI={14:1,15:1,16:1,18:1,20:1,25:1,26:1};
 const CEN_SPRV={};
+// ---------- veículos (carros t:2): 2 sprites por modelo [horizontal, vertical], escala fixa 20 px/m ----------
+const VGLB=['@@GLB:assets/veiculos/carro_sedan.glb@@','@@GLB:assets/veiculos/carro_policia.glb@@','@@GLB:assets/veiculos/carro_esportivo.glb@@','@@GLB:assets/veiculos/jeep.glb@@','@@GLB:assets/veiculos/caminhonete.glb@@'];
+const VEH_SPR=[]; // [modelo] = [horizontal, vertical] | null (fallback procedural)
+const VEH_PPM=20;
+function vehIdx(o){return ((o.i|0)*7+3)%5}
+// tamanho real do GLB (metros) do extras size_xyz_length_width_height, sem mexer no cenMakeObl
+function vehSize(g){
+ const ex=g&&g.extras||{},s=ex.size_xyz_length_width_height;
+ return s&&s.length>=3&&s[0]>0&&s[1]>0&&s[2]>0?s:null;
+}
+function vehCrop(g,L,W,H){
+ // descarta triângulos fora da caixa declarada (spikes/mirros isolados do GLB) p/ o sprite ficar centrado
+ const t=.05,P=g.P,n=g.n,op=new Float32Array(P.length),oc=new Uint8Array(g.C.length),on=new Int16Array(n);
+ let k=0;
+ for(let f=0;f<n;f++){const b=f*3;let ok=1;
+  for(let i=0;i<3;i++){const j=(b+i)*3,vx=P[j],vy=P[j+1],vz=P[j+2];
+   if(vx<-L/2-t||vx>L/2+t||vz<-W/2-t||vz>W/2+t||vy>H+t){ok=0;break}}
+  if(!ok)continue;
+  for(let i=0;i<3;i++){const j=(b+i)*3,o=(k*3+i)*3;
+   op[o]=P[j];op[o+1]=P[j+1];op[o+2]=P[j+2];oc[o]=g.C[j];oc[o+1]=g.C[j+1];oc[o+2]=g.C[j+2];on[k*3+i]=g.N[b+i]}
+  k++}
+ if(!k)return g;
+ return {P:op.subarray(0,k*9),C:oc.subarray(0,k*9),N:on.subarray(0,k*3),NM:g.NM,n:k,extras:g.extras};
+}
+function vehBuild(b64){
+ let g=cenLoad(b64),sz=vehSize(g);
+ if(!g||!g.n||!sz)return null;
+ g=vehCrop(g,sz[0],sz[1],sz[2]);
+ const L=sz[0]*VEH_PPM,W=sz[1]*VEH_PPM,H=sz[2]*VEH_PPM;
+ const o={hpx:H,ss:2,cx:0,cz:0,fy:sz[2]};
+ return [cenMakeObl(g,Object.assign({w:L,d:W,rot:0,fx:sz[0],fz:sz[1]},o)),
+         cenMakeObl(g,Object.assign({w:W,d:L,rot:-Math.PI/2,fx:sz[1],fz:sz[0]},o))];
+}
+function initVeic(){
+ for(let i=0;i<VGLB.length;i++){VEH_SPR[i]=null;
+  try{VEH_SPR[i]=vehBuild(VGLB[i])}catch(e){VEH_SPR[i]=null;console.warn('cenario veiculo',i,e)}}
+}
+// sprite do carro no retângulo x..x+w, y..y+h (pegada centrada); 0 = desenho procedural
+function vehDraw(o){
+ const v=VEH_SPR[vehIdx(o)];return v?cenDraw(X,v[o.w>o.h?0:1],o.x+o.w/2,o.y+o.h/2):0;
+}
 function initCenario(){
  const t0=(performance&&performance.now?performance.now():Date.now());
  const cfg=CENCFG;
@@ -269,6 +310,7 @@ function initCenario(){
   CEN_RUA.c=[0,1,2,3].map(r=>cenMakeObl(gc,Object.assign({rot:r*Math.PI/2},o)))}
  catch(e){CEN_RUA.v=CEN_RUA.h=CEN_RUA.x=CEN_RUA.t=CEN_RUA.c=null;console.warn('cenario ruas',e)}
  for(const T of['h','p','m'])try{CEN_BLD[T]=cenBldBuild(T,CEN_PSZ[T][0],CEN_PSZ[T][1],CEN_PSZ[T][2])}catch(e){CEN_BLD[T]=null;console.warn('cenario predio',T,e)}
+ initVeic();
  console.log('cenario ms',Math.round((performance&&performance.now?performance.now():Date.now())-t0));
 }
 initCenario();
