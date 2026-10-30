@@ -2,7 +2,8 @@
 function send(m){host?handle(m):ws.send(JSON.stringify(m))}
 const myName=()=>($('nm').value||'Jogador').slice(0,12),canHost=()=>!MOB&&(originKind=='lan'||originKind=='online'),
  relayBase=()=>{if(originKind=='online')return location.origin;let v=(LS.get('relay')||'').trim();if(!v)return'';if(!/^https?:\/\//.test(v))v='https://'+v;return v.replace(/\/$/,'')};
-function show(n){for(const e of document.querySelectorAll('.scr'))e.style.display='none';$('s-'+n).style.display='block';$('logo').style.display=n=='lobby'?'none':'block';$('tag').style.visibility=n=='main'?'':'hidden';if(n=='multi')tabSel(tab);rl()}
+function nickUp(){const e=$('nick'),v=(($('nm')&&$('nm').value)||'Jogador');if(e)e.textContent='NICKNAME: '+v.toUpperCase()}
+function show(n){for(const e of document.querySelectorAll('.scr'))e.style.display='none';$('s-'+n).style.display='block';$('logo').style.display=n=='lobby'?'none':'block';const nk=$('nick');if(nk)nk.style.display=n=='lobby'?'none':'block';if(n=='main')nickUp();if(n=='multi')tabSel(tab);rl()}
 function tabSel(t){tab='on';$('tab-on').style.display='block';loadRooms()}
 function rl(){
  $('onL').innerHTML=onRooms.map(r=>`<div class=it onclick="joinRoom('${esc(r.code)}')"><b>🌐 ${esc(r.name)}</b><span>${r.n}/8 • ${esc(r.code)}</span></div>`).join('');
