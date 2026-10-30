@@ -1300,21 +1300,33 @@ function pfEnd(t){if(!pfOn())return;PROF.acc.total=(PROF.acc.total||0)+(performa
   if(typeof window!=='undefined')window.__plast={o:o,T:T};
   PROF.n=0;PROF.acc={}}}
 // ---------- cache do chão estático (grama+asfalto+ruas+calçadas) em chunks de 1000 px ----------
-const GRD={sd:null,map:new Map(),order:[]};
+const GRD={sd:null,map:new Map(),order:[],bmp:new Map(),made:0};
+function grdBmpDrop(key){const b=GRD.bmp.get(key);if(b){GRD.bmp.delete(key);try{b.close&&b.close()}catch(e){}}}
 function grdChunk(ci,cj){
  const key=ci+','+cj,hit=GRD.map.get(key);if(hit){const oi=GRD.order.indexOf(key);if(oi>=0)GRD.order.splice(oi,1);GRD.order.push(key);return hit}
+ const t0=pfStart();
  const cv=document.createElement('canvas');cv.width=1000;cv.height=1000;const g=cv.getContext('2d');
  if(g){g.translate(-ci*1000,-cj*1000);
   try{cenRuaSpr(g,ci*1000,cj*1000,ci*1000+1000,cj*1000+1000);cenBlocks(g,ci*1000,cj*1000,ci*1000+1000,cj*1000+1000)}catch(e){}}
- GRD.map.set(key,cv);GRD.order.push(key);
- while(GRD.order.length>16){const old=GRD.order.shift();if(old!==key)GRD.map.delete(old)}
+ GRD.map.set(key,cv);GRD.order.push(key);GRD.made++;
+ if(typeof createImageBitmap=='function'){try{createImageBitmap(cv).then(b=>{if(GRD.map.has(key))GRD.bmp.set(key,b);else if(b.close)b.close()}).catch(()=>{})}catch(e){}}
+ pfAdd('chunk',t0);
+ while(GRD.order.length>16){const old=GRD.order.shift();if(old!==key){GRD.map.delete(old);grdBmpDrop(old)}}
  return cv}
 function groundChunks(){
- if(GRD.sd!==sd){GRD.sd=sd;GRD.map.clear();GRD.order.length=0}
- const i0=Math.floor((cx-W/2-80)/1000),i1=Math.floor((cx+W/2+80)/1000),j0=Math.floor((cy-H/2-80)/1000),j1=Math.floor((cy+H/2+80)/1000);
+ if(GRD.sd!==sd){GRD.sd=sd;GRD.map.clear();GRD.order.length=0;for(const k of[...GRD.bmp.keys()])grdBmpDrop(k)}
+ const vx0=Math.floor(cx-W/2-80),vx1=Math.ceil(cx+W/2+80),vy0=Math.floor(cy-H/2-80),vy1=Math.ceil(cy+H/2+80);
+ const i0=Math.floor(vx0/1000),i1=Math.floor(vx1/1000),j0=Math.floor(vy0/1000),j1=Math.floor(vy1/1000),before=GRD.made;
  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){
   if(i<0||j<0||i*1000>=MW||j*1000>=MH)continue;
-  X.drawImage(grdChunk(i,j),i*1000,j*1000)}
+  const cv=grdChunk(i,j),src=GRD.bmp.get(i+','+j)||cv;
+  const ax=Math.max(vx0,i*1000),bx=Math.min(vx1,i*1000+1000),ay=Math.max(vy0,j*1000),by=Math.min(vy1,j*1000+1000);
+  const ww=bx-ax,hh=by-ay;if(ww<=0||hh<=0)continue;
+  X.drawImage(src,ax-i*1000,ay-j*1000,ww,hh,ax,ay,ww,hh)}
+ if(GRD.made===before){
+  const ci=Math.floor(cx/1000),cj=Math.floor(cy/1000),mx=cx%1000,my=cy%1000;
+  const dx=mx<300?-1:mx>700?1:0,dy=my<300?-1:my>700?1:0,tx=ci+dx,ty=cj+dy;
+  if((dx||dy)&&!(tx<0||ty<0||tx*1000>=MW||ty*1000>=MH)&&!GRD.map.has(tx+','+ty))grdChunk(tx,ty)}
 }
 function draw(){requestAnimationFrame(draw);const _p0=pfStart();const s=snap,t=Date.now(),dtf=Math.min(.1,(t-LT)/1000);LT=t;FR++;DT_=dtf;X.setTransform(ZO*DPR,0,0,ZO*DPR,0,0);X.fillStyle='#000';X.fillRect(0,0,W,H);if(!s||s.ph==0){menuScene(t);return}
  if(FR%180==0)for(const k in RP)if(RP[k].u<FR-120)delete RP[k];
