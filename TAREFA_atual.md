@@ -1,22 +1,31 @@
-# TAREFA_atual.md — Menu: cena "poste de luz na neblina com olhos vermelhos" (nova arte do usuário)
+# TAREFA_atual.md — Trocar o vermelho antigo da interface pela paleta nova + ícone da aba
 
 > Agente: OpenCode `rapido` (via `escritor`). Se falhar, parar e escrever bloqueio em `saidas/relatorio.txt` (≤15 linhas).
 > **Edite `src/`, NUNCA `game.html`. No fim rode `node build.js` e `node build.js --check`.** Achar código: `grep -n 'texto' src/js/*.js`; ler com `sed -n 'A,Bp' arquivo | cut -c1-400`.
-> NÃO mexer em: `server.js`, Dockerfile, workflows, `package*.json`, snapshot/rede, `genMap`, `98-debug.js`, HTML/CSS do menu, logo, textos dos botões, `#nick`/`#net` (APROVADOS, ficam IGUAIS). Só reescrever o fundo: `menuScene(t)` em `src/js/90-sons.js` (~linha 191+), removendo o que não for mais usado dentro dele (carro, zumbis, prédios, caminhão). Não tocar em `87-zumbis.js` nem em `86-cenario.js`.
+> NÃO mexer em: `server.js`, Dockerfile, workflows, `package*.json`, `capacitor.config.json`, snapshot/rede, `genMap`, `98-debug.js`, a CENA do menu (`menuScene`/`msBuild` e helpers `ms*` em `90-sons.js`, olhos vermelhos dos zumbis inclusive), o logo, os textos. NÃO remover nem mover nada: SÓ trocar cores.
 
-## Referência (imagem do usuário: `/home/trinca/Imagens/Capturas de tela/Sem título.png`; se conseguir abrir a imagem, use-a; senão siga esta descrição, medidas em % da largura W / altura H)
-Cena NOTURNA quase preta (fundo `#060304`), neblina marrom-escura, vinheta pesada. Lado esquerdo totalmente escuro (menu/logo).
-1. **Dois olhos gigantes vermelhos** no alto, centro-direita: olho 1 em (x≈46%, y≈13%), olho 2 em (x≈62%, y≈15%), cada um ~7% de W de largura, formato de amêndoa com PUPILA FENDIDA vertical preta, íris vermelha `#c01818`→`#600` com veias (linhas finas irradiando), brilho radial vermelho suave (`lighter`, alpha baixo) ao redor, quase translúcidos no escuro. Animação lenta: pulsar de brilho (~4 s) e piscar raro (pálpebra fecha em ~150 ms a cada ~7 s, defasado entre os olhos).
-2. **Muitos pares de olhos vermelhos pequenos** espalhados pela escuridão (≈40 pares, posições pseudo-aleatórias FIXAS por semente, x 4–96%, y 20–82%; mais densos no centro; poucos/mais fracos sob o menu à esquerda), cada par = 2 pontinhos `#ff2a2a` (raio 1–2,5 px × escala de tela) com halo vermelho pequeno, alpha 0.25–1 variando com a distância; alguns piscam (apagam ~120 ms em intervalos aleatórios por par), alguns oscilam levemente. Desenho barato: pré-renderizar halos em um sprite pequeno e usar `drawImage`/`fillRect`.
-3. **Poste de luz** à direita: poste de madeira/metal alto em x≈79% de W, indo do topo (y<0) até o chão em y≈88% de H, com braço curvo para a ESQUERDA no alto (y≈20%) e a lâmpada em (x≈74%, y≈23%); caixa pequena presa no poste (y≈42–48%); 2–3 fios saindo do topo para a direita/baixo. USE o modelo do jogo `poste_luz.glb` (`CEN_SPR[8]`, é o índice 8 de `CENGLB` em `86-cenario.js`; desenhe com `cenDraw`, ampliado ~3–4× — se ficar granulado, gere um sprite maior do menu com `cenLoad(CENGLB[8])` + `cenMakeObl`/`cenMake` em cache, como `vehBuild`). Os fios podem ser linhas finas escuras (2–3 curvas), são só fios.
-4. **Cone de luz**: lâmpada quente `#ffd98a` com bloom forte (`lighter`), e feixe cônico amarelo-âmbar translúcido descendo da lâmpada alargando até o chão (base entre x≈58% e x≈88% em y≈90%), mais claro no centro, com névoa/partículas de poeira lentas flutuando dentro dele; leve tremida (flicker) bem sutil na lâmpada. Fora do cone tudo muito escuro. Cone e névoa são gradientes pré-renderizados em canvas offscreen (1× por tamanho) e desenhados com `lighter`/`source-over`.
-5. **Personagem**: um jogador do jogo em pé, DE COSTAS/3-4 (olhando para o fundo), parado (`idle`), dentro do cone de luz, pés em (x≈72%, y≈92% de H), altura ≈ 20% de H, silhueta quase em contra-luz (escurecida, borda de luz quente no lado do poste). USE `drawPlayer(x,y,{k:'menu',s:..,fa:<ângulo de costas/olhando p/ cima: -Math.PI/2>,aim:null,c:'#3a5a8a',gun:'#ddd',ring:null,shot:0,dead:false,idle:true,t:t,w:<índice de arma, ex. 0>})` (veja `80-jogador.js:71`; a versão antiga está em `git show 88ae152:src/js/90-sons.js`). Sombra elíptica sob ele, alongada para longe da luz.
-6. **Rua**: asfalto escuro e molhado na parte de baixo, em perspectiva, com FAIXA CENTRAL tracejada branca desbotada subindo verticalmente em x≈53% (do rodapé até o horizonte baixo y≈88%, estreitando), meio-fio/calçada de terra à direita (x>60%) com mato seco (use `arbusto` `CEN_SPR[4]` bem escurecido em poucos pontos), e uma CERCA/GUARDA-CORPO de madeira horizontal atrás do jogador (de x≈56% a x≈88%, y≈78–84%): use `cerca.glb` (`CEN_SPR`/`CEN_SPRV[26]`, índice 26 de `CENGLB`) repetida em linha. Reflexo alaranjado leve do poste no asfalto molhado (elipse vertical estreita sob a lâmpada, `lighter`, alpha baixo). Rua: pode usar `CEN_RUA.v` (rua_reta pré-renderizada em `86-cenario.js`) esticada/recortada em faixa para a perspectiva, ou o asfalto procedural já existente em `menuScene` (estrada com tracejado) ajustado — escolha o que ficar fiel à imagem.
-7. **Sem carro**, sem zumbis, sem prédios, sem horizonte alaranjado: o céu é preto. Remover o veículo/caminhão por completo.
-8. Névoa baixa marrom-escura ao longo do chão (faixas translúcidas lentas) e vinheta forte nas bordas; sobre o menu à esquerda um degradê preto garante leitura.
+## Objetivo A — Cores
+O visual antigo usa vermelho sangue na "moldura" da interface. O menu novo é neutro/âmbar (texto creme `#c9c3b0`, preto quente, luz âmbar do poste). Trocar o vermelho da MOLDURA/UI por esta paleta, em todo o menu (botões `.mb/.sb/.b`, painéis `.pn`, lista `.it`, `#s-lobby`, `#shop`/`#shB`, `#wb`, `.kn`, `.opt`, `#opp`, `#sk`, `#cf`, `#end`, scrollbar etc., em `src/style.css` e `src/index.html`) e no HUD dentro do jogo (CSS e canvas: `src/js/90-sons.js` HUD, `src/js/50-cliente.js`, `src/js/40-host.js` etc. — grep).
+
+Mapa de cores (maiúsc./minúsc., com ou sem alfa, ex.: `#8a1218`, `#8a1218cc`, `rgba(138,18,24,…)`):
+- `#8a1218` (acento/borda esquerda/fundo de botão) → `#8a6f35`
+- `#4a1a1e` (bordas) → `#3a3226`
+- `#4a0a0e` (fim de degradê de botão) → `#2a2218`
+- `#d83a3a`, `#b01418` (borda viva/hover/traço) → `#c9a54a`
+- `#2a1214`, `#140e10`, `#2a0d10`, `#240d12`, `#3a1219`, `#1c1416` (fundos avermelhados escuros) → equivalentes neutros quentes: `#1a1612`, `#14110d`, `#221c14` (escolha o mais próximo em luminosidade)
+- `#c33`, `#f66`, `#a33` (botão "SAIR PARA O MENU", `.mb.r`) → `#8a6f35` / `#d8c58a` / `#6a5428`
+- Texto creme `#f0e6d8`, `#d8d2c0` e fundos pretos `#0a0a0c` ficam.
+Gradientes: `linear-gradient(90deg,#8a1218,#4a0a0e)` vira `linear-gradient(90deg,#8a6f35,#2a2218)`.
+
+NÃO trocar cores com SIGNIFICADO de jogo: sangue/dano/flash de dano, zumbis e boss, barra de vida e "+" de vida (verde/vermelho conforme está), cor de item (`itCol`), minimapa, arco de proximidade, alertas de perigo, cor de jogador/placar. Na dúvida (ex.: barra de vida vermelha), NÃO trocar e liste no relatório. Só a moldura/ornamento (bordas, fundos de botão/painel, destaques) muda.
+Conferir no fim: `grep -n -i '8a1218\|4a1a1e\|4a0a0e\|d83a3a\|b01418' src/style.css src/index.html src/js/*.js` (ignorando `98-debug.js`) — o que sobrar deve ser só cor de jogo justificada no relatório.
+
+## Objetivo B — Ícone da aba (favicon) = cabeça do personagem do jogo
+- Em `src/index.html` não há `<link rel=icon>`. Criar em JS (arquivo novo NÃO; use `src/js/99-iniciar.js`, no fim, num `try/catch`, e só depois do modelo do jogador estar pronto — ver `PG`/`pgParseGlb` em `src/js/80-jogador.js` e como `drawPlayer` desenha) um ícone 64×64: renderizar o jogador do jogo (`drawPlayer(x,y,{...})` com `idle:true`, de frente, `fa:Math.PI/2`) em um canvas offscreen trocando temporariamente o contexto global `X` (`const _X=X;X=cv.getContext('2d');…;X=_X`, dentro de try/finally) ou, se `drawPlayer` não permitir, gerando o sprite equivalente; recortar a CABEÇA (terço superior, ampliada para preencher o 64×64, fundo transparente), e definir `<link rel="icon" type="image/png" href=dataURL>` (criar/atualizar o elemento). Se o modelo ainda não carregou, tentar de novo com `setTimeout` (até ~10 tentativas de 500 ms). Se falhar, não faz nada (sem erro no console).
+- Aproveitar que o título da aba já é "ZomBrize".
 
 ## Critério de pronto
-1. `node build.js` e `node build.js --check` ok; `node --check` do script extraído ok; console sem erro novo; `cenario ms` < 600.
-2. Menu (logo, botões, nickname, Online) IDÊNTICO ao atual; só o fundo mudou, parecido com a referência: olhos grandes, olhos pequenos, poste com cone de luz, jogador do jogo sob a luz, rua/cerca, sem carro.
-3. Tudo pesado pré-renderizado uma vez por tamanho; por quadro só `drawImage` + piscar/pulsar/poeira/jogador; sem `ctx.filter` por quadro; FPS estável.
-4. Arquivos: só `src/js/90-sons.js` (+ `game.html` gerado). Relatório ≤5 linhas.
+1. `node build.js` e `node build.js --check` ok; `node --check` do script extraído ok; console sem erro novo.
+2. Botões do menu, painéis e HUD do jogo sem vermelho de moldura (usam âmbar/neutro); gameplay inalterado.
+3. Aba do navegador mostra a cabeça do personagem (verificação visual só se houver como; senão diga que não verificou).
+4. Relatório ≤6 linhas: arquivos alterados + lista de vermelhos mantidos por serem cor de jogo.
