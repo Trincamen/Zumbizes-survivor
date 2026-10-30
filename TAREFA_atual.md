@@ -1,34 +1,26 @@
-# TAREFA_atual.md — Colisão nos props de decoração (bancos, cercas, barreiras, caçambas...)
+# TAREFA_atual.md — Carros fase 1 (sprites GLB pré-renderizados nos obstáculos t==2)
 
 > Agente: OpenCode `rapido` (via `escritor`). Se falhar, parar e escrever bloqueio em `saidas/relatorio.txt` (≤15 linhas).
 > **Edite `src/`, NUNCA `game.html`. No fim rode `node build.js` e `node build.js --check`.** Achar código: `grep -n 'texto' src/js/*.js`; ler com `sed -n 'A,Bp' arquivo | cut -c1-400`.
-> NÃO mexer em: `server.js`, snapshot/rede, `genMap` (índices `o.i` e RNG do mapa NÃO podem mudar), zumbis 3D (`87-zumbis.js`), jogador, boss.
+> NÃO mexer em: `server.js`, snapshot/rede, `genMap` (índices `o.i`, RNG, tamanhos 92×46 / 46×92 e colisão NÃO mudam), `CENGLB` (índices 0–26 fixos), zumbis, jogador, boss, `10-mapa.js`.
 
-## Problema
-Props de `genDecor` (banco, cerca, barreira, caçamba, lixeira, cabine, ponto de ônibus, barril, pneus, caixa de correio, pedras...) não têm colisão: jogador e zumbis atravessam.
+## Objetivo
+Trocar o desenho procedural dos carros (`t==2`) por sprites de GLB pré-renderizados na projeção oblíqua do jogo, com fallback ao desenho atual se o sprite faltar. Só visual: hitbox, geração e rede ficam iguais.
 
-## Como a colisão funciona (já mapeado)
-- `blk(x,y,r)` (`10-mapa.js:27`) testa todo `o` vivo em `OB` (grade de 200 px, montada por `buildOB()` `10-mapa.js:26`). `mvT` (`20-caminhos.js:9-11`) usa `blk` para jogador e zumbi; `initGrid`/`regrid` (`20-caminhos.js:3`, `40-host.js:58`) montam o pathfinding também por `blk`; `los()` usa `blk`.
-- Host (`40-host.js:13`) e cliente (`50-cliente.js:2`) rodam a MESMA sequência: `O=genMap(sd); BLD=O.B; buildOB(); DECOR=genDecor(sd);` (host ainda faz `initGrid()` depois). `genDecor` é determinística (RNG próprio `cenRng`), e `genDecor` usa `free()` que consulta `blk` — por isso os colliders têm de ser criados DEPOIS de `genDecor`, senão mudam o layout.
-- `hitW`/`rayW` só veem t==5 (tiros atravessam props: manter). `smash`/`grabNear` só tocam t 1..3 (um t novo fica indestrutível).
+## Fatos já mapeados
+- Carro = `{x,y,w,h,t:2,c,i}`; horizontal `w=92,h=46`, vertical `w=46,h=92` (orientação = `w>h`). Colide pelo retângulo (`blk`).
+- Desenho: `obst(o)` em `60-desenho.js:25`; ramo `o.t==2` na linha 31. Padrão a copiar: t:1 (linha 30) e t:3 (linha 32): `if(!cenDraw(X,sprite,xCentro,yPé)){fallback}`.
+- `86-cenario.js`: `cenLoad(b64,skip)` (:34, devolve `{P,C,N,NM,n,extras}`), `cenMakeObl(g,o)` (:95, `o={w,d,hpx,ss,rot,fx,fz,cx,cz,fy,grp,nosort}` → `{cv,ax,ay,w,h}`), `cenDraw(ctx,sp,x,y)` (:85, cria `sp.bm` ImageBitmap). Blocos de GLB separados de `CENGLB` já existem (`CEN_RGLB`/`CEN_PGLB`, ~:236–240): copie o molde. `build.js` troca `'@@GLB:assets/...glb@@'` pelo base64.
+- Os GLBs de veículo têm nó raiz `world` com rotação -90° em X (Z-up → Y-up), frente em **+X**, extras `size_xyz_length_width_height` (sedan/polícia: 4,6 × 1,85 × 1,45 m). `cenMakeObl` hoje só lê `footprint_xz`/`wall_height`; NÃO lê `size_xyz_*`. Confirme que `cenLoad` aplica a rotação do nó `world`.
 
 ## Mudanças
-1. **`86-cenario.js`:** função nova `decorObs()` que, para cada item de `DECOR` cujo índice de sprite esteja na tabela abaixo, adiciona a `O` um obstáculo `{t:7,x,y,w,h,i:O.length}` (AABB; ponto (x,y) do DECOR é o PÉ com o sprite centrado em x — confira em `genDecor`/`place`/`add` e no desenho do DECOR em `90-sons.js` como `x,y` viram o retângulo; o retângulo cobre a base do prop, centrado em x e terminando em y). Respeite a orientação: para os índices de `CEN_ORI` (14,15,16,18,20,25,26) com yaw `r` ímpar (1 ou 3), troque L↔P. Não use `Math.random` (host e clientes devem ficar idênticos). Chame `decorObs()` e DEPOIS `buildOB()` de novo nos dois pontos: `40-host.js:13` (antes de `initGrid()`) e `50-cliente.js:2` (logo após `DECOR=genDecor(...)`). Isso NÃO pode ser feito antes do `genDecor`.
-2. **`90-sons.js` ~linha 212:** o filtro de objetos desenháveis `o.t!=6` vira `o.t!=6&&o.t!=7` (senão `obst()` desenharia uma caixa para cada t:7). É a única mudança nesse arquivo.
-3. Outros lugares que iteram `O` e podem tratar t desconhecido (ex.: minimapa, `wallAt` `40-host.js:60` trata `t>=5` como parede mole que atordoa o boss; para t:7 NÃO atordoar — se necessário ajuste para `t==5||t==6`): confira com `grep -n '\.t' src/js/*.js` e corrija só o que for afetado.
-
-## Tabela de colisão (índice do sprite em `CENGLB` → retângulo L×P em px, antes do giro)
-- COM colisão: 16 banco 80×22; 26 cerca 100×10; 20 barreira 90×26; 18 caçamba 90×47; 17 lixeira 25×25; 14 cabine 30×30; 15 ponto de ônibus 130×54; 24 barril 24×24; 25 pneus 60×35; 23 caixa de correio 18×18; 6 pedra média ~68×68; 7 pedra grande ~104×104 (reduza pedras para ~70% do lado, para não parecer parede invisível).
-- Blocos pequenos (14×14): 8 e 9 poste, 10 hidrante, 22 semáforo, 21 placa, 5 pedra pequena.
-- SEM colisão: 19 cone, 4 arbusto, 11/12/13 galões/caixas, 3 caixa, árvores.
-- (Medidas vieram do AABB das malhas e de CENCFG; se algum índice não bater com o sprite real em `CENGLB`, confira o nome do GLB antes e ajuste.)
-
-## Cuidados
-- Não bloquear porta, rua ou ponte: a zona livre da porta já existe (`free()`) e `onRua` já mantém 64 px do eixo do asfalto; confirme com um probe que nenhum t:7 fica a < 24 px de uma abertura de porta (`b.dx..b.dx+56` na fachada sul) nem prende o spawn (2000,4500).
-- Verifique que o jogador não fica preso entre prop e parede (props a < ~40 px de fachada formam bolsão): se achar casos, remova esses colliders no `decorObs` (rejeite collider cuja distância a qualquer `BLD` seja < 40 px, deixando o prop sem colisão).
+1. Copiar de `~/Downloads/files (2)/` para `src/assets/veiculos/`: `carro_sedan.glb`, `carro_policia.glb`, `carro_esportivo.glb`, `jeep.glb`, `caminhonete.glb` (só estes 5; NÃO copiar caminhão, bombeiros, bicicletas).
+2. `86-cenario.js`: lista nova `VGLB` (5 entradas `'@@GLB:assets/veiculos/NOME.glb@@'`, mesmo molde de `CEN_RGLB`) e `VEH_SPR` (por modelo, 2 sprites: `[horizontal, vertical]`). Pré-render dentro de `initCenario` (antes de `initCenario();`), com cache e `try/catch` por modelo (falha → entrada `null` → fallback). Escala fixa **20 px/m**: comprimento (`size_xyz` length) → 92 px; largura e altura na mesma escala (`d = largura*20`, `hpx = altura*20`). Horizontal = frente +X (`rot` 0); vertical = `rot` π/2 (use o sinal que fizer a frente apontar para BAIXO/sul na tela; frente não precisa casar com nada, só ficar coerente). Reutilize `cenMakeObl`; se precisar ler `size_xyz_length_width_height` de `g.extras`, leia no próprio código novo, sem mudar o comportamento dos props existentes.
+3. Escolha do modelo: função `vehIdx(o)` determinística por `o.i` (ex.: `(o.i*7+3)%5`). PROIBIDO `Math.random`. Cor fixa do GLB; `o.c` segue só para partículas.
+4. `60-desenho.js:31`: no ramo `o.t==2`, tentar `cenDraw(X, VEH_SPR[vehIdx(o)][o.w>o.h?0:1], âncora)` e só cair no desenho atual se retornar falso. Âncora: `cenMakeObl` devolve `ax,ay` = centro da pegada no chão; a pegada deve ficar sobre o retângulo `x..x+w, y..y+h` (centro `x+w/2, y+h/2`) — confirme visualmente que o carro assenta no retângulo (rodas dentro, sem flutuar nem afundar). Mantenha a sombra elíptica atual por baixo do sprite.
+5. Fumaça/fogo `FIRES` de carro (`10-mapa.js:25`, ponto `cy-8`): só conferir que sai do capô/teto de forma aceitável; se ficar claramente errado, ajuste o deslocamento APENAS no ponto de desenho/emissão (em `90-sons.js`/`60-desenho.js`), nunca em `10-mapa.js`.
 
 ## Critério de pronto
-- `node build.js`, `node build.js --check`, `node --check` do maior `<script>` ok; `git diff` só em `86-cenario.js`, `40-host.js`, `50-cliente.js`, `90-sons.js` (e `10-mapa.js`/`20-caminhos.js` só se imprescindível; diga por quê) e `game.html`.
-- Probe em `solo()` (Firefox, ver RETOMADA "Como testar"): número de t:7 criados (esperado ~100–200), `O.length` antes/depois, `DECOR.length` igual a antes; teleportar o jogador contra um banco, uma cerca e uma caçamba e confirmar que NÃO atravessa (`mvT`/`blk` retorna bloqueio) e que anda livre pela rua; zumbi contorna (pathfinding) sem travar; console sem erros; prints em `~/scratch_col/`.
-- `window.__prof=1`: `PROF total` não pior que antes (~15–16 ms).
-- Relatório ≤8 linhas em `saidas/relatorio.txt` com contagens e o que não deu para verificar (multiplayer).
+- `node build.js`, `node build.js --check`, `node --check` do maior `<script>` ok; `git diff` só em `86-cenario.js`, `60-desenho.js` (+ `90-sons.js` se o item 5 exigir), `src/assets/veiculos/*.glb` e `game.html`.
+- Em `solo()` (Firefox com janela, ver RETOMADA "Como testar"; use cópia do `game.html` na HOME): teleportar perto de carros e tirar prints (`~/scratch_carros/`): os 5 modelos aparecem, nas 2 orientações, assentados no retângulo, sem cortar/clipar o sprite, passando por trás/na frente do jogador conforme o `y`. Console sem erros; `cenario ms` < 600 (anotar antes/depois); `window.__prof=1` sem piora relevante de `obst`.
+- Relatório ≤8 linhas em `saidas/relatorio.txt`: medidas do sprite (`ax,ay,w,h`) por modelo, `cenario ms`, e o que não deu para verificar (multiplayer, APK, fogo).
