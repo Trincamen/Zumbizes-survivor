@@ -11,21 +11,26 @@ O trabalho é DIVIDIDO entre Claude e OpenCode para não estourar nenhuma cota (
 - Verificar evidência (diff, teste), nunca aceitar só "terminei".
 
 ## Estado atual
-Jogo funcional em um único `game.html` (~700 linhas longas, ~109 KB): mapa por semente igual em todos os aparelhos, pathfinding em grade (`bfs`), lobby LAN/online/IP/solo, simulação no host (`// HOST: simulação`: zumbis `spawnZ`, loot, loja `openShop`, XP/skills, recarga ativa, boss `startBoss`/`bossAct`), UI/cliente (`onSnap`, controles `setCtl`, opções de câmera `setCam` e HUD `setHud`, joystick), desenho 2.5D, mini motor 3D low poly do boss e sons gerados no código. `server.js` é um relay WebSocket de salas (sem dependências, até 8 jogadores; host = quem cria a sala). Distribuição: Docker (`Dockerfile`), `.bat`/`servidor.ps1` (Windows) e APK Android via Capacitor (workflow `build-apk.yml`, manual). **Nenhuma tarefa em andamento** (última: limpeza do menu, ver Registro). O fluxo multiagente foi adaptado a este projeto; a delegação ainda não foi testada de ponta a ponta (ver "Delegação").
+Jogo de horda de zumbis cooperativo (navegador/Android), visual de terror. Código-fonte em `src/` e `game.html` GERADO por `node build.js` (~360 KB, commitado; Dockerfile e APK usam o arquivo por nome). Já feito e commitado (2026-10-29): menu/painéis de terror, jogador 3D (`jogador.glb`: idle/walk/run/_aim/shoot/die, trote com cadência pela velocidade, corrida quando `e[21]`/`e[30]` boost, mão esquerda por IK, camisa na cor do jogador), 6 armas 3D (`armas/*.glb`, mapeadas por `cw` 0..5, boca do cano `mz` por arma), itens no chão em esfera estilo Vice City (`drawPickup`; maço de dinheiro `itens/dinheiro.glb` = modelo índice 6 de `WPG`), ícone 3D da arma no HUD (`weaponIcon`), tiro saindo do cano + efeitos fortes (clarão, rastro, fumaça, cartucho, tremor). `server.js` = relay WebSocket (sem dependências, até 8 jogadores; host = quem cria a sala; simulação roda no host). **HUD de terror (painel do topo, medalha, barras, Abates, minimapa, slots grandes com arma) está FEITO E TESTADO no navegador, mas SEM COMMIT** (`git status` mostra `game.html`, `src/index.html`, `src/style.css`, `src/js/50-cliente.js`, `85-armas.js`, `90-sons.js`): pedir ao usuário se pode commitar.
 
 ## Último marco concluído
-Jogador 3D (2026-10-29, ainda SEM commit): `jogador.glb` embutido em base64 (`PGLB`) → loader `PG` + `drawPlayer` (clips idle/walk/run/_aim/shoot/die com crossfade, camisa na cor do jogador, arma provisória no `weapon_socket`, fallback para `person()`). Delegado ao `escritor`/`rapido`; revisado por `git diff`. Testado no Firefox: menu (4 heróis), partida solo (andar com WASD) e, no menu com estados forçados, morto/atirando/andando/parado. Commits anteriores: `d29f248` visual de terror do menu; `95724ac` GLB embutido + spec. `person()` continua para zumbis/vendedor/boss.
+HUD de terror (2026-10-29, sem commit, ver acima). Antes, commits: `2cb4766` tiro do cano + efeitos; `530b985` esferas/HUD de armas/dinheiro; `eb22a08` armas 3D; `dd3724c` divisão em `src/` + `build.js`; `55cab5c` trote/corrida/duas mãos; `6575ba4` jogador 3D; `d29f248` menu de terror.
 
 ## Próximo passo
-Usuário olhar o jogador 3D na partida e, se OK, commitar. Depois, em ordem sugerida (pacote em `~/Downloads/files/pacote_cenario_e_jogador/`, fora do repo): armas (`armas/*.glb`, no lugar da arma provisória), props, ruas, prédios (`predios/*.glb`). Fluxo: (1) analista Claude localiza funções por grep (NÃO usar o `analista` do OpenCode: cota estourada); (2) spec em `TAREFA_atual.md`; (3) commit antes de delegar; (4) `escritor`; (5) revisar diff e testar no navegador.
+1. Usuário testa a HUD; se OK, commitar (`src/` + `game.html` juntos; rode `node build.js --check` antes).
+2. Cenário (pacote em `~/Downloads/files/pacote_cenario_e_jogador/`, FORA do repo; copiar para `src/assets/`): `props/*.glb` (árvores, pedras, postes, hidrante, cabine, ponto de ônibus, caixas de munição, galão; cada um com altura/collider nos `extras` do GLB), `rua/*.glb` (tile 24 m: reta, curva, T, cruzamento, quarteirão de grama), `predios/*.glb` (hospital, polícia, mercado, bombeiros, refúgio; **7–8 mil triângulos cada**, com `colliders_aabb` e `footprint` nos extras). Decisão já combinada: NÃO desenhar prédios em 3D ao vivo no canvas 2D; pré-renderizar cada modelo UMA vez em imagem (offscreen) ao carregar e desenhar a imagem no mapa (câmera é fixa). Primeiro mapear como o mapa atual (`genMap`, `BLD`, `objShape`, `bush`) usa caixas/árvores para decidir a substituição sem quebrar colisão e pathfinding.
+3. Minificar/ofuscar no `build.js` (dificulta cópia; não impede). Aviso de direitos autorais; travar por domínio é opcional (fácil de remover).
+4. Fluxo: (1) `analista` Claude localiza por grep em `src/js/` (NÃO usar o `analista` do OpenCode: cota estourada); (2) spec em `TAREFA_atual.md`; (3) commit antes de delegar; (4) `escritor` → `rapido`; (5) revisar `git diff` e testar no navegador.
 
 ## Pendências em ordem
-1. `.claude/settings.json` ainda traz regras do Metroid (`sm_*.py`, `*.sfc`, `viewer_ok_*`; inofensivas); a edição foi bloqueada pelo classificador. Se o usuário quiser limpar, que edite ou autorize.
-2. Confirmar como rodar/testar localmente (`node server.js`, porta 4040 por padrão; Docker usa 8080) e abrir `game.html` em modo solo.
-3. Código morto no menu após a limpeza: `hostLAN`, `joinLAN`, lista `lanSrv` (ainda preenchida em `/info`) e leitura de `LS.get('relay')`. Apagar só se o usuário pedir.
-4. `mnt/user-data/outputs/Horda/apk/package.json` (deps do Capacitor) está em caminho estranho; o `build-apk.yml` faz `cd apk && npm install` e não acha `apk/package.json`/`capacitor.config.json` no repo — **o workflow do APK provavelmente está quebrado (a confirmar rodando no GitHub)**.
-5. **APK/app:** sem o campo "Endereço do servidor online", no APK ou `localhost` a lista Online fica vazia (o endereço vinha de `LS.get('relay')`). Precisa fixar o endereço no código; perguntar ao usuário qual é.
-6. Testes no navegador da limpeza do menu ainda não feitos (só `node --check`).
+1. `.claude/settings.json` ainda traz regras do Metroid (inofensivas); a edição foi bloqueada pelo classificador. Se o usuário quiser limpar, que edite ou autorize.
+2. Código morto no menu: `hostLAN`, `joinLAN`, lista `lanSrv` (ainda preenchida em `/info`), leitura de `LS.get('relay')`, função `sair()` (botão SAIR removido). Apagar só se o usuário pedir.
+3. `mnt/user-data/outputs/Horda/apk/package.json` em caminho estranho; `build-apk.yml` faz `cd apk && npm install` e não acha `apk/package.json`/`capacitor.config.json` — **workflow do APK provavelmente quebrado (a confirmar no GitHub)**.
+4. **APK/online:** sem o campo de servidor, no APK ou `localhost` a lista Online fica vazia; a mensagem "Informe o endereço do servidor online em CONFIGURAÇÕES" ficou obsoleta. Precisa fixar o endereço no código; perguntar ao usuário qual é.
+5. `src/js/90-sons.js` guarda, além dos sons, o laço principal (`draw`), `menuScene` e a HUD de canvas (nome enganoso); `85-armas.js` guarda armas, ícones e `drawPickup`. Reorganizar em arquivos por assunto quando fizer sentido.
+6. Jogador 3D: cabelo vem do modelo (todos loiros); o usuário ainda deve confirmar se o trote ficou sem deslizar; armas longas (sniper/rifle) podem parecer grandes — escala ajustável.
+7. Não testado: tiro real em partida com zumbis (só disparos forçados), barra de slots com 6 armas, recarga ativa com o HUD novo, multiplayer, celular/APK, loja, morte/fim de jogo.
+8. Pasta temporária de testes `~/ffprof_tmp` (perfil do Firefox) pode ser apagada pelo usuário (`rm -rf` foi negado antes).
 
 ## Decisões já tomadas (não reabrir)
 - O jogo é infinito, sem condição de vitória; não criar "fim"/"vitória" sem pedido do usuário.
@@ -38,7 +43,7 @@ Usuário olhar o jogador 3D na partida e, se OK, commitar. Depois, em ordem suge
 - Não criar agentes duplicados; os existentes foram só adaptados (texto de domínio), modelos mantidos.
 
 ## Arquivos que importam
-- `src/` — código-fonte: `index.html` (molde), `style.css`, `js/00-base … 99-iniciar` (mapa, caminhos, rede, host, cliente, desenho, boss, jogador, sons), `assets/jogador.glb`. `build.js` gera `game.html` (`--check` confere). Buscar com `grep -n 'function nome' src/js/*.js`.
+- `src/` — código-fonte: `index.html` (molde), `style.css`, `js/00-base … 99-iniciar` (mapa, caminhos, rede, host, cliente, desenho, boss, jogador, sons), `assets/jogador.glb`, `assets/armas/*.glb` (6 armas), `assets/itens/dinheiro.glb`. `build.js` gera `game.html` (`--check` confere). Buscar com `grep -n 'function nome' src/js/*.js`.
 - `game.html` — GERADO (não editar à mão).
 - `server.js` — relay de salas/WebSocket (`/rooms`, `/info`).
 - `Dockerfile` — hospedagem. (`Iniciar.bat`, `LiberarPorta.bat`, `servidor.ps1` — lançadores Windows duplicados do `server.js` — foram removidos em 2026-10-29; recuperáveis pelo git.)
@@ -47,13 +52,12 @@ Usuário olhar o jogador 3D na partida e, se OK, commitar. Depois, em ordem suge
 - `TAREFA_atual.md` — spec da tarefa em curso. `saidas/` — logs de agentes (não versionar).
 
 ## Como testar (comandos)
-- Servidor: `node server.js` (PORT padrão 4040) → abrir `http://localhost:4040`. **(a confirmar rodando)**
-- Solo: abrir `game.html` no navegador e usar o botão solo (função `solo()`).
-- Sintaxe rápida do script: extrair o `<script>` e `node --check` **(a confirmar)**.
+- Build: `node build.js` (gera `game.html`); `node build.js --check` confere. Sintaxe: extrair o maior `<script>` e `node --check`.
+- Servidor: `node server.js` (porta 4040; Docker 8080). Solo: abrir `game.html`/`solo()`.
+- Sem humano (funcionou): geckodriver em `/snap/bin` + WebDriver cru em Python (sem selenium). O Firefox é snap: arquivos de teste têm de estar na HOME (copie `game.html` para `~/t_x.html`), perfil em `~/ffprof_tmp` para `firefox --headless --screenshot`. No `execute/sync` o script roda numa sandbox: use `window.X=...` para escrever e `var` (não `let`) nas variáveis do script injetado; `let` globais do jogo (`FXL`, `snap`, `id`) só dentro de `<script>` injetado antes de `</body>` (ex.: embrulhar `drawPlayer`/`drawFX` para forçar estados). Use uma porta nova do geckodriver a cada execução (falha deixa a sessão presa; `kill` é negado). Screenshots em PNG + recorte/ampliação com PIL.
 
 ## Delegação em andamento
-Nenhuma. Teste de fumaça do `escritor` → OpenCode: ver resultado registrado abaixo.
-- Smoke test (2026-10-29) PASSOU: `escritor`(Haiku) → `opencode run --agent rapido` gerou `saidas/smoke.txt`=126, conferido por mim com `grep -o function game.html | wc -l`=126; `git diff` vazio. Não testado: edição real de código, `analista` OpenCode, `senior`.
+Nenhuma. Fluxo validado várias vezes (jogador 3D, armas, esferas/HUD, tiro, HUD de terror): `escritor` (Haiku) → `opencode run --agent rapido`. Cuidados: o `escritor` às vezes reporta cedo; confirme o fim com `pgrep -fa 'opencode run' | grep -v pgrep` e `node build.js --check`; o OpenCode pode editar `RETOMADA.md` por conta própria (conferir `git status`); em specs, sempre dizer "edite `src/`, nunca `game.html`, rode `node build.js`".
 
 ## Entendimento do jogo (análise por execução real, 2026-10-29; prints no scratchpad, não versionados)
 - **Visão:** canvas 2D, câmera fixa que segue o jogador, mundo 4000×6000 sem rotação (x,y do mundo = tela). Projeção oblíqua "2.5D": personagens são sprites em pé (altura subtraída de y), casas são caixas com telhado + fachada sul, ordenação por y (árvores/prédios cobrem o jogador). Não é isométrica verdadeira (sem rotação de 45°).
@@ -72,3 +76,4 @@ Estado atual · Último marco · Próximo passo · Pendências · Decisões · A
 ## Registro
 - 2026-10-29 (fim da sessão 1): análise do jogo por execução real concluída; usuário confirmou que o jogo é infinito; nenhuma tarefa de jogo definida; nada commitado. Arquitetura multiagente replicada da referência; `RETOMADA.md`/`TAREFA_atual.md`/`CLAUDE.md`/`AGENTS.md`/agentes Claude adaptados ao jogo. Histórico do Metroid permanece só na referência.
 - 2026-10-29 (sessão 2): tarefa 1 concluída. Removidos do menu: caixa do topo "LAN: N servidor(es)" (agora só "Online: N sala(s)"), aba REDE LOCAL (LAN), ícone LAN da faixa `#feat`, textos "rede local", funções `scanLAN`/`probe`/`joinIP` e o campo "Endereço do servidor online" das Configurações. Commits `24a99e1` (metodologia + spec) e `5ec2eb3` (código). Delegado ao `escritor`/`rapido`, revisado por `git diff` + `node --check`; o campo de servidor foi removido direto pelo Claude (edição mínima). Sem teste no navegador.
+- 2026-10-29 (sessão 3): título da aba "Zombizes Survivor"; visual de terror (menu e painéis, sem botão SAIR); jogador 3D, armas, itens em esfera, dinheiro, tiro e HUD (ver Estado atual); código dividido em `src/` + `build.js` (hospedagem inalterada). Recomendado abrir sessão nova: `leia RETOMADA.md`.

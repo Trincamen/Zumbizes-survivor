@@ -60,8 +60,8 @@ function drawWeapon3D(ctx,x,y,w,yaw,S){const g=WPG[w],cen=WCEN[w];if(!g||!cen)re
   ctx.beginPath();ctx.moveTo(W3X[xi],W3X[xi+1]);ctx.lineTo(W3X[xi+2],W3X[xi+3]);ctx.lineTo(W3X[xi+4],W3X[xi+5]);ctx.closePath();ctx.fill();ctx.stroke()}}
 function weaponIcon(w){
  if(WICON[w]!==undefined)return WICON[w];let u='';
- try{const cv=document.createElement('canvas');cv.width=112;cv.height=56;
-  const c2=cv.getContext('2d');if(c2){drawWeapon3D(c2,56,30,w,Math.PI/2,Math.min(200,100/WDIM[w]));u=cv.toDataURL()||''}}catch(e){u=''}
+ try{const cv=document.createElement('canvas');cv.width=240;cv.height=120;
+  const c2=cv.getContext('2d');if(c2){drawWeapon3D(c2,120,64,w,Math.PI/2,Math.min(420,214/WDIM[w]));u=cv.toDataURL()||''}}catch(e){u=''}
  WICON[w]=u;return u}
 // item no chão dentro de esfera translúcida (estilo GTA Vice City)
 function drawPickup(x,y,k,vv,t,bb){
