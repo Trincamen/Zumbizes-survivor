@@ -64,6 +64,7 @@ function weaponIcon(w){
   const c2=cv.getContext('2d');if(c2){drawWeapon3D(c2,120,64,w,Math.PI/2,Math.min(420,214/WDIM[w]));u=cv.toDataURL()||''}}catch(e){u=''}
  WICON[w]=u;return u}
 // item no chão dentro de esfera translúcida (estilo GTA Vice City)
+const HI={10:7,12:8,13:9};// classe do slot -> modelo GLB do item
 const IT3={8:6,0:7,9:8,10:9,1:10,6:11};
 function drawPickup(x,y,k,vv,t,bb){
  const wl=k==2||k==3||k==4||k==5||k==7||k==11,wi=k==7?0:k==11?5:k-1;
