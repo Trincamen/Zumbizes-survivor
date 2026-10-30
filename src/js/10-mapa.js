@@ -1,7 +1,7 @@
 // ---------- mapa (por semente: igual em todos os aparelhos) ----------
 function genMap(sd){let a=sd;const r=()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296},q=(m,n)=>m+r()*(n-m),o=[],B=[],TT=14;
  const hc=['#a87','#789','#b98','#6a8','#c96','#899'],rc=['#722','#445','#543','#264','#632'],cc=['#c33','#38c','#ccc','#ca3','#3a5','#a4c'];
- const mk=(x,y,w,h,T,c,d,H,part,nc)=>{const dx=x+q(24,w-80),b={x,y,w,h,H,c,d,dx,T,W:T=='W'};B.push(b);
+ const mk=(x,y,w,h,T,c,d,H,part,nc)=>{const dx0=x+q(24,w-80),dx=(T=='h'||T=='p'||T=='m')?x+w/2-28:dx0,b={x,y,w,h,H,c,d,dx,T,W:T=='W'};B.push(b);
   o.push({t:5,b,x,y,w,h:TT,wl:'n'},{t:5,b,x,y,w:TT,h,wl:'w'},{t:5,b,x:x+w-TT,y,w:TT,h,wl:'e'},{t:5,b,x,y:y+h-TT,w:dx-x,h:TT,wl:'s'},{t:5,b,x:dx+56,y:y+h-TT,w:x+w-dx-56,h:TT,wl:'s'});
   for(let p=0;p<part;p++){const mx=x+w*(p+1)/(part+1),gy=y+q(50,h-172);o.push({t:5,b,x:mx,y:y+TT,w:TT,h:gy-y-TT,wl:'i'},{t:5,b,x:mx,y:gy+68,w:TT,h:y+h-TT-70-gy-68,wl:'i'})}
   for(let k=0;k<nc;k++)o.push({t:3,x:q(x+22,x+w-58),y:q(y+22,y+h-95),w:36,h:36})};

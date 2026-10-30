@@ -107,13 +107,15 @@ function draw(){requestAnimationFrame(draw);const s=snap,t=Date.now(),dtf=Math.m
  X.fillStyle='#1b2e16';X.fillRect(cx-W/2-60,cy-H/2-60,W+120,H+120);X.fillStyle='#3a4a2b';X.fillRect(0,0,MW,MH);
  X.fillStyle='#2d6fa8';X.fillRect(0,RY0,MW,600);
  if(cy>RY0-700&&cy<RY1+700){X.strokeStyle='rgba(255,255,255,.13)';X.lineWidth=3;X.beginPath();for(let k=0;k<15;k++){const yy=RY0+20+k*40;X.moveTo(cx-W/2,yy);for(let u=cx-W/2;u<cx+W/2+60;u+=60)X.lineTo(u,yy+Math.sin(u/70+t/500+k)*5)}X.stroke()}
- X.fillStyle='#34343a';for(const[ya,yb]of[[0,2500],[3500,6000]])for(let k=0;k<=8;k++)X.fillRect(k*500-60,ya,120,yb-ya);
- for(const k of[0,1,2,3,4,5,7,8,9,10,11,12])X.fillRect(0,k*500-60,MW,120);
+ X.fillStyle='#34343a';cenRuaSpr();
  for(const bx of[1000,3000])bridgeGround(bx,t);
- X.strokeStyle='#ca4';X.lineWidth=3;X.setLineDash([30,30]);X.beginPath();for(let k=0;k<=8;k++){X.moveTo(k*500,0);X.lineTo(k*500,2500);X.moveTo(k*500,3500);X.lineTo(k*500,6000)}for(const k of[1,2,3,4,5,7,8,9,10,11]){X.moveTo(0,k*500);X.lineTo(MW,k*500)}for(const bx of[1000,3000]){X.moveTo(bx,2500);X.lineTo(bx,3500)}X.stroke();X.setLineDash([]);
+ X.strokeStyle='#ca4';X.lineWidth=3;X.setLineDash([30,30]);X.beginPath();
+ if(!(CEN_RUA.v&&CEN_RUA.h&&CEN_RUA.x)){for(let k=0;k<=8;k++){X.moveTo(k*500,0);X.lineTo(k*500,2500);X.moveTo(k*500,3500);X.lineTo(k*500,6000)}for(const k of[1,2,3,4,5,7,8,9,10,11]){X.moveTo(0,k*500);X.lineTo(MW,k*500)}}
+ for(const bx of[1000,3000]){X.moveTo(bx,2500);X.lineTo(bx,3500)}X.stroke();X.setLineDash([]);
  for(const j of ROWS)for(let i=0;i<8;i++){const bx=i*500+60,by=j*500+60;if(!v(bx+190,by+190,300))continue;X.fillStyle='#807a6a';X.fillRect(bx-10,by-10,400,400);X.fillStyle=(i+j)%2?'#44562f':'#3c4d2a';X.fillRect(bx,by,380,380)}
  edges('tlr');
- for(const b of BLD)if(v(b.x+b.w/2,b.y+b.h/2,b.w)){X.fillStyle=b.T=='h'?'#cfd6da':b.T=='p'?'#7b7b84':b.T=='m'?'#cdb994':'#6b573f';X.fillRect(b.x,b.y,b.w,b.h);X.strokeStyle='rgba(0,0,0,.18)';X.lineWidth=2;X.beginPath();for(let u=b.x+24;u<b.x+b.w;u+=24){X.moveTo(u,b.y);X.lineTo(u,b.y+b.h)}X.stroke()}
+ for(const b of BLD)if(v(b.x+b.w/2,b.y+b.h/2,b.w)){const si=b===meB?cenBldSpr(b,1):null;
+  if(!cenDraw(X,si,b.x+b.w/2,b.y+b.h/2)){X.fillStyle=b.T=='h'?'#cfd6da':b.T=='p'?'#7b7b84':b.T=='m'?'#cdb994':'#6b573f';X.fillRect(b.x,b.y,b.w,b.h);X.strokeStyle='rgba(0,0,0,.18)';X.lineWidth=2;X.beginPath();for(let u=b.x+24;u<b.x+b.w;u+=24){X.moveTo(u,b.y);X.lineTo(u,b.y+b.h)}X.stroke()}}
  if(s.bp&&v(s.bp[0],s.bp[1],150)){const bx=s.bp[0],by=s.bp[1],pl=(t%1000)/1000;X.strokeStyle='rgba(255,50,50,'+(1-pl)+')';X.lineWidth=4;X.beginPath();X.arc(bx,by,30+pl*70,0,7);X.stroke();X.fillStyle='rgba(255,40,40,.2)';X.beginPath();X.arc(bx,by,60,0,7);X.fill();txt('!',bx,by-30-Math.abs(Math.sin(t/150))*10,44,'#f33');if(FR%6==0)pts(2,bx+(Math.random()-.5)*90,by+(Math.random()-.5)*40,'#3f8a35',140,220,6,1)}
  for(const[x,y,an,len,tt]of s.Dh||[]){X.save();X.translate(x,y);X.rotate(an/100);const fl=tt<1;X.fillStyle=fl?'rgba(255,40,40,'+(.12+tt*.25)+')':'rgba(255,90,40,.35)';X.fillRect(0,-50,len,100);X.strokeStyle='#f44';X.lineWidth=3;X.strokeRect(0,-50,len,100);if(fl){X.fillStyle='#f66';for(let u=60;u<len;u+=90){X.beginPath();X.moveTo(u,-14);X.lineTo(u+28,0);X.lineTo(u,14);X.closePath();X.fill()}}X.restore()}
  for(const[x,y,k,vv]of IL){if(!v(x,y))continue;const ib=bAt(x,y);if(ib&&ib!==meB)continue;const bb=Math.sin(t/250+x)*3;drawPickup(x,y,k,vv,t,bb)}
