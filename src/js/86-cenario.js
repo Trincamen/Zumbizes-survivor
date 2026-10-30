@@ -259,12 +259,12 @@ function vehSize(g){
  return s&&s.length>=3&&s[0]>0&&s[1]>0&&s[2]>0?s:null;
 }
 function vehCrop(g,L,W,H){
- // descarta triângulos fora da caixa declarada (spikes/mirros isolados do GLB) p/ o sprite ficar centrado
- const t=.05,P=g.P,n=g.n,op=new Float32Array(P.length),oc=new Uint8Array(g.C.length),on=new Int16Array(n);
+ // descarta triângulos fora da caixa declarada (spikes isolados do GLB) p/ o sprite ficar centrado; folga em z/y mantém rodas (±1,1 m) e giroflex
+ const t=.1,tz=.3,ty=.2,P=g.P,n=g.n,op=new Float32Array(P.length),oc=new Uint8Array(g.C.length),on=new Int16Array(n);
  let k=0;
  for(let f=0;f<n;f++){const b=f*3;let ok=1;
   for(let i=0;i<3;i++){const j=(b+i)*3,vx=P[j],vy=P[j+1],vz=P[j+2];
-   if(vx<-L/2-t||vx>L/2+t||vz<-W/2-t||vz>W/2+t||vy>H+t){ok=0;break}}
+   if(vx<-L/2-t||vx>L/2+t||vz<-W/2-tz||vz>W/2+tz||vy>H+ty){ok=0;break}}
   if(!ok)continue;
   for(let i=0;i<3;i++){const j=(b+i)*3,o=(k*3+i)*3;
    op[o]=P[j];op[o+1]=P[j+1];op[o+2]=P[j+2];oc[o]=g.C[j];oc[o+1]=g.C[j+1];oc[o+2]=g.C[j+2];on[k*3+i]=g.N[b+i]}

@@ -1071,12 +1071,12 @@ function vehSize(g){
  return s&&s.length>=3&&s[0]>0&&s[1]>0&&s[2]>0?s:null;
 }
 function vehCrop(g,L,W,H){
- // descarta triângulos fora da caixa declarada (spikes/mirros isolados do GLB) p/ o sprite ficar centrado
- const t=.05,P=g.P,n=g.n,op=new Float32Array(P.length),oc=new Uint8Array(g.C.length),on=new Int16Array(n);
+ // descarta triângulos fora da caixa declarada (spikes isolados do GLB) p/ o sprite ficar centrado; folga em z/y mantém rodas (±1,1 m) e giroflex
+ const t=.1,tz=.3,ty=.2,P=g.P,n=g.n,op=new Float32Array(P.length),oc=new Uint8Array(g.C.length),on=new Int16Array(n);
  let k=0;
  for(let f=0;f<n;f++){const b=f*3;let ok=1;
   for(let i=0;i<3;i++){const j=(b+i)*3,vx=P[j],vy=P[j+1],vz=P[j+2];
-   if(vx<-L/2-t||vx>L/2+t||vz<-W/2-t||vz>W/2+t||vy>H+t){ok=0;break}}
+   if(vx<-L/2-t||vx>L/2+t||vz<-W/2-tz||vz>W/2+tz||vy>H+ty){ok=0;break}}
   if(!ok)continue;
   for(let i=0;i<3;i++){const j=(b+i)*3,o=(k*3+i)*3;
    op[o]=P[j];op[o+1]=P[j+1];op[o+2]=P[j+2];oc[o]=g.C[j];oc[o+1]=g.C[j+1];oc[o+2]=g.C[j+2];on[k*3+i]=g.N[b+i]}
@@ -1579,6 +1579,7 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!DD[o.i]&&v(o.x+o.w/2,o.y+o.h/2,o
  pfAdd('lista',pl);
  D.sort((a,b)=>a[0]-b[0]);
  let po=pfStart();
+ let arc=null;
  for(const[,ty,e,r]of D){
   if(ty==0){const pu=POP[e.i];if(pu&&t-pu<500){const u=(t-pu)/500,sc=u<.7?.3+u/.7*.85:1.15-(u-.7)/.3*.15;X.save();X.translate(e.x+e.w/2,e.y+e.h);X.scale(sc,sc);X.translate(-(e.x+e.w/2),-(e.y+e.h));obst(e);X.restore()}else obst(e)}else if(ty==3)roof(e);else if(ty==4)seller(e);else if(ty==5)fireFx(e[0],e[1],e[2],t);else if(ty==6)facade(e);else if(ty==7)pylon(e);
    else if(ty==8){let sp=CEN_SPR[e.s];if(sp&&e.r&&CEN_SPRV[e.s])sp=CEN_SPRV[e.s][e.r];if(sp){ell(e.x+3,e.y+3,Math.max(7,Math.min(26,sp.w*.38)),Math.max(2.5,sp.h*.05),'rgba(0,0,0,.22)');
@@ -1590,9 +1591,10 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!DD[o.i]&&v(o.x+o.w/2,o.y+o.h/2,o
   else{const[pid,n,c,,,hp,mx,dead,cw]=e,x=r.x,y=r.y,hh=pid.charCodeAt(0)%3,rlf=e[22]|0;
    if(dead){ell(x,y,20,9,'rgba(0,0,0,.4)');drawPlayer(x,y,{k:pid,fa:e[17]/10,aim:null,c:c,gun:'#222',ring:null,shot:0,dead:true,t:t,w:cw});txt('✖',x,y-26,24,'#ddd');ell(x,y,34,14,c,1);txt(n+' (caído)',x,y-48,14,'#bbb')}
    else{if(pid==id&&IL.length){let bd=220,ik=-1,ix=0,iy=0;
-     for(const[qx,qy,qk]of IL){const dd=Math.hypot(qx-x,qy-y);if(dd>=bd)continue;const ib=bAt(qx,qy);if((ib&&ib!==meB)||!v(qx,qy))continue;bd=dd;ik=qk;ix=qx;iy=qy}
-     if(ik>=0){const a0=Math.atan2((iy-y)/13,(ix-x)/34),ga=X.globalAlpha;X.globalAlpha=.28*(1-bd/220);X.strokeStyle=itCol(ik);X.lineWidth=2;X.beginPath();X.ellipse(x,y,34,13,0,a0-.61,a0+.61);X.stroke();X.globalAlpha=ga}}
+     for(const[qx,qy,qk]of IL){const dd=Math.hypot(qx-x,qy-y);if(dd>=bd)continue;bd=dd;ik=qk;ix=qx;iy=qy}
+     if(ik>=0)arc=[x,y,Math.atan2((iy-y)/13,(ix-x)/34),bd,ik]}
     if((e[30]|0)>0)ell(x,y,30+Math.sin(t/160)*2,11,'rgba(80,170,255,.6)',1);if(rlf>0)reloadRing(x,y,rlf);drawPlayer(x,y,{k:pid,fa:e[17]/10,aim:e[25]>0?e[24]/10:null,c:c,gun:WC[cw],ring:c,shot:LSH[pid]||0,dead:false,fast:(e[21]|0)>0||(e[30]|0)>0,t:t,w:cw});bar(x-18,y-56,36,hp/mx,'#3e3');txt(n,x,y-66,14,pid==id?'#ff0':'#fff');if(pid==id)txt('▼',x,y-80,14,'#ff0');if(rlf>0)reloadPill(x,y,rlf,t,e[27]|0,e[28]|0,e[29]|0,pid==id)}}}
+ if(arc){const ga=X.globalAlpha;X.globalAlpha=.6*(1-arc[3]/220)+.15;X.strokeStyle=itCol(arc[4]);X.lineWidth=3;X.beginPath();X.ellipse(arc[0],arc[1],34,13,0,arc[2]-.61,arc[2]+.61);X.stroke();X.globalAlpha=ga}
  pfAdd('objetos',po);
  let px=pfStart();drawMark(s,t);edges('b');drawFX();drawProj(s,dtf);pfAdd('fx',px);if(s.sh){const b=bAt(s.sh[0],s.sh[1]);if(b&&b!==meB)txt('🛒 LOJA',b.x+b.w/2,b.y-b.H-22+Math.sin(t/200)*4,26,'#fc3')}
  for(const[x,y,pg]of s.K){if(pg<1){X.fillStyle='rgba(255,40,40,'+(.12+pg*.25)+')';X.beginPath();X.arc(x,y,70,0,7);X.fill();X.strokeStyle='#f88';X.lineWidth=3;X.beginPath();X.arc(x,y,70,0,7);X.stroke();X.strokeStyle='#f22';X.beginPath();X.arc(x,y,70*pg,0,7);X.stroke();}
