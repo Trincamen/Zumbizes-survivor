@@ -96,9 +96,9 @@ const CL={10:['✚','Curar'],11:['⚡','Desfib.'],12:['🩹','Bandagem'],13:['�
 const SH=[['🩹 Bandagem',15,9],['💊 Analgésico',60,10],['✚ Kit de cura',60,0],['⚡ Desfibrilador',400,1],['Escopeta',300,2],['Rifle',440,3],['Metralhadora',600,4],['Lança-chamas',520,5],['Sniper',900,11],['★ Melhoria da arma',100,6]];
 const id=Math.random().toString(36).slice(2,8);let host=0,ws,snap=null,me=null,lastBn=null,skKey='',shKey='',ofKey='',LSH={},LVP={},LUE=[],FT=[],PILL=null,wbKey='',O=[],curSd=0,BLD=[],meB=null,IL=[],ZMM=[],FIRES=[],DD={},POP={},FL2=[],PT=[],QK=0,lastEv=0,FXL=[],lastF=0,RP={},FR=0,LT=Date.now();
 const LS={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}},esc=x=>String(x).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
-let originKind='?',lanSrv=[],onRooms=[],scanning=0,tab='on',rc='';
+let originKind='?',onRooms=[],scanning=0,tab='on',rc='';
 $('nm').value=LS.get('name')||'';nickUp();if(!$('nm').value)setTimeout(()=>{show('nick');try{$('nk').focus()}catch(e){}},0);
-(async()=>{if(window.Capacitor)originKind='app';else try{const j=await(await fetch('/info')).json();originKind=j.kind;if(j.kind=='lan')lanSrv.push({host:location.host,name:j.name,n:j.n})}catch(e){originKind='none'}rl()})();
+(async()=>{if(window.Capacitor)originKind='app';else try{const j=await(await fetch('/info')).json();originKind=j.kind}catch(e){originKind='none'}rl()})();
 const R=(a,b)=>a+Math.random()*(b-a),need=l=>150+l*90+l*l*10,kOf=c=>c==0?7:c==5?11:c<5?c+1:c==10?0:c==11?1:c==12?9:10,ad=(a,b)=>{let d=a-b;while(d>3.14)d-=6.28;while(d<-3.14)d+=6.28;return d};
 // ---------- mapa (por semente: igual em todos os aparelhos) ----------
 function genMap(sd){let a=sd;const r=()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296},q=(m,n)=>m+r()*(n-m),o=[],B=[],TT=14;
@@ -165,11 +165,8 @@ function rl(){
 async function loadRooms(){const b=relayBase();if(!b){$('onS').textContent='Informe o endereço do servidor online em CONFIGURAÇÕES.';return}$('onS').textContent='Carregando...';
  try{onRooms=await(await fetch(b+'/rooms')).json();$('onS').textContent=onRooms.length?'':'Nenhuma sala aberta agora. Crie a sua!'}catch(e){onRooms=[];$('onS').textContent='Não foi possível falar com o servidor online.'}rl()}
 const relayWs=()=>relayBase().replace(/^http/,'ws');
-function hostLAN(){connect('ws://'+location.host+'/ws?id='+id+'&h=1',1)}
 function hostOnline(){const code=Math.random().toString(36).slice(2,6).toUpperCase();connect(relayWs()+'/ws?id='+id+'&h=1&room='+code+'&name='+encodeURIComponent(myName()),1,code)}
-function joinLAN(hp){connect('ws://'+hp+'/ws?id='+id,0)}
 function joinRoom(c){connect(relayWs()+'/ws?id='+id+'&room='+c,0,c)}
-function sair(){try{window.close()}catch(e){}if(window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.App)Capacitor.Plugins.App.exitApp();else alert('Você já pode fechar esta janela.')}
 function fs_(){try{document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{})}catch(e){}}
 function startLoop(){try{const w=new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(0),33)'])));w.onmessage=()=>step()}catch(e){setInterval(step,33)}}
 function solo(){host=1;ws=null;fs_();addP(id,myName());startLoop();minP=1;start()}
