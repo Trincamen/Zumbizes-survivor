@@ -1,30 +1,32 @@
-# TAREFA_atual.md — Menu: carro de frente com jogadores, zumbis GLB, fundo com prédios
+# TAREFA_atual.md — Menu: elevar a qualidade dos zumbis, do veículo e da cidade (incremental)
 
 > Agente: OpenCode `rapido` (via `escritor`). Se falhar, parar e escrever bloqueio em `saidas/relatorio.txt` (≤15 linhas).
 > **Edite `src/`, NUNCA `game.html`. No fim rode `node build.js` e `node build.js --check`.** Achar código: `grep -n 'texto' src/js/*.js`; ler com `sed -n 'A,Bp' arquivo | cut -c1-400`.
-> NÃO mexer em: `server.js`, Dockerfile, workflows, `package*.json`, snapshot/rede, `genMap`, `98-debug.js`, HTML/CSS do menu (o layout de textos está APROVADO, não mudar).
+> NÃO mexer em: `server.js`, Dockerfile, workflows, `package*.json`, snapshot/rede, `genMap`, `98-debug.js`, HTML/CSS do menu, logo, textos, paleta, estrada, céu, neblina e vinheta (APROVADOS, preservar). Mudança INCREMENTAL em `menuScene` e helpers dele (`src/js/90-sons.js`, ~linha 191+); NÃO reescrever o menu.
 
-## Objetivo
-Só alterar `menuScene(t)` (`src/js/90-sons.js`, ~linha 93+; pode ter helpers/caches novos ao lado). A composição atual (céu entardecer, neblina, estrada, vinheta, faróis) está aprovada; troque APENAS estes 3 elementos:
+## Contexto técnico (verificado)
+Sem three.js: é canvas 2D com rasterizador próprio de GLB (pintor, projeção oblíqua `cenMakeObl` em `86-cenario.js`; zumbis em `87-zumbis.js`: `zsprGen/zsprGet/zDraw`, `ZH=46` px de altura nativa, `ss=2`, clipes idle/walk/run/attack). NÃO invente APIs; confira com grep. Não há modelos novos de zumbi/prédio no repo: NÃO substituir por caixas/cilindros. Só melhorar apresentação com os GLB existentes.
 
-### 1. Carro de FRENTE, com os jogadores dentro (lado direito, primeiro plano)
-- Hoje o carro aparece como bloco escuro e de lado. Passe a mostrar o carro VISTO DE FRENTE (frente voltada para quem olha, levemente de 3/4 se ficar melhor), grande, na estrada à direita, faróis acesos (brilho `lighter` amarelo já existente).
-- Gere o sprite com `cenLoad(VGLB[i])` + `cenMakeObl` (veja `vehBuild`/`vehSize`/`vehCrop` em `src/js/86-cenario.js:255-290`, que já fazem sprites horizontal e vertical; a vertical `rot:-Math.PI/2` mostra o carro de frente OU de trás: confira qual é a frente testando; se for traseira, use `rot:+Math.PI/2`). Use escala maior que no jogo (ex.: `ss:2`, ~60–70 px/m, sprite com ~40% da largura da tela no máx.). Pré-renderize UMA vez e guarde em cache (não gerar por quadro).
-- Escolha o modelo de `VGLB` em que os jogadores aparecem melhor (jeep ou caminhonete se tiver cabine aberta/vidro; senão a policia). Para ver os ocupantes: gere o sprite do carro SEM os nós de vidro (`cenLoad(b64,skip)` aceita `skip` por nome de nó; liste os nomes dos nós com `g.NM`), desenhe os jogadores por dentro e depois um retângulo/trapézio de vidro semitransparente escuro `rgba(20,30,35,.45)` por cima do para-brisa.
-- Jogadores: 2–4 ocupantes (cores `#3a5a8a,#6a3a8a,#3a6a3a,#8a2e22`) usando `drawPlayer(...)` como a versão antiga fazia (ver `git show HEAD~1:src/js/90-sons.js | grep -n drawPlayer`), só tronco/cabeça visíveis (clip na região da cabine), lado a lado, `idle:true`, olhando para frente. Se o clip/posição ficar ruim, aceite 2 ocupantes (motorista e carona) em vez de 4.
-- Escurecer um pouco o carro e a cabine para combinar com o clima (`rgba(0,0,0,.25)`).
+## 1. Zumbis (presença e leitura)
+- Hoje saem em ~46 px de altura, ampliados → pixelados e chapados. Para o MENU gere sprites em resolução maior: adicionar a `87-zumbis.js` um parâmetro OPCIONAL (ex.: `zsprGen(M,cn,ph,yaw,zh)` / `zsprGet(...,zh)` com chave de cache separada; `zh` default = `ZH`, jogo inalterado) e usar `zh` ~110–150 px nos planos próximos (menor nos distantes). Respeitar o limite de gerações por quadro (`ZBUD`) e o LRU; pré-aquecer poucos por quadro.
+- Planos: (a) intermediário: 4–5 zumbis grandes e bem legíveis, modelos variados (padrao, sem_braco, policial, bombeiro, gordao 1x, corredor 1x), em grupo irregular PERTO da estrada central/esquerda-centro, não alinhados nem uniformes, alguns parados (`idle`), outros `walk`, 1 `run`; (b) distante: 2 grupos pequenos (3–4 cada) bem menores, perto do horizonte, esmaecidos pela névoa; NUNCA zumbis no lado esquerdo sob o menu/logo (x < ~32% da largura) exceto os muito distantes na linha do horizonte.
+- Integração: sombra de contato elíptica escura sob cada zumbi (opacidade proporcional à proximidade); escurecer/dessaturar com a distância (cache: gerar uma versão "névoa" por sprite ou usar `globalAlpha` + camada de névoa por cima; NADA de `ctx.filter` por zumbi por quadro); leve luz de contorno quente vinda do horizonte nos planos próximos é opcional (só se barata, via sprite cacheado). Silhueta deve continuar legível no escuro (não deixar preto total).
 
-### 2. Zumbis atrás do carro com os GLB do jogo
-- Troque os `person(...)` por sprites 3D do `87-zumbis.js`: `zsprGet(mi,cn,phq,yawq)` + `zDraw(ctx,sp,x,y,s,wf)` (veja `zumbiSpr` em `87-zumbis.js:117` para como `mi`/`cn`/`yawq` são calculados: mi 0..3 = padrao/policial/bombeiro/sem_braco, 4 = corredor, 5 = gordão; `cn` 'walk'|'run'|'idle'|'attack'; `phq` 0..7; `yawq` 0..11). Se `zsprGet` devolver null (ainda gerando), pule o zumbi no quadro (sem fallback 2D).
-- 8–12 zumbis em profundidade ATRÁS do carro (desenhados ANTES do carro, y menor), vindo pela estrada em direção ao carro, mistura de modelos, 'walk' (alguns 'run'), com fase de animação `(t/800+i*.137)%1`. Mais longe = menor e mais esmaecido pela névoa (desenhe a névoa por cima). Fase animada pelo tempo `t`.
+## 2. Veículo abandonado (substitui o jeep + jogadores)
+- Remover os jogadores/ocupantes e o jeep do primeiro plano. Novo veículo: `src/assets/veiculos/caminhao.glb` (JÁ copiado para o repo; silhueta robusta). Adicionar a `VGLB`/carregamento APENAS se não quebrar `vehIdx` do jogo (`(o.i*7+3)%5`): prefira constante separada (ex.: `MENU_CAMINHAO='@@GLB:assets/veiculos/caminhao.glb@@'`) lida com `cenLoad` + `vehSize`/`vehCrop`, sem alterar `VGLB` nem o mapa. Confira que o marcador `@@GLB:...@@` do `build.js` funciona em qualquer arquivo de `src/js/`.
+- Vista TRASEIRA em 3/4 (traseira voltada ao jogador, girado ~20–30° para a lateral), no primeiro plano à DIREITA-INFERIOR, sem cobrir a área do menu nem os zumbis do plano intermediário. Descubra por teste qual `rot` de `cenMakeObl` mostra a traseira (o GLB tem frente em +X ou +Z; ver `vehBuild`). Sprite grande (~45–55% da altura da tela no máx.), `ss:2`, pré-renderizado UMA vez e cacheado por tamanho.
+- Material: vidros escuros (se der, `cenLoad(b64,skip)` com `g.NM` para identificar nós e escurecer), lanternas traseiras vermelhas apagadas ou muito fracas (sem faróis acesos!), cores da pintura dessaturadas/escurecidas (`rgba(0,0,0,.3)` por cima + leve sujeira em degradê na parte de baixo). Sombra de contato grande e escura sob o veículo (elipse) e névoa baixa por cima da base para integrar ao asfalto. Reflexo/brilho mínimo.
 
-### 3. Fundo: prédios do jogo desfocados no lugar das árvores
-- Remova a floresta de pinheiros procedurais do horizonte. No lugar, uma linha de horizonte (cidade ao longe) com os prédios do jogo: hospital, delegacia, mercado, usando `cenBldSpr({T:'h'|'p'|'m',w:CEN_PSZ[T][0],h:CEN_PSZ[T][1],H:CEN_PSZ[T][2]},false)` (`86-cenario.js:195`; devolve sprite `{cv,ax,ay,w,h}`, desenhe com `cenDraw`/`ctx.drawImage`). Repita/alterne h/p/m em escalas diferentes (0.35–0.7), alguns sobrepostos, formando o skyline; entre eles, árvores do jogo (`CEN_SPR[0]` redonda, `[1]` pinheiro, `[2]` morta; `cenDraw(X,CEN_SPR[i],x,y)`), poucas.
-- DESFOQUE: pré-renderize esse fundo UMA vez por tamanho (`W,H`) em canvas offscreen com `ctx.filter='blur(3px)'` (se `filter` não existir, desenhe em 1/3 de resolução e amplie com `imageSmoothingEnabled`), depois névoa em degradê (cinza-alaranjado, opacidade alta na base dos prédios), dessaturado/escurecido para combinar com o entardecer. Por quadro só `drawImage` do cache (sem blur por quadro).
-- Se `CEN_BLD`/`CEN_SPR` forem nulos (falha de carga), fallback: retângulos escuros simples de prédio.
+## 3. Cidade (silhueta e profundidade)
+- Mantém hospital/delegacia/mercado (`cenBldSpr`, `CEN_PSZ`) + árvores do jogo, mas sair do "fileira de caixas": larguras e alturas diferentes (escalas 0.3–0.9 e ESTICAR em altura/largura de forma independente quando necessário via `drawImage`), espaçamentos irregulares, 2–3 camadas de profundidade (mais longe = menor, mais claro/baixo contraste, mais desfoque; mais perto = silhueta mais forte), alguns prédios espelhados, alguns recortados pela névoa na base. Cores levemente diferentes por prédio (tint escuro/dessaturado), janelas aparecem nos mais próximos.
+- Detalhes de topo (antena, caixa-d'água, chaminé) permitidos APENAS como silhuetas escuras simples e discretas nas camadas DISTANTES (são silhuetas de horizonte, não modelos); poucos, não em todos.
+- Dano discreto: nada de ruínas exageradas; no máx. 1–2 prédios com silhueta de topo "quebrada" via recorte do sprite (clip no topo) nos planos distantes.
+- Limpar o lado esquerdo (sob o menu): prédios mais baixos/escuros ali.
+- Desfoque pré-renderizado UMA vez por tamanho (como já está). Névoa progressiva por camada; horizonte alaranjado parcialmente encoberto.
 
 ## Critério de pronto
-1. `node build.js` e `node build.js --check` ok; `node --check` do script extraído ok; nenhum erro novo no console ao abrir o menu (`cenario ms` continua < 600).
-2. Menu continua com o mesmo texto/botões; carro de frente com ocupantes visíveis; zumbis 3D; skyline desfocado com h/p/m.
-3. FPS do menu não cai de forma visível (tudo estático em cache; só zumbis + faróis animam).
-4. Apenas `src/js/90-sons.js` (e `game.html` gerado) alterados, salvo helper indispensável (justificar). Relatório final ≤5 linhas.
+1. `node build.js` e `node build.js --check` ok; `node --check` do script extraído ok; console sem erro novo; `cenario ms` < 600; o JOGO (zumbis em partida) inalterado (parâmetro novo opcional).
+2. Sem ocupantes; caminhão de traseira/3-4 no canto inferior direito; zumbis legíveis e agrupados (não uniformes); skyline variado em camadas.
+3. Menu (textos, logo, botões) idêntico; lado esquerdo limpo.
+4. Sem `ctx.filter`/gradientes novos por quadro; só zumbis animam; FPS do menu estável.
+5. Arquivos: `src/js/90-sons.js`, `src/js/87-zumbis.js` (só o parâmetro opcional), `src/assets/veiculos/caminhao.glb` (já copiado), `game.html` gerado. Relatório ≤5 linhas, citando o que NÃO foi possível sem novos modelos.
