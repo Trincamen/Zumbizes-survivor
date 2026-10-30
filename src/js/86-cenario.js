@@ -285,7 +285,11 @@ function genDecor(sd){
  const onRua=(x,y)=>((y<2500||y>3500)&&Math.abs(x-Math.round(x/500)*500)<64)||CEN_HV.some(k=>Math.abs(y-k*500)<64);
  const far=(x,y)=>x>40&&y>40&&x<MW-40&&y<MH-40&&!inRiv(y)&&Math.hypot(x-2000,y-4500)>=200;
  const free=(x,y,r)=>{if(!far(x,y))return 0;if(blk(x,y,r==null?12:r))return 0;
-  for(const b of BLD)if(x>b.x-6&&x<b.x+b.w+6&&y>b.y-6&&y<b.y+b.h+6)return 0;return 1};
+  for(const b of BLD)if(x>b.x-6&&x<b.x+b.w+6&&y>b.y-6&&y<b.y+b.h+6)return 0;
+  // zona livre à frente da porta (sprites altos tapavam a entrada na projeção oblíqua)
+  for(const b of BLD){const yb=b.y+b.h;
+   if(x>=b.dx-45&&x<=b.dx+101&&y>=yb-20&&y<=yb+110)return 0}
+  return 1};
  // espaçamento mínimo por tipo (k=índice do sprite; 'g'=grama)
  const P={},sep=(k,x,y,d)=>{for(const p of P[k]||[])if((p[0]-x)*(p[0]-x)+(p[1]-y)*(p[1]-y)<d*d)return 0;return 1},mark=(k,x,y)=>{(P[k]=P[k]||[]).push([x,y])};
  const add=(x,y,s,r,rua)=>{if(out.length>=318||!free(x,y,12))return 0;if(!rua&&onRua(x,y))return 0;
@@ -322,9 +326,10 @@ function genDecor(sd){
   if(ci%6==0&&rnd()<.7){const e=rnd()<.5?0:1;place(bx,by,e,q(90,290),65,15)}
   // cabine telefônica: rara
   if(ci%13==0){const e=rnd()*4|0;place(bx,by,e,q(60,320),74,14)}
-  // caçamba encostada em prédio (alinhada ao prédio)
-  if(ci%7==0&&BLD.length){const b=BLD[(ci*7)%BLD.length];
-   add(b.x+b.w/2+q(-40,40),rnd()<.5?b.y+b.h+24:b.y-24,18,0)}
+  // caçamba encostada em prédio (no canto mais longe da porta; consome q() igual antes)
+  if(ci%7==0&&BLD.length){const b=BLD[(ci*7)%BLD.length];q(-40,40);
+   const yy=rnd()<.5?b.y+b.h+24:b.y-24,ca=b.x+14,cb=b.x+b.w-14;
+   add(Math.abs(ca-(b.dx+28))>Math.abs(cb-(b.dx+28))?ca:cb,yy,18,0)}
   // trecho de obra curto na beira do asfalto (cones/barreiras alinhados)
   if(rnd()<.14){const yy=by-14,u=q(40,260),n=2+(rnd()*3|0);
    for(let k=0;k<n;k++)add(bx+u+k*30,yy,rnd()<.7?19:20,k%2)}
