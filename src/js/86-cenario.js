@@ -51,7 +51,7 @@ function cenLoad(b64,skip){
  return {P:new Float32Array(P),C:new Uint8Array(C),N:new Int16Array(N),NM:NM,n:C.length/3|0,extras:extras};
 }
 // sprite offscreen: yaw fixo, pé (origem do modelo, y=0) na âncora ax/ay (px CSS)
-function cenMake(g,target,dim,yaw,ss){
+function cenMake(g,target,dim,yaw,ss,Sfix){
  if(!g||!g.n)return null;
  const co=Math.cos(yaw),si=Math.sin(yaw),P=g.P,n=g.n;
  const RX=new Float32Array(n*9),RY=new Float32Array(n*9),RZ=new Float32Array(n*9),SX=new Float32Array(n*9),SY=new Float32Array(n*9),D=new Float32Array(n),O=new Int32Array(n);
@@ -60,7 +60,7 @@ function cenMake(g,target,dim,yaw,ss){
   const rx=px*co+pz*si,rz=-px*si+pz*co,sx=rx,sy=-(py-rz*K2);
   RX[i*3]=rx;RY[i*3]=py;RZ[i*3]=rz;SX[i*3]=sx;SY[i*3]=sy;
   if(sx<x0)x0=sx;if(sx>x1)x1=sx;if(sy<y0)y0=sy;if(sy>y1)y1=sy}
- const span=Math.max(.001,dim=='x'?x1-x0:y1-y0),S=target/span,MG=4;
+ const span=Math.max(.001,dim=='x'?x1-x0:y1-y0),S=Sfix||target/span,MG=4;
  const cw=Math.max(2,Math.ceil((x1-x0)*S+2*MG)),chh=Math.max(2,Math.ceil((y1-y0)*S+2*MG));
  const cv=document.createElement('canvas');cv.width=Math.ceil(cw*ss);cv.height=Math.ceil(chh*ss);
  const c2=cv.getContext('2d');if(!c2)return null;
@@ -80,7 +80,7 @@ function cenMake(g,target,dim,yaw,ss){
   c2.beginPath();
   for(let k=0;k<3;k++){const xi=b+k*3,cx=(SX[xi]-x0)*S+MG,cy=(SY[xi]-y0)*S+MG;c2[k?'lineTo':'moveTo'](cx,cy)}
   c2.closePath();c2.fill();c2.stroke()}
- return {cv,ax:(0-x0)*S+MG,ay:(0-y0)*S+MG,w:cw,h:chh};
+ return {cv,ax:(0-x0)*S+MG,ay:(0-y0)*S+MG,w:cw,h:chh,S:S,span:span};
 }
 function cenDraw(ctx,sp,x,y){ if(!sp||!sp.cv)return 0;
  try{ctx.drawImage(sp.cv,x-sp.ax,y-sp.ay,sp.w,sp.h);return 1}catch(e){return 0}
@@ -140,9 +140,21 @@ function cenMakeObl(g,o){
  return {cv,ax:(0-x0)+MG,ay:(0-y0)+MG,w:cw,h:chh};
 }
 // ---------- ruas (tile 24 m = 300 px, 12,5 px/m: asfalto de 8 m = 100 px, igual à rua do jogo) e prédios h/p/m ----------
-const CEN_RGLB=['@@GLB:assets/rua/rua_reta.glb@@','@@GLB:assets/rua/rua_cruzamento.glb@@'];
+const CEN_RGLB=['@@GLB:assets/rua/rua_reta.glb@@','@@GLB:assets/rua/rua_cruzamento.glb@@','@@GLB:assets/rua/rua_T.glb@@','@@GLB:assets/rua/rua_curva.glb@@'];
 const CEN_PGLB={h:'@@GLB:assets/predios/predio_hospital.glb@@',p:'@@GLB:assets/predios/predio_policia.glb@@',m:'@@GLB:assets/predios/predio_mercado.glb@@'};
-const CEN_RUA={v:null,h:null,x:null};
+const CEN_RUA={v:null,h:null,x:null,t:null,c:null};
+// ruas horizontais desenhadas (sem a do rio)
+const CEN_HV=[0,1,2,3,4,5,7,8,9,10,11,12];
+// braços (bit: N=1,S=2,L=4,O=8) → índice de variante. rua_T.glb = L+O+S (falta N);
+// girando +90° em Y (cenMakeObl rot) o braço S vai para L, L para N, O para S.
+const CEN_TV={14:0,7:1,13:2,11:3};
+// rua_curva.glb = S+L; mesma rotação: r1=L+N, r2=N+O, r3=O+S
+const CEN_CV={6:0,5:1,9:2,10:3};
+// braços reais do cruzamento em (x,y): rua sai para fora do mundo/capim? não desenha o braço
+function cenArms(x,y){const br=x==1000||x==3000;let a=0;
+ if(y>0&&(y<=2500||br))a|=1;      // norte: via vertical até a margem (ou ponte)
+ if(y<MH&&(y>=3500||br))a|=2;     // sul: via vertical depois do rio (ou ponte)
+ if(x<MW)a|=4;if(x>0)a|=8;return a}
 const CEN_BLD={h:null,p:null,m:null};
 const CEN_PSZ={h:[876,360,88],p:[360,360,84],m:[370,350,84]}; // mk() de 10-mapa.js
 const CEN_SKIP_EXT=nm=>/^(parking|cart_corral|loot_|player_spawn|zombie_)/.test(nm);
@@ -172,7 +184,7 @@ function cenMerge(a,b){
 }
 function cenBldBuild(T,w,d,H){
  if(!CEN_PGLB[T])return null;
- const o={w:w,d:d,hpx:H,ss:2,nosort:1},oe={w:w,d:d,hpx:H,ss:2,grp:cenGrpExt};
+ const o={w:w,d:d,hpx:H,ss:1,nosort:1},oe={w:w,d:d,hpx:H,ss:1,grp:cenGrpExt};
  const gi=cenLoad(CEN_PGLB[T],CEN_SKIP_INT);
  const e=cenMerge(cenMakeObl(cenLoad(CEN_PGLB[T],CEN_SKIP_FRONT),oe),cenMakeObl(cenLoad(CEN_PGLB[T],CEN_SKIP_BACK),o));
  const i=cenMakeObl(gi,o);
@@ -189,43 +201,72 @@ function cenBldSpr(b,interior){
   CEN_BLD[b.T]=s}
  return (interior?s.i:s.e)||null;
 }
-// ruas: tile de 300 px (24 m) — vertical, horizontal (girada 90°) e cruzamento
-function cenRuaSpr(){
- const R=CEN_RUA;
- X.fillStyle='#34343a';
- for(const[ya,yb]of[[0,2500],[3500,6000]])for(let k=0;k<=8;k++)X.fillRect(k*500-60,ya,120,yb-ya);
- for(const k of[0,1,2,3,4,5,7,8,9,10,11,12])X.fillRect(0,k*500-60,MW,120);
+// ruas: tile de 300 px (24 m) — vertical, horizontal (girada 90°), cruzamento, T e curva.
+// Desenha o chão estático (asfalto, tiles, calçadas e gramado) dentro de [x0,y0]-[x1,y1].
+function cenRuaSpr(c,x0,y0,x1,y1){
+ c=c||X;x0=x0||0;y0=y0||0;x1=x1==null?MW:x1;y1=y1==null?MH:y1;
+ const R=CEN_RUA,TS=300,ok=(x,y)=>x>x0-160&&x<x1+160&&y>y0-160&&y<y1+160;
+ c.fillStyle='#3a4a2b';c.fillRect(0,0,MW,MH);
+ c.fillStyle='#2d6fa8';c.fillRect(0,RY0,MW,600);
+ c.fillStyle='#34343a';
+ for(const[ya,yb]of[[0,2500],[3500,6000]])for(let k=0;k<=8;k++){if(yb<y0||ya>y1)continue;c.fillRect(k*500-60,ya,120,yb-ya)}
+ for(const k of CEN_HV){const yc=k*500;if(yc+60<y0||yc-60>y1)continue;c.fillRect(0,yc-60,MW,120)}
  if(!(R.v&&R.h&&R.x))return;
- const vx0=cx-W/2-160,vx1=cx+W/2+160,vy0=cy-H/2-160,vy1=cy+H/2+160,ok=(x,y)=>x>vx0&&x<vx1&&y>vy0&&y<vy1,HV=[0,1,2,3,4,5,7,8,9,10,11,12],TS=300;
  // verticais (asfalto do tile = 8 m = 100 px, igual à rua do jogo)
- for(const[ya,yb]of[[0,2500],[3500,6000]])for(let k=0;k<=8;k++){const xc=k*500;
-  if(xc+160<vx0||xc-160>vx1)continue;
-  const cx0=Math.max(xc-60,0),cx1=Math.min(xc+60,MW);
-  if(cx1<=cx0)continue;
-  X.save();X.beginPath();X.rect(cx0,ya,cx1-cx0,yb-ya);X.clip();
-  for(let y0=ya;y0<yb;y0+=TS){const yc=y0+TS/2;if(ok(xc,yc))cenDraw(X,R.v,xc,yc)}
-  X.restore()}
+ for(const[ya,yb]of[[0,2500],[3500,6000]]){if(yb<y0||ya>y1)continue;
+  const cy0=Math.max(ya,y0),cy1=Math.min(yb,y1);
+  for(let k=0;k<=8;k++){const xc=k*500;if(xc+160<x0||xc-160>x1)continue;
+   const cx0=Math.max(xc-60,x0),cx1=Math.min(xc+60,x1);if(cx1<=cx0)continue;
+   c.save();c.beginPath();c.rect(cx0,cy0,cx1-cx0,cy1-cy0);c.clip();
+   for(let yy=Math.floor(cy0/TS)*TS;yy<cy1;yy+=TS)if(ok(xc,yy+TS/2))cenDraw(c,R.v,xc,yy+TS/2);
+   c.restore()}}
  // horizontais
- for(const ky of HV){const yc=ky*500;
-  if(yc+160<vy0||yc-160>vy1)continue;
-  const cy0=Math.max(yc-60,0),cy1=Math.min(yc+60,MH);
-  if(cy1<=cy0)continue;
-  X.save();X.beginPath();X.rect(0,cy0,MW,cy1-cy0);X.clip();
-  for(let x0=0;x0<MW;x0+=TS){const xc=x0+TS/2;if(ok(xc,yc))cenDraw(X,R.h,xc,yc)}
-  X.restore()}
- // cruzamentos por cima
- for(const[ya,yb]of[[0,2500],[3500,6000]])for(let k=0;k<=8;k++)for(const ky of HV){const yc=ky*500;
-  if(yc<ya||yc>yb||!ok(k*500,yc))continue;cenDraw(X,R.x,k*500,yc)}
+ for(const ky of CEN_HV){const yc=ky*500;if(yc+160<y0||yc-160>y1)continue;
+  const cy0=Math.max(yc-60,y0),cy1=Math.min(yc+60,y1);if(cy1<=cy0)continue;
+  c.save();c.beginPath();c.rect(Math.max(0,x0),cy0,Math.min(MW,x1)-Math.max(0,x0),cy1-cy0);c.clip();
+  for(let xx=Math.floor(Math.max(0,x0)/TS)*TS;xx<Math.min(MW,x1);xx+=TS)if(ok(xx+TS/2,yc))cenDraw(c,R.h,xx+TS/2,yc);
+  c.restore()}
+ // cruzamentos: só o núcleo de 120×120 no centro (os braços vêm das retas) → sem emenda
+ for(let k=0;k<=8;k++)for(const ky of CEN_HV){const px=k*500,py=ky*500;
+  if(px+60<x0||px-60>x1||py+60<y0||py-60>y1)continue;
+  const a=cenArms(px,py),n=(a&1)+(a>>1&1)+(a>>2&1)+(a>>3&1);
+  const sp=n>=4?R.x:n==3&&R.t?R.t[CEN_TV[a]]:n==2&&R.c?R.c[CEN_CV[a]]:null;
+  if(!sp)continue;
+  c.save();c.beginPath();c.rect(px-60,py-60,120,120);c.clip();
+  cenDraw(c,sp,px,py);c.restore()}
+}
+// quarteirões: calçada + gramado (estático, entra no cache do chão)
+function cenBlocks(c,x0,y0,x1,y1){
+ c=c||X;x0=x0==null?0:x0;y0=y0==null?0:y0;x1=x1==null?MW:x1;y1=y1==null?MH:y1;
+ for(const j of ROWS)for(let i=0;i<8;i++){const bx=i*500+60,by=j*500+60;
+  if(bx+400<x0||bx>x1||by+400<y0||by>y1)continue;
+  c.fillStyle='#807a6a';c.fillRect(bx-10,by-10,400,400);
+  c.fillStyle=(i+j)%2?'#44562f':'#3c4d2a';c.fillRect(bx,by,380,380)}
 }
 // pré-renderiza uma única vez no boot
+// props alongados/orientados: 4 yaws alinhados aos eixos (0=+Z/sul, 1=+X/leste, 2=-Z/norte, 3=-X/oeste)
+const CEN_ORI={14:1,15:1,16:1,18:1,20:1,25:1,26:1};
+const CEN_SPRV={};
 function initCenario(){
  const t0=(performance&&performance.now?performance.now():Date.now());
  const cfg=CENCFG;
- for(let i=0;i<CENGLB.length;i++){CEN_SPR[i]=null;
-  try{CEN_SPR[i]=cenMake(cenLoad(CENGLB[i]),cfg[i][0],cfg[i][1],.6,i<4?3:2)}catch(e){CEN_SPR[i]=null;console.warn('cenario',i,e)}}
- try{const gr=cenLoad(CEN_RGLB[0]),gx=cenLoad(CEN_RGLB[1]),o={w:300,d:300,hpx:12.5,ss:2,fx:24,fz:24,cx:0,cz:0,fy:1,nosort:1};
-  CEN_RUA.v=cenMakeObl(gr,o);CEN_RUA.h=cenMakeObl(gr,Object.assign({rot:Math.PI/2},o));CEN_RUA.x=cenMakeObl(gx,o)}
- catch(e){CEN_RUA.v=CEN_RUA.h=CEN_RUA.x=null;console.warn('cenario ruas',e)}
+ for(let i=0;i<CENGLB.length;i++){CEN_SPR[i]=null;CEN_SPRV[i]=null;
+  let g=null;try{g=cenLoad(CENGLB[i])}catch(e){console.warn('cenario',i,e)}
+  if(!g){continue}
+  try{
+   if(CEN_ORI[i]){
+    // mesma escala px/m em todas as rotações (S vem da variante 0)
+    const b0=cenMake(g,cfg[i][0],cfg[i][1],0,1),S0=b0&&b0.S,v=[b0];
+    for(let r=1;r<4;r++)v[r]=S0?cenMake(g,0,cfg[i][1],r*Math.PI/2,1,S0)||null:null;
+    CEN_SPRV[i]=v;CEN_SPR[i]=v[0]
+   }else CEN_SPR[i]=cenMake(g,cfg[i][0],cfg[i][1],.6,i<4?2:1)
+  }catch(e){CEN_SPR[i]=null;CEN_SPRV[i]=null;console.warn('cenario',i,e)}}
+ try{const gr=cenLoad(CEN_RGLB[0]),gx=cenLoad(CEN_RGLB[1]),gt=cenLoad(CEN_RGLB[2]),gc=cenLoad(CEN_RGLB[3]),
+   o={w:300,d:300,hpx:12.5,ss:1,fx:24,fz:24,cx:0,cz:0,fy:1,nosort:1};
+  CEN_RUA.v=cenMakeObl(gr,o);CEN_RUA.h=cenMakeObl(gr,Object.assign({rot:Math.PI/2},o));CEN_RUA.x=cenMakeObl(gx,o);
+  CEN_RUA.t=[0,1,2,3].map(r=>cenMakeObl(gt,Object.assign({rot:r*Math.PI/2},o)));
+  CEN_RUA.c=[0,1,2,3].map(r=>cenMakeObl(gc,Object.assign({rot:r*Math.PI/2},o)))}
+ catch(e){CEN_RUA.v=CEN_RUA.h=CEN_RUA.x=CEN_RUA.t=CEN_RUA.c=null;console.warn('cenario ruas',e)}
  for(const T of['h','p','m'])try{CEN_BLD[T]=cenBldBuild(T,CEN_PSZ[T][0],CEN_PSZ[T][1],CEN_PSZ[T][2])}catch(e){CEN_BLD[T]=null;console.warn('cenario predio',T,e)}
  console.log('cenario ms',Math.round((performance&&performance.now?performance.now():Date.now())-t0));
 }
@@ -238,77 +279,62 @@ const CEN_FLIP={16:1,18:1,20:1,25:1,26:1}; // sprites 'x': só espelhamento hori
 function genDecor(sd){
  const rnd=cenRng((sd^0x5bd1e995)>>>0),q=(m,n)=>m+rnd()*(n-m),out=[],cells=[];
  for(const j of ROWS)for(let i=0;i<8;i++)cells.push([i,j]);
- const HV=[0,1,2,3,4,5,7,8,9,10,11,12]; // ruas horizontais desenhadas (sem a do rio)
  const inRiv=y=>y>RY0-90&&y<RY1+90;
  // asfalto: verticais em x=k*500 (fora do rio) e horizontais em y=k*500
- const onRua=(x,y)=>((y<2500||y>3500)&&Math.abs(x-Math.round(x/500)*500)<64)||HV.some(k=>Math.abs(y-k*500)<64);
+ const onRua=(x,y)=>((y<2500||y>3500)&&Math.abs(x-Math.round(x/500)*500)<64)||CEN_HV.some(k=>Math.abs(y-k*500)<64);
  const far=(x,y)=>x>40&&y>40&&x<MW-40&&y<MH-40&&!inRiv(y)&&Math.hypot(x-2000,y-4500)>=200;
  const free=(x,y,r)=>{if(!far(x,y))return 0;if(blk(x,y,r==null?12:r))return 0;
   for(const b of BLD)if(x>b.x-6&&x<b.x+b.w+6&&y>b.y-6&&y<b.y+b.h+6)return 0;return 1};
- // decoração comum: nunca sobre o asfalto (cone/barreira de obra podem)
- const add=(x,y,s,rua)=>{if(s==null||s<0)return;
-  if(!rua&&onRua(x,y))return;
-  if(!free(x,y,12))return;
-  out.push({x:Math.round(x),y:Math.round(y),s,f:CEN_FLIP[s]&&rnd()<.5?1:0})};
- // encostado em prédio (caçamba): aceita ficar junto da parede
- const addN=(x,y,s)=>{if(s==null)return;if(!far(x,y)||onRua(x,y))return;
-  for(const b of BLD)if(x>b.x&&x<b.x+b.w&&y>b.y&&y<b.y+b.h)return;
-  if(blk(x,y,2))return;
-  out.push({x:Math.round(x),y:Math.round(y),s,f:CEN_FLIP[s]&&rnd()<.5?1:0})};
- // ---------- base: grama (arbusto/pedra) e calçada (poste/hidrante/cabine/ponto) ----------
- for(let n=0;out.length<320&&n<2000;n++){
-  const c=cells[n%cells.length],bx=c[0]*500+60,by=c[1]*500+60;let x=0,y=0,s=-1;
-  if(rnd()<.7){ // grama
-   x=bx+q(20,355);y=by+q(20,355);const r=rnd();
-   s=r<.68?4:r<.84?5:r<.96?6:7}
-  else{ // borda do quarteirão (≥68 px do eixo da rua, nunca no asfalto)
-   const e=rnd()*4|0,u=q(30,350);
-   if(e==0){x=bx+u;y=by+8}else if(e==1){x=bx+u;y=by+372}else if(e==2){x=bx+8;y=by+u}else{x=bx+372;y=by+u}
-   const r=rnd();s=r<.6?(rnd()<1/6?9:8):r<.8?10:r<.92?14:15}
-  if(s<0||!free(x,y,12))continue;
-  out.push({x:Math.round(x),y:Math.round(y),s,f:0});
- }
- // ---------- esquinas: semáforo + placa em cantos opostos; correio/hidrante/lixeira ----------
- for(let k=0;k<=8;k++)for(const ky of HV){const cx=k*500,cy=ky*500;
+ // espaçamento mínimo por tipo (k=índice do sprite; 'g'=grama)
+ const P={},sep=(k,x,y,d)=>{for(const p of P[k]||[])if((p[0]-x)*(p[0]-x)+(p[1]-y)*(p[1]-y)<d*d)return 0;return 1},mark=(k,x,y)=>{(P[k]=P[k]||[]).push([x,y])};
+ const add=(x,y,s,r,rua)=>{if(out.length>=318||!free(x,y,12))return 0;if(!rua&&onRua(x,y))return 0;
+  out.push({x:Math.round(x),y:Math.round(y),s,f:CEN_FLIP[s]&&rnd()<.5?1:0,r:r||0});return 1};
+ // borda do quarteirão: e=0 norte, 1 sul, 2 oeste, 3 leste → [x,y,yaw] (frente para a rua)
+ const edge=(bx,by,e,u,ins)=>{const k=ins==null?8:ins,d=400-k;e=(e%4+4)%4;
+  return e==0?[bx+u,by+k,2]:e==1?[bx+u,by+d,0]:e==2?[bx+k,by+u,3]:[bx+d,by+u,1]};
+ // tenta a borda e, depois as outras 3, até uma posição livre
+ const place=(bx,by,e,u,ins,s)=>{for(let t=0;t<4;t++){const xy=edge(bx,by,e+t,u,ins);
+  if(add(xy[0],xy[1],s,xy[2]))return 1}return 0};
+ // ---------- grama: arbusto/pedra (≤ 80, 120 px entre si) ----------
+ for(let n=0,pl=0;n<900&&pl<80;n++){
+  const c=cells[n%cells.length],bx=c[0]*500+60,by=c[1]*500+60;
+  const x=bx+q(20,355),y=by+q(20,355),r=rnd();
+  if(!free(x,y,14)||onRua(x,y)||!sep('g',x,y,120))continue;
+  const s=r<.68?4:r<.84?5:r<.96?6:7;
+  mark('g',x,y);out.push({x:Math.round(x),y:Math.round(y),s,f:0,r:0});pl++}
+ // ---------- esquinas: 1 em 3 — semáforo + placa em cantos opostos ----------
+ for(let k=0;k<=8;k++)for(const ky of CEN_HV){const cx=k*500,cy=ky*500;
   if(cx<60||cx>MW-60||cy<60||cy>MH-60||inRiv(cy))continue;
-  if(rnd()<.5){const sx=rnd()<.5?-1:1,sy=rnd()<.5?-1:1;
-   add(cx+sx*70,cy+sy*70,22,0);add(cx-sx*70,cy-sy*70,21,0)}
-  if(rnd()<.3){const sx=rnd()<.5?-1:1,sy=rnd()<.5?-1:1,r=rnd();
-   add(cx+sx*70,cy+sy*70,r<.4?23:r<.7?17:10,0)}
- }
+  if(rnd()>=1/3)continue;
+  const sx=rnd()<.5?-1:1,sy=rnd()<.5?-1:1;
+  add(cx+sx*72,cy+sy*72,22,0);add(cx-sx*72,cy-sy*72,21,0);
+  if(rnd()<.25)add(cx+sx*72,cy-sy*72,rnd()<.5?23:17,0)}
  // ---------- calçada dos quarteirões ----------
- for(const c of cells){const bx=c[0]*500+60,by=c[1]*500+60;
-  // ins = recuo da borda do quarteirão (props largos em 'x' ficam mais para dentro, sem invadir o asfalto)
-  const edge=(e,u,ins)=>{const k=ins==null?8:ins,d=400-k;e=(e%4+4)%4;
-   return e==0?[bx+u,by+k]:e==1?[bx+u,by+d]:e==2?[bx+k,by+u]:[bx+d,by+u]};
-  // postes a cada ~250 px, alternando a borda
-  const e0=rnd()<.5?0:2;
-  for(let k=0;k<4;k++){const xy=edge(e0+k,q(15,360));add(xy[0],xy[1],rnd()<1/6?9:8,0)}
-  // lixeiras
-  for(let k=0;k<2;k++){const xy=edge(rnd()*4|0,q(15,360));add(xy[0],xy[1],17,0)}
-  if(rnd()<.4){const xy=edge(rnd()*4|0,q(15,360));add(xy[0],xy[1],17,0)}
-  // bancos voltados para a rua
-  if(rnd()<.55){const xy=edge(rnd()*4|0,q(70,330),26);add(xy[0],xy[1],16,0)}
-  // ponto de ônibus e cabine, raros, encostados na borda do quarteirão
-  if(rnd()<.06){const xy=edge(rnd()<.5?0:1,q(90,300),78);add(xy[0],xy[1],15,0)}
-  if(rnd()<.05){const xy=edge(rnd()*4|0,q(40,330));add(xy[0],xy[1],14,0)}
-  // trecho de obra curto na beira do asfalto (cones/barreiras)
-  if(rnd()<.16){const bx0=bx+q(30,300),yy=by-16,n=3+(rnd()*3|0);
-   for(let k=0;k<n;k++){const s=rnd()<.65?19:20;add(bx0+ (s==19?k*26:k*96),yy,s,1)}}
-  // caçambas encostadas em prédios
-  // (feito depois, na lista de prédios)
-  // barris e pneus em grupos pequenos
-  if(rnd()<.24){const gx=bx+q(40,330),gy=by+q(40,330),n=3+(rnd()*3|0);
-   for(let k=0;k<n;k++)add(gx+q(-16,16),gy+q(-16,16),rnd()<.5?24:25,0)}
-  // cerca fechando trecho de lote vazio (3–4 segmentos em fila)
-  if(rnd()<.16){const e=rnd()*4|0,u0=q(10,180),n=3+(rnd()*2|0);
-   for(let k=0;k<n;k++){const xy=edge(e,u0+k*100,36);add(xy[0],xy[1],26,0)}}
-  // galões
-  if(rnd()<.8)add(bx+q(30,340),by+q(30,340),11,0);
+ for(let ci=0;ci<cells.length;ci++){const c=cells[ci],bx=c[0]*500+60,by=c[1]*500+60;
+  // poste: ~1 por quarteirão (≈ 380 px), alternando norte/oeste
+  if(ci%2==0||rnd()<.5){const e=(ci%2)*2;place(bx,by,rnd()<.5?e:e+1,q(20,360),8,rnd()<1/6?9:8)}
+  // lixeira: ~1 por 2,5 quarteirões
+  if(ci%2==0&&rnd()<.8){const xy=edge(bx,by,rnd()*4|0,q(30,350));add(xy[0],xy[1],17,xy[2])}
+  // banco: 1 a cada 3–4 quarteirões, de frente para a rua
+  if(ci%4==0&&rnd()<.75){const e=rnd()*4|0;place(bx,by,e,q(70,310),45,16)}
+  // ponto de ônibus: 1 a cada ~6 quarteirões
+  if(ci%6==0&&rnd()<.7){const e=rnd()<.5?0:1;place(bx,by,e,q(90,290),65,15)}
+  // cabine telefônica: rara
+  if(ci%13==0){const e=rnd()*4|0;place(bx,by,e,q(60,320),74,14)}
+  // caçamba encostada em prédio (alinhada ao prédio)
+  if(ci%7==0&&BLD.length){const b=BLD[(ci*7)%BLD.length];
+   add(b.x+b.w/2+q(-40,40),rnd()<.5?b.y+b.h+24:b.y-24,18,0)}
+  // trecho de obra curto na beira do asfalto (cones/barreiras alinhados)
+  if(rnd()<.14){const yy=by-14,u=q(40,260),n=2+(rnd()*3|0);
+   for(let k=0;k<n;k++)add(bx+u+k*30,yy,rnd()<.7?19:20,k%2)}
+  // pneus/barris: grupos pequenos e raros, alinhados à borda
+  if(ci%7==3&&rnd()<.9){const xy=edge(bx,by,rnd()*4|0,q(60,300),51),n=2+(rnd()*2|0);
+   for(let k=0;k<n;k++)add(xy[0]+(xy[2]==1||xy[2]==3?0:q(-14,14)),xy[1]+(xy[2]==1||xy[2]==3?q(-14,14):0),rnd()<.5?24:25,xy[2])}
+  // cerca fechando trecho de lote vazio (3 segmentos paralelos à rua)
+  if(ci%9==4){const e=rnd()*4|0,u0=q(20,160);
+   for(let k=0;k<3;k++){const xy=edge(bx,by,e,u0+k*104,37);add(xy[0],xy[1],26,xy[2])}}
+  // galões soltos na calçada
+  if(ci%11==5){const xy=edge(bx,by,rnd()*4|0,q(40,340));add(xy[0],xy[1],11,0)}
  }
- for(const b of BLD){if(rnd()>=.3)continue;
-  const sul=rnd()<.5,x=b.x+q(10,Math.max(20,b.w-100));
-  addN(x,sul?b.y+b.h+8:b.y-46,18);
- }
- return out;
+ console.log('DECOR',out.length);return out;
 }
