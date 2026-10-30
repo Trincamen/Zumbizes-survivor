@@ -1,19 +1,20 @@
-<!DOCTYPE html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Zombizes Survivor</title>
+<!DOCTYPE html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>ZomBrize</title>
 <style>
 @@CSS@@
 </style></head><body>
 <canvas id=c></canvas><div id=bn></div><button id=opt class=opt onclick=optOpen()>⚙</button><div id=sk></div><div id=shop style="position:fixed;left:10px;top:120px;background:#0a0a0cf2;border:2px solid #4a1a1e;border-left:6px solid #8a1218;border-radius:2px;padding:8px;color:#d8d2c0;display:none"><b id=shT></b><div id=shB></div></div><div id=wb></div>
 <div id=cf class=pn style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);display:none;z-index:7;text-align:center"></div><div id=opp class=pn><b>⚙ Opções</b><div id=ctl2 style="margin:6px 0"></div>🔊 Efeitos <input type=range id=vol3 min=0 max=100 oninput="setVol(this.value)" style="width:60%"><br>🎵 Música <input type=range id=mvol3 min=0 max=100 oninput="setMus(this.value)" style="width:60%"><br><button class=sb onclick=optOpen()>FECHAR</button><button class=sb style="background:#a33" onclick=location.reload()>SAIR PARA O MENU</button></div>
 <div id=menu class=ov>
-<div id=logo><div class=l1>ZOMBIZES</div><div class=l2>SURVIVOR</div></div>
+<div id=logo><div class=l1>ZomBrize</div></div>
 <div id=nick></div>
 <div id=net></div>
 <div id=s-main class=scr>
- <button class="mi m0" onclick=solo()>▶ JOGAR</button>
- <button class=mi onclick="show('multi')">▶ MULTIPLAYER</button>
+ <button class="mi m0" onclick=solo()>JOGAR</button>
+ <button class=mi onclick="show('multi')">MULTIPLAYER</button>
  <button class=mi onclick="show('set')">CONFIGURAÇÕES</button>
  <button class=mi onclick="show('how')">COMO JOGAR</button>
 </div>
+<div id=s-nick class=scr style=display:none><div class=pn><b>Escolha seu nickname</b><br><br><input id=nk maxlength=12 placeholder="Seu nome" autocomplete=off onkeydown="if(event.key=='Enter')nickOk()"><br><button class=sb onclick=nickOk()>CONFIRMAR</button></div></div>
 <div id=s-multi class=scr style=display:none><div class=pn>
  <div id=tab-on><div id=onS></div><div class=lst id=onL></div><button class=sb onclick=loadRooms()>🔄 ATUALIZAR</button><span id=ho></span></div>
  <br><button class="sb v" onclick="show('main')">← VOLTAR</button></div></div>

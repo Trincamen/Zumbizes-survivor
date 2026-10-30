@@ -194,10 +194,6 @@ function msBuild(){
   if(pole&&pole.S)S=pole.S;
  }catch(e){pole=null}
  MSC.lamp={x:PLX-1.2*S,y:PLY-6.15*S,s:S,sp:pole};
- // extensão do mourão acima do braço
- if(pole){
-  c.fillStyle='#1b1510';c.fillRect(PLX-.17*S,-H*.05,.34*S,PLY-6.16*S+H*.05);
-  c.fillStyle='rgba(255,196,130,.10)';c.fillRect(PLX-.17*S,-H*.05,.06*S,PLY-6.16*S+H*.05)}
  // ---- rua em perspectiva ----
  c.beginPath();c.moveTo(vx-W*.012,hz);c.lineTo(vx+W*.026,hz);c.lineTo(W*1.06,H*1.02);c.lineTo(-W*.06,H*1.02);c.closePath();
  g=c.createLinearGradient(0,hz,0,H);
@@ -216,11 +212,6 @@ function msBuild(){
   const y0=py(t0),y1=py(t1),x0=px(t0),x1=px(t1),w0=pw(t0),w1=pw(t1);
   c.fillStyle='rgba(198,190,172,'+(.26-.14*t0).toFixed(3)+')';
   c.beginPath();c.moveTo(x0-w0,y0);c.lineTo(x0+w0,y0);c.lineTo(x1+w1,y1);c.lineTo(x1-w1,y1);c.closePath();c.fill()}
- // mato seco
- const bush=CEN_SPR[4];
- for(let i=0;i<9;i++){const v=MSR(i,5.31),v2=MSR(i,17.7);
-  const bw=(bush&&bush.w)||40;
-  msPr(c,bush,W*(.60+.40*v),H*(.815+.135*v2),W*(.026+.020*v2)/bw,.5)}
  c.globalAlpha=1;
  // cerca/guarda-corpo de madeira
  const fe=CEN_SPR[26],fw=(fe&&fe.w)||90;
@@ -232,12 +223,6 @@ function msBuild(){
  g=c.createLinearGradient(0,hz,0,H*1.0);
  g.addColorStop(0,'rgba(120,96,66,0)');g.addColorStop(.45,'rgba(132,104,70,.16)');g.addColorStop(1,'rgba(96,74,50,0)');
  c.fillStyle=g;c.beginPath();c.moveTo(W*.60,hz);c.lineTo(W*.86,hz);c.lineTo(W*.97,H);c.lineTo(W*.52,H);c.closePath();c.fill();
- // ---- caixa pequena presa no poste ----
- if(pole){const bx=PLX-.32*S,by=H*.425,bw=.17*S,bh=H*.062;
-  c.fillStyle='rgba(0,0,0,.35)';c.fillRect(bx+2,by+3,bw,bh);
-  c.fillStyle='#0f0c0a';c.fillRect(bx,by,bw,bh);
-  c.fillStyle='rgba(255,196,130,.16)';c.fillRect(bx,by,Math.max(1,bw*.16),bh);
-  c.fillStyle='rgba(255,214,160,.10)';c.fillRect(bx,by,bw,Math.max(1,bh*.06))}
  // ---- poste: escurece e adiciona borda quente do lado da lâmpada ----
  if(pole){
   const pc=document.createElement('canvas');pc.width=Math.round(pole.w*2);pc.height=Math.round(pole.h*2);
@@ -248,7 +233,8 @@ function msBuild(){
    rg2.addColorStop(0,'rgba(255,196,132,.42)');rg2.addColorStop(.35,'rgba(180,132,82,.10)');rg2.addColorStop(1,'rgba(0,0,0,0)');
    p2.fillStyle=rg2;p2.fillRect(0,0,pc.width,pc.height);
    p2.globalCompositeOperation='source-over';
-   c.drawImage(pc,PLX-pole.ax,PLY-pole.ay,pole.w,pole.h)}}
+   c.save();c.beginPath();c.rect(0,PLY-6.15*S,W,H);c.clip(); // sem o trecho do poste acima da lâmpada
+   c.drawImage(pc,PLX-pole.ax,PLY-pole.ay,pole.w,pole.h);c.restore()}}
  // ---- halo quente geral em volta da lâmpada (mancha na névoa) ----
  if(MSC.lamp){const L=MSC.lamp;
   g=c.createRadialGradient(L.x,L.y,0,L.x,L.y,H*.55);
@@ -319,11 +305,7 @@ function menuScene(t){
  X.fillStyle='rgba(0,0,0,.45)';
  X.beginPath();X.ellipse(px+W*.018,py+1,W*.026,H*.007,0,0,7);X.fill();
  X.beginPath();X.ellipse(px+W*.050,py+3,W*.050,H*.010,.05,0,7);X.fill();
- try{drawPlayer(px,py,{k:'menu',s:H*.20/46,fa:-Math.PI/2,aim:-.45,c:'#1e2430',gun:'#3a3d44',ring:null,shot:0,dead:false,idle:true,t:t,w:0})}catch(e){}
- // luz quente do poste no contorno
- const wg=X.createLinearGradient(px-H*.05,0,px+H*.05,0);
- wg.addColorStop(0,'rgba(255,190,120,0)');wg.addColorStop(.72,'rgba(255,186,112,.04)');wg.addColorStop(1,'rgba(255,196,128,.17)');
- X.globalCompositeOperation='lighter';X.fillStyle=wg;X.beginPath();X.ellipse(px,py-H*.112,H*.042,H*.072,0,0,7);X.fill();X.globalCompositeOperation='source-over';
+ try{drawPlayer(px,py,{k:'menu',s:H*.20/46,fa:-2.5,aim:-2.5,c:'#1e2430',gun:'#3a3d44',ring:null,shot:0,dead:false,idle:true,t:t,w:0})}catch(e){}
  // vinheta por cima de tudo
  if(MSC.vig)X.drawImage(MSC.vig,0,0,W,H);
  X.globalAlpha=.025;X.fillStyle='#000';for(let i=0;i<2;i++)X.fillRect((t/7+i*W*.41)%W,(t/11+i*H*.31)%H,W*.22,1);X.globalAlpha=1;

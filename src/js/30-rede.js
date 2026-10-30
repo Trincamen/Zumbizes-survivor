@@ -2,7 +2,8 @@
 function send(m){host?handle(m):ws.send(JSON.stringify(m))}
 const myName=()=>($('nm').value||'Jogador').slice(0,12),canHost=()=>!MOB&&(originKind=='lan'||originKind=='online'),
  relayBase=()=>{if(originKind=='online')return location.origin;let v=(LS.get('relay')||'').trim();if(!v)return'';if(!/^https?:\/\//.test(v))v='https://'+v;return v.replace(/\/$/,'')};
-function nickUp(){const e=$('nick'),v=(($('nm')&&$('nm').value)||'Jogador');if(e)e.textContent='NICKNAME: '+v.toUpperCase()}
+function nickUp(){const e=$('nick'),v=(($('nm')&&$('nm').value)||'').trim();if(e)e.textContent=v?'NICKNAME: '+v.toUpperCase():''}
+function nickOk(){const v=$('nk').value.trim().slice(0,12);if(!v){$('nk').focus();return}LS.set('name',v);$('nm').value=v;nickUp();show('main')}
 function show(n){for(const e of document.querySelectorAll('.scr'))e.style.display='none';$('s-'+n).style.display='block';$('logo').style.display=n=='lobby'?'none':'block';const nk=$('nick');if(nk)nk.style.display=n=='lobby'?'none':'block';if(n=='main')nickUp();if(n=='multi')tabSel(tab);rl()}
 function tabSel(t){tab='on';$('tab-on').style.display='block';loadRooms()}
 function rl(){

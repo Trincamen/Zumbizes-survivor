@@ -1,4 +1,4 @@
-<!DOCTYPE html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Zombizes Survivor</title>
+<!DOCTYPE html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>ZomBrize</title>
 <style>
 html,body{margin:0;height:100%;background:#111;color:#fff;font-family:sans-serif;overflow:hidden;touch-action:none;user-select:none;overscroll-behavior:none}
 canvas{display:block;width:100%;height:100%}
@@ -19,9 +19,10 @@ canvas{display:block;width:100%;height:100%}
 #logo .l2{font-size:min(7vw,62px);-webkit-text-stroke:1px #1c1a16;margin-left:5%;letter-spacing:7px;color:#a8a293}
 @supports(-webkit-background-clip:text){#logo .l1,#logo .l2{background:linear-gradient(180deg,#f2ecda 0%,#cfc8b4 38%,#8d8778 62%,#5c564b 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
  #logo .l2{background-image:linear-gradient(180deg,#b8b2a1 0%,#8c8677 45%,#4a453c 100%)}}
-#nick{position:absolute;right:16px;top:10px;font:700 15px Impact,'Arial Narrow',sans-serif;letter-spacing:2.5px;color:#cfc9b8;text-transform:uppercase;text-shadow:0 2px 6px #000,0 0 14px #000a;pointer-events:none}
-#net{position:absolute;right:16px;top:32px;background:none;border:0;padding:0;font:11px 'Arial Narrow',sans-serif;letter-spacing:1.5px;color:#8d877a;opacity:.85;text-shadow:0 1px 4px #000}
-.mi{display:block;position:relative;width:auto;max-width:min(420px,72vw);margin:2px 0;padding:5px 14px 5px 20px;background:none;border:0;border-radius:0;text-align:left;color:#c9c3b0;font:700 26px Impact,'Arial Narrow','Arial Black',sans-serif;text-transform:uppercase;letter-spacing:2.5px;line-height:1.25;text-shadow:0 2px 5px #000c,0 0 12px #0009;cursor:pointer;transition:color .12s,text-shadow .12s,transform .12s}
+#nick{position:absolute;right:16px;top:10px;font:700 22px Impact,'Arial Narrow',sans-serif;letter-spacing:3px;color:#cfc9b8;text-transform:uppercase;text-shadow:0 2px 6px #000,0 0 14px #000a;pointer-events:none}
+#net{position:absolute;right:16px;top:42px;background:none;border:0;padding:0;font:14px 'Arial Narrow',sans-serif;letter-spacing:1.8px;color:#8d877a;opacity:.85;text-shadow:0 1px 4px #000}
+#s-main{top:21vh}
+.mi{display:block;position:relative;width:auto;max-width:min(420px,72vw);margin:0;padding:5.4vh 14px 5.4vh 20px;background:none;border:0;border-radius:0;text-align:left;color:#c9c3b0;font:700 min(2.4vw,36px) Impact,'Arial Narrow','Arial Black',sans-serif;text-transform:uppercase;letter-spacing:2.5px;line-height:1.2;text-shadow:0 2px 5px #000c,0 0 12px #0009;cursor:pointer;transition:color .12s,text-shadow .12s,transform .12s}
 .mi:before{content:'';position:absolute;left:0;top:16%;bottom:16%;width:3px;background:#0000;transition:background .12s}
 .mi:hover,.mi:focus-visible{color:#fff;text-shadow:0 2px 6px #000,0 0 18px #fff5;outline:none;transform:translateX(3px)}
 .mi:hover:before,.mi:focus-visible:before{background:#b01418}
@@ -36,7 +37,7 @@ canvas{display:block;width:100%;height:100%}
 .tb{display:inline-block;margin:0 6px 8px 0;padding:8px 14px;border-radius:8px;border:2px solid #34437d;background:#141b38;color:#fff;font-size:16px}
 .sb{padding:10px 14px;margin:6px 6px 0 0;border:2px solid #d83a3a;border-radius:2px;background:linear-gradient(90deg,#8a1218,#4a0a0e);color:#f0e6d8;font:700 14px 'Arial Black',sans-serif;letter-spacing:1px;transform:skewX(-6deg)}.sb:hover{filter:brightness(1.25)}.sb.v{background:#0a0a0c;border-color:#4a1a1e;color:#a8a290}
 .lst{min-height:70px;max-height:34vh;overflow:auto}.it{display:flex;justify-content:space-between;padding:12px;margin:5px 0;background:#0a0a0c;border:2px solid #4a1a1e;border-left:5px solid #8a1218;border-radius:2px;font-size:17px;cursor:pointer}.it:hover{background:#2a0d10}.it span{color:#8a8478;font-size:14px}
-@media(max-width:900px){#logo .l1{font-size:44px}#logo .l2{font-size:32px;letter-spacing:4px}#nick{font-size:12px;right:10px;top:8px}#net{font-size:10px;right:10px;top:26px}.scr{top:96px}.mi{font-size:20px;letter-spacing:1.5px;padding:4px 10px 4px 16px}.mb{padding:8px 12px;font-size:15px;margin:5px 0;width:230px}.pn{font-size:13px}.it{padding:8px;font-size:14px}}
+@media(max-width:900px){#logo .l1{font-size:44px}#logo .l2{font-size:32px;letter-spacing:4px}#nick{font-size:16px;right:10px;top:8px}#net{font-size:12px;right:10px;top:30px}.scr{top:96px}.mi{font-size:20px;letter-spacing:1.5px;padding:4px 10px 4px 16px}.mb{padding:8px 12px;font-size:15px;margin:5px 0;width:230px}.pn{font-size:13px}.it{padding:8px;font-size:14px}}
 .mob #wb{left:4px;bottom:4px}.mob #wb button{width:62px;height:48px;font-size:8px;margin-right:3px;border-width:2px;border-left-width:3px;padding:0}.mob #wb div button{width:26px!important;height:20px!important;font-size:10px!important;margin:0 0 2px!important}.mob #wb div{margin-right:2px!important}
 .mob #sk{bottom:50px}.mob #sk button{width:110px;font-size:11px;padding:6px;margin:2px}.mob #shop{top:64px!important;padding:4px;font-size:11px;left:4px!important}.mob #shB button{width:150px;font-size:11px;padding:5px;margin:2px 0}
 .opt{position:fixed;bottom:10px;right:10px;width:44px;height:44px;border-radius:2px;border:2px solid #4a1a1e;border-left:4px solid #8a1218;background:#0a0a0cf0;color:#d8d2c0;font-size:22px;display:none;padding:0}.mob .opt{width:36px;height:36px;font-size:18px}
@@ -61,15 +62,16 @@ canvas{display:block;width:100%;height:100%}
 <canvas id=c></canvas><div id=bn></div><button id=opt class=opt onclick=optOpen()>⚙</button><div id=sk></div><div id=shop style="position:fixed;left:10px;top:120px;background:#0a0a0cf2;border:2px solid #4a1a1e;border-left:6px solid #8a1218;border-radius:2px;padding:8px;color:#d8d2c0;display:none"><b id=shT></b><div id=shB></div></div><div id=wb></div>
 <div id=cf class=pn style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);display:none;z-index:7;text-align:center"></div><div id=opp class=pn><b>⚙ Opções</b><div id=ctl2 style="margin:6px 0"></div>🔊 Efeitos <input type=range id=vol3 min=0 max=100 oninput="setVol(this.value)" style="width:60%"><br>🎵 Música <input type=range id=mvol3 min=0 max=100 oninput="setMus(this.value)" style="width:60%"><br><button class=sb onclick=optOpen()>FECHAR</button><button class=sb style="background:#a33" onclick=location.reload()>SAIR PARA O MENU</button></div>
 <div id=menu class=ov>
-<div id=logo><div class=l1>ZOMBIZES</div><div class=l2>SURVIVOR</div></div>
+<div id=logo><div class=l1>ZomBrize</div></div>
 <div id=nick></div>
 <div id=net></div>
 <div id=s-main class=scr>
- <button class="mi m0" onclick=solo()>▶ JOGAR</button>
- <button class=mi onclick="show('multi')">▶ MULTIPLAYER</button>
+ <button class="mi m0" onclick=solo()>JOGAR</button>
+ <button class=mi onclick="show('multi')">MULTIPLAYER</button>
  <button class=mi onclick="show('set')">CONFIGURAÇÕES</button>
  <button class=mi onclick="show('how')">COMO JOGAR</button>
 </div>
+<div id=s-nick class=scr style=display:none><div class=pn><b>Escolha seu nickname</b><br><br><input id=nk maxlength=12 placeholder="Seu nome" autocomplete=off onkeydown="if(event.key=='Enter')nickOk()"><br><button class=sb onclick=nickOk()>CONFIRMAR</button></div></div>
 <div id=s-multi class=scr style=display:none><div class=pn>
  <div id=tab-on><div id=onS></div><div class=lst id=onL></div><button class=sb onclick=loadRooms()>🔄 ATUALIZAR</button><span id=ho></span></div>
  <br><button class="sb v" onclick="show('main')">← VOLTAR</button></div></div>
@@ -95,7 +97,7 @@ const SH=[['🩹 Bandagem',15,9],['💊 Analgésico',60,10],['✚ Kit de cura',6
 const id=Math.random().toString(36).slice(2,8);let host=0,ws,snap=null,me=null,lastBn=null,skKey='',shKey='',ofKey='',LSH={},LVP={},LUE=[],FT=[],PILL=null,wbKey='',O=[],curSd=0,BLD=[],meB=null,IL=[],ZMM=[],FIRES=[],DD={},POP={},FL2=[],PT=[],QK=0,lastEv=0,FXL=[],lastF=0,RP={},FR=0,LT=Date.now();
 const LS={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}},esc=x=>String(x).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 let originKind='?',lanSrv=[],onRooms=[],scanning=0,tab='on',rc='';
-$('nm').value=LS.get('name')||'Jogador '+(Math.random()*90+10|0);nickUp();
+$('nm').value=LS.get('name')||'';nickUp();if(!$('nm').value)setTimeout(()=>{show('nick');try{$('nk').focus()}catch(e){}},0);
 (async()=>{if(window.Capacitor)originKind='app';else try{const j=await(await fetch('/info')).json();originKind=j.kind;if(j.kind=='lan')lanSrv.push({host:location.host,name:j.name,n:j.n})}catch(e){originKind='none'}rl()})();
 const R=(a,b)=>a+Math.random()*(b-a),need=l=>150+l*90+l*l*10,kOf=c=>c==0?7:c==5?11:c<5?c+1:c==10?0:c==11?1:c==12?9:10,ad=(a,b)=>{let d=a-b;while(d>3.14)d-=6.28;while(d<-3.14)d+=6.28;return d};
 // ---------- mapa (por semente: igual em todos os aparelhos) ----------
@@ -152,7 +154,8 @@ function los(a,b){for(let t=.25;t<1;t+=.25)if(blk(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*
 function send(m){host?handle(m):ws.send(JSON.stringify(m))}
 const myName=()=>($('nm').value||'Jogador').slice(0,12),canHost=()=>!MOB&&(originKind=='lan'||originKind=='online'),
  relayBase=()=>{if(originKind=='online')return location.origin;let v=(LS.get('relay')||'').trim();if(!v)return'';if(!/^https?:\/\//.test(v))v='https://'+v;return v.replace(/\/$/,'')};
-function nickUp(){const e=$('nick'),v=(($('nm')&&$('nm').value)||'Jogador');if(e)e.textContent='NICKNAME: '+v.toUpperCase()}
+function nickUp(){const e=$('nick'),v=(($('nm')&&$('nm').value)||'').trim();if(e)e.textContent=v?'NICKNAME: '+v.toUpperCase():''}
+function nickOk(){const v=$('nk').value.trim().slice(0,12);if(!v){$('nk').focus();return}LS.set('name',v);$('nm').value=v;nickUp();show('main')}
 function show(n){for(const e of document.querySelectorAll('.scr'))e.style.display='none';$('s-'+n).style.display='block';$('logo').style.display=n=='lobby'?'none':'block';const nk=$('nick');if(nk)nk.style.display=n=='lobby'?'none':'block';if(n=='main')nickUp();if(n=='multi')tabSel(tab);rl()}
 function tabSel(t){tab='on';$('tab-on').style.display='block';loadRooms()}
 function rl(){
@@ -1563,10 +1566,6 @@ function msBuild(){
   if(pole&&pole.S)S=pole.S;
  }catch(e){pole=null}
  MSC.lamp={x:PLX-1.2*S,y:PLY-6.15*S,s:S,sp:pole};
- // extensão do mourão acima do braço
- if(pole){
-  c.fillStyle='#1b1510';c.fillRect(PLX-.17*S,-H*.05,.34*S,PLY-6.16*S+H*.05);
-  c.fillStyle='rgba(255,196,130,.10)';c.fillRect(PLX-.17*S,-H*.05,.06*S,PLY-6.16*S+H*.05)}
  // ---- rua em perspectiva ----
  c.beginPath();c.moveTo(vx-W*.012,hz);c.lineTo(vx+W*.026,hz);c.lineTo(W*1.06,H*1.02);c.lineTo(-W*.06,H*1.02);c.closePath();
  g=c.createLinearGradient(0,hz,0,H);
@@ -1585,11 +1584,6 @@ function msBuild(){
   const y0=py(t0),y1=py(t1),x0=px(t0),x1=px(t1),w0=pw(t0),w1=pw(t1);
   c.fillStyle='rgba(198,190,172,'+(.26-.14*t0).toFixed(3)+')';
   c.beginPath();c.moveTo(x0-w0,y0);c.lineTo(x0+w0,y0);c.lineTo(x1+w1,y1);c.lineTo(x1-w1,y1);c.closePath();c.fill()}
- // mato seco
- const bush=CEN_SPR[4];
- for(let i=0;i<9;i++){const v=MSR(i,5.31),v2=MSR(i,17.7);
-  const bw=(bush&&bush.w)||40;
-  msPr(c,bush,W*(.60+.40*v),H*(.815+.135*v2),W*(.026+.020*v2)/bw,.5)}
  c.globalAlpha=1;
  // cerca/guarda-corpo de madeira
  const fe=CEN_SPR[26],fw=(fe&&fe.w)||90;
@@ -1601,12 +1595,6 @@ function msBuild(){
  g=c.createLinearGradient(0,hz,0,H*1.0);
  g.addColorStop(0,'rgba(120,96,66,0)');g.addColorStop(.45,'rgba(132,104,70,.16)');g.addColorStop(1,'rgba(96,74,50,0)');
  c.fillStyle=g;c.beginPath();c.moveTo(W*.60,hz);c.lineTo(W*.86,hz);c.lineTo(W*.97,H);c.lineTo(W*.52,H);c.closePath();c.fill();
- // ---- caixa pequena presa no poste ----
- if(pole){const bx=PLX-.32*S,by=H*.425,bw=.17*S,bh=H*.062;
-  c.fillStyle='rgba(0,0,0,.35)';c.fillRect(bx+2,by+3,bw,bh);
-  c.fillStyle='#0f0c0a';c.fillRect(bx,by,bw,bh);
-  c.fillStyle='rgba(255,196,130,.16)';c.fillRect(bx,by,Math.max(1,bw*.16),bh);
-  c.fillStyle='rgba(255,214,160,.10)';c.fillRect(bx,by,bw,Math.max(1,bh*.06))}
  // ---- poste: escurece e adiciona borda quente do lado da lâmpada ----
  if(pole){
   const pc=document.createElement('canvas');pc.width=Math.round(pole.w*2);pc.height=Math.round(pole.h*2);
@@ -1617,7 +1605,8 @@ function msBuild(){
    rg2.addColorStop(0,'rgba(255,196,132,.42)');rg2.addColorStop(.35,'rgba(180,132,82,.10)');rg2.addColorStop(1,'rgba(0,0,0,0)');
    p2.fillStyle=rg2;p2.fillRect(0,0,pc.width,pc.height);
    p2.globalCompositeOperation='source-over';
-   c.drawImage(pc,PLX-pole.ax,PLY-pole.ay,pole.w,pole.h)}}
+   c.save();c.beginPath();c.rect(0,PLY-6.15*S,W,H);c.clip(); // sem o trecho do poste acima da lâmpada
+   c.drawImage(pc,PLX-pole.ax,PLY-pole.ay,pole.w,pole.h);c.restore()}}
  // ---- halo quente geral em volta da lâmpada (mancha na névoa) ----
  if(MSC.lamp){const L=MSC.lamp;
   g=c.createRadialGradient(L.x,L.y,0,L.x,L.y,H*.55);
@@ -1688,11 +1677,7 @@ function menuScene(t){
  X.fillStyle='rgba(0,0,0,.45)';
  X.beginPath();X.ellipse(px+W*.018,py+1,W*.026,H*.007,0,0,7);X.fill();
  X.beginPath();X.ellipse(px+W*.050,py+3,W*.050,H*.010,.05,0,7);X.fill();
- try{drawPlayer(px,py,{k:'menu',s:H*.20/46,fa:-Math.PI/2,aim:-.45,c:'#1e2430',gun:'#3a3d44',ring:null,shot:0,dead:false,idle:true,t:t,w:0})}catch(e){}
- // luz quente do poste no contorno
- const wg=X.createLinearGradient(px-H*.05,0,px+H*.05,0);
- wg.addColorStop(0,'rgba(255,190,120,0)');wg.addColorStop(.72,'rgba(255,186,112,.04)');wg.addColorStop(1,'rgba(255,196,128,.17)');
- X.globalCompositeOperation='lighter';X.fillStyle=wg;X.beginPath();X.ellipse(px,py-H*.112,H*.042,H*.072,0,0,7);X.fill();X.globalCompositeOperation='source-over';
+ try{drawPlayer(px,py,{k:'menu',s:H*.20/46,fa:-2.5,aim:-2.5,c:'#1e2430',gun:'#3a3d44',ring:null,shot:0,dead:false,idle:true,t:t,w:0})}catch(e){}
  // vinheta por cima de tudo
  if(MSC.vig)X.drawImage(MSC.vig,0,0,W,H);
  X.globalAlpha=.025;X.fillStyle='#000';for(let i=0;i<2;i++)X.fillRect((t/7+i*W*.41)%W,(t/11+i*H*.31)%H,W*.22,1);X.globalAlpha=1;

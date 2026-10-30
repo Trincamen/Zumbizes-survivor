@@ -14,6 +14,6 @@ const SH=[['🩹 Bandagem',15,9],['💊 Analgésico',60,10],['✚ Kit de cura',6
 const id=Math.random().toString(36).slice(2,8);let host=0,ws,snap=null,me=null,lastBn=null,skKey='',shKey='',ofKey='',LSH={},LVP={},LUE=[],FT=[],PILL=null,wbKey='',O=[],curSd=0,BLD=[],meB=null,IL=[],ZMM=[],FIRES=[],DD={},POP={},FL2=[],PT=[],QK=0,lastEv=0,FXL=[],lastF=0,RP={},FR=0,LT=Date.now();
 const LS={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}},esc=x=>String(x).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 let originKind='?',lanSrv=[],onRooms=[],scanning=0,tab='on',rc='';
-$('nm').value=LS.get('name')||'Jogador '+(Math.random()*90+10|0);nickUp();
+$('nm').value=LS.get('name')||'';nickUp();if(!$('nm').value)setTimeout(()=>{show('nick');try{$('nk').focus()}catch(e){}},0);
 (async()=>{if(window.Capacitor)originKind='app';else try{const j=await(await fetch('/info')).json();originKind=j.kind;if(j.kind=='lan')lanSrv.push({host:location.host,name:j.name,n:j.n})}catch(e){originKind='none'}rl()})();
 const R=(a,b)=>a+Math.random()*(b-a),need=l=>150+l*90+l*l*10,kOf=c=>c==0?7:c==5?11:c<5?c+1:c==10?0:c==11?1:c==12?9:10,ad=(a,b)=>{let d=a-b;while(d>3.14)d-=6.28;while(d<-3.14)d+=6.28;return d};
