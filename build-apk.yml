@@ -20,4 +20,4 @@ jobs:
       - name: Compilar
         run: cd apk/android && chmod +x gradlew && ./gradlew assembleDebug
       - uses: actions/upload-artifact@v4
-        with: { name: zombizes-apk, path: apk/android/app/build/outputs/apk/debug/app-debug.apk }
+        with: { name: zombrize-apk, path: apk/android/app/build/outputs/apk/debug/app-debug.apk }
