@@ -344,3 +344,22 @@ function genDecor(sd){
  }
  console.log('DECOR',out.length);return out;
 }
+// ---------- COLISÃO dos props de decoração (t:7) ----------
+// [L,P] do pé do sprite em px (antes do giro); CEN_ORI com yaw ímpar troca L↔P.
+// Chamar SEMPRE depois de genDecor() e antes de buildOB(): genDecor consulta blk.
+const CEN_COL={5:[14,14],6:[48,48],7:[73,73],8:[14,14],9:[14,14],10:[14,14],14:[30,30],15:[130,54],16:[80,22],17:[25,25],18:[90,47],20:[90,26],21:[14,14],22:[14,14],23:[18,18],24:[24,24],25:[60,35],26:[100,10]};
+function decorObs(){
+ let n=0;
+ for(const d of DECOR){const c=CEN_COL[d.s];if(!c)continue;const odd=CEN_ORI[d.s]&&(d.r&1);
+  const w=odd?c[1]:c[0],h=odd?c[0]:c[1],x=d.x-w/2,y=d.y-h;
+  if(x<8||y<8||x+w>MW-8||y+h>MH-8)continue;
+  let bad=0;
+  for(const b of BLD){
+   // bolsão: prop colado em fachada (ou na esquina dela) prendia o jogador
+   if(x<b.x+b.w+40&&x+w>b.x-40&&y<b.y+b.h+40&&y+h>b.y-40){bad=1;break}
+   // não tampar a entrada (vão dx..dx+56 na fachada sul)
+   const yb=b.y+b.h;if(x<b.dx+80&&x+w>b.dx-24&&y<yb+24&&y+h>yb-24){bad=1;break}}
+  if(bad)continue;
+  O.push({t:7,x,y,w,h,i:O.length});n++}
+ return n}
+

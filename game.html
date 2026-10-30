@@ -177,7 +177,7 @@ function spawnLoot(){if(IT.length>260)return;const n=Object.keys(PL).length,put=
  put(9,8,inB('m'));put(10,4,inB('m'));put(8,4,inB('m'),0);for(const it of IT)if(it.k==8&&!it.v)it.v=cv();
  put(9,10+n,anyH);put(9,8,out);put(10,3,anyH);put(7,n+2,anyH);put(7,2,inB('p'));for(let i=0;i<Math.ceil(n/2);i++)put(wk(),1,anyH);
  for(let i=0;i<n+6;i++){const[x,y]=(i%2?anyH:out)();IT.push({x,y,k:8,v:cv()})}}
-function start(){if(Object.keys(PL).length<minP)return;sd=Math.random()*1e9|0;O=genMap(sd);BLD=O.B;buildOB();DECOR=genDecor(sd);initGrid();RK=[];PJ=[];DEADL=[];EV=[];bossPend=null;shopOn=0;ph=1;gt=0;lastMin=0;bossP=0;shopP=0;bossHold=0;bossN=0;sa=0;Z=[];IT=[];for(const p of Object.values(PL)){p.x=2000+R(-60,60);p.y=4500+R(-60,60)}spawnLoot();bn=[Date.now(),'SOBREVIVA!',0]}
+function start(){if(Object.keys(PL).length<minP)return;sd=Math.random()*1e9|0;O=genMap(sd);BLD=O.B;buildOB();DECOR=genDecor(sd);decorObs();buildOB();initGrid();RK=[];PJ=[];DEADL=[];EV=[];bossPend=null;shopOn=0;ph=1;gt=0;lastMin=0;bossP=0;shopP=0;bossHold=0;bossN=0;sa=0;Z=[];IT=[];for(const p of Object.values(PL)){p.x=2000+R(-60,60);p.y=4500+R(-60,60)}spawnLoot();bn=[Date.now(),'SOBREVIVA!',0]}
 function reset(){const o=Object.values(PL);PL={};o.forEach(p=>addP(p.id,p.n));ph=0;sd=0}
 const dl=()=>1+Math.floor(gt/60);
 function startBoss(){bossN++;const e=bossEdge();bossPend={t:5,x:e[0],y:e[1]};bn=[Date.now(),'⚠ BOSS KRAID CHEGANDO ⚠',1]}
@@ -224,7 +224,7 @@ const ev=(t,o,x,y,a,k,c)=>EV.push([t,o?o.i:-1,x|0,y|0,a*100|0,k,c||'',++evid]),c
 function near(x,y,r){const out=[],seen=new Set();for(let gy=Math.max(0,(y-r)/200|0);gy<=Math.min(29,(y+r)/200|0);gy++)for(let gx=Math.max(0,(x-r)/200|0);gx<=Math.min(19,(x+r)/200|0);gx++){const L=OB[gy*20+gx];if(L)for(const o of L)if(!seen.has(o)){seen.add(o);out.push(o)}}return out}
 function regrid(o){for(let gy=Math.max(0,(o.y-30)/CS|0);gy<=Math.min(GH-1,(o.y+o.h+30)/CS|0);gy++)for(let gx=Math.max(0,(o.x-30)/CS|0);gx<=Math.min(GW-1,(o.x+o.w+30)/CS|0);gx++)GB[gy*GW+gx]=blk(gx*CS+CS/2,gy*CS+CS/2,13)?1:0;for(const k in FL)FL[k].sx=-1}
 function smash(o,a){o.dead=1;regrid(o);DEADL.push(o);ev(0,o,o.x+o.w/2,o.y+o.h/2,a,o.t,colOf(o))}
-function wallAt(x,y,r){if(x<r||y<r||x>MW-r||y>MH-r)return 2;let w=0;for(const o of near(x,y,r+4)){if(o.dead||o.t<5)continue;if(x>o.x-r&&x<o.x+o.w+r&&y>o.y-r&&y<o.y+o.h+r){if(o.t==5)return 1;w=2}}return w}
+function wallAt(x,y,r){if(x<r||y<r||x>MW-r||y>MH-r)return 2;let w=0;for(const o of near(x,y,r+4)){if(o.dead||(o.t!=5&&o.t!=6))continue;if(x>o.x-r&&x<o.x+o.w+r&&y>o.y-r&&y<o.y+o.h+r){if(o.t==5)return 1;w=2}}return w}
 function grabNear(z){const c=near(z.x,z.y,300).filter(o=>!o.dead&&o.t>=1&&o.t<=3&&!bAt(o.x+o.w/2,o.y+o.h/2)&&Math.hypot(o.x+o.w/2-z.x,o.y+o.h/2-z.y)<300).sort((a,b)=>Math.hypot(a.x-z.x,a.y-z.y)-Math.hypot(b.x-z.x,b.y-z.y))[0];if(!c)return 0;
  const cx_=c.x+c.w/2,cy_=c.y+c.h/2;c.dead=1;regrid(c);DEADL.push(c);ev(3,c,cx_,cy_,0,c.t,colOf(c));const j={k:c.t,c:colOf(c),ox:cx_,oy:cy_,x:cx_,y:cy_,h:0,rot:0,ph:0,t:0,bz:z};PJ.push(j);z.gr=j;return 1}
 function startReload(p,cu){p.rl=p.rlt=rtOf(cu.c,cu.l);const wd=Math.max(.14,.3/p.rlt),zs=R(.35,.8-wd);p.rz=[zs,zs+wd];p.arF=0}
@@ -299,7 +299,7 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
  if(ws&&ws.bufferedAmount<3e6)for(const q of all)if(q.id!=id)ws.send('@'+q.id+'|'+JSON.stringify(Object.assign({},base,{Z:zA.filter(z=>z[2]==3||Math.abs(z[0]-q.x)<1500&&Math.abs(z[1]-q.y)<950)})));
  FX=[];EV=[]}
 // ---------- UI / cliente ----------
-function onSnap(s){snap=s;me=s.P.find(p=>p[0]==id);if(s.sd&&s.sd!=curSd){curSd=s.sd;O=genMap(s.sd);BLD=O.B;buildOB();DECOR=genDecor(s.sd);FIRES=O.FR;DD={};POP={};FL2=[];PT=[]}if(s.I)IL=s.I;if(s.ZM)ZMM=s.ZM;for(const p of s.P){const lv=LVP[p[0]];if(lv!=null&&p[9]>lv)LUE.push({pid:p[0],t:Date.now()});LVP[p[0]]=p[9]}
+function onSnap(s){snap=s;me=s.P.find(p=>p[0]==id);if(s.sd&&s.sd!=curSd){curSd=s.sd;O=genMap(s.sd);BLD=O.B;buildOB();DECOR=genDecor(s.sd);decorObs();buildOB();FIRES=O.FR;DD={};POP={};FL2=[];PT=[]}if(s.I)IL=s.I;if(s.ZM)ZMM=s.ZM;for(const p of s.P){const lv=LVP[p[0]];if(lv!=null&&p[9]>lv)LUE.push({pid:p[0],t:Date.now()});LVP[p[0]]=p[9]}
  $('menu').style.display=s.ph==0?'flex':'none';$('opt').style.display=s.ph==1?'block':'none';if(s.ph!=1)$('opp').style.display='none';if(s.ph==1&&!hintT)hintT=Date.now();if(s.ph==0&&$('s-lobby').style.display!='block')show('lobby');$('end').style.display=s.ph==2?'flex':'none';
  if(s.ph==0){$('pl').innerHTML=s.P.map(p=>`<div style="color:${p[2]}">● ${p[1]}</div>`).join('');$('mp').textContent=minP;$('st').disabled=s.P.length<minP}
  if(s.ph==2){$('er').textContent='Vocês sobreviveram '+fmt(s.gt);$('nb').style.display=host?'':'none'}
@@ -1155,6 +1155,25 @@ function genDecor(sd){
  }
  console.log('DECOR',out.length);return out;
 }
+// ---------- COLISÃO dos props de decoração (t:7) ----------
+// [L,P] do pé do sprite em px (antes do giro); CEN_ORI com yaw ímpar troca L↔P.
+// Chamar SEMPRE depois de genDecor() e antes de buildOB(): genDecor consulta blk.
+const CEN_COL={5:[14,14],6:[48,48],7:[73,73],8:[14,14],9:[14,14],10:[14,14],14:[30,30],15:[130,54],16:[80,22],17:[25,25],18:[90,47],20:[90,26],21:[14,14],22:[14,14],23:[18,18],24:[24,24],25:[60,35],26:[100,10]};
+function decorObs(){
+ let n=0;
+ for(const d of DECOR){const c=CEN_COL[d.s];if(!c)continue;const odd=CEN_ORI[d.s]&&(d.r&1);
+  const w=odd?c[1]:c[0],h=odd?c[0]:c[1],x=d.x-w/2,y=d.y-h;
+  if(x<8||y<8||x+w>MW-8||y+h>MH-8)continue;
+  let bad=0;
+  for(const b of BLD){
+   // bolsão: prop colado em fachada (ou na esquina dela) prendia o jogador
+   if(x<b.x+b.w+40&&x+w>b.x-40&&y<b.y+b.h+40&&y+h>b.y-40){bad=1;break}
+   // não tampar a entrada (vão dx..dx+56 na fachada sul)
+   const yb=b.y+b.h;if(x<b.dx+80&&x+w>b.dx-24&&y<yb+24&&y+h>yb-24){bad=1;break}}
+  if(bad)continue;
+  O.push({t:7,x,y,w,h,i:O.length});n++}
+ return n}
+
 
 // ---------- ZUMBIS 3D (GLB) com cache de sprites ----------
 // 0 padrao, 1 policial, 2 bombeiro, 3 sem_braco, 4 corredor, 5 gordao (boss nao usa este arquivo)
@@ -1507,7 +1526,7 @@ function draw(){requestAnimationFrame(draw);const _p0=pfStart();ZBUD=0;const s=s
  for(const[x,y,an,len,tt]of s.Dh||[]){X.save();X.translate(x,y);X.rotate(an/100);const fl=tt<1;X.fillStyle=fl?'rgba(255,40,40,'+(.12+tt*.25)+')':'rgba(255,90,40,.35)';X.fillRect(0,-50,len,100);X.strokeStyle='#f44';X.lineWidth=3;X.strokeRect(0,-50,len,100);if(fl){X.fillStyle='#f66';for(let u=60;u<len;u+=90){X.beginPath();X.moveTo(u,-14);X.lineTo(u+28,0);X.lineTo(u,14);X.closePath();X.fill()}}X.restore()}
  for(const[x,y,k,vv]of IL){if(!v(x,y))continue;const ib=bAt(x,y);if(ib&&ib!==meB)continue;const bb=Math.sin(t/250+x)*3;drawPickup(x,y,k,vv,t,bb)}
 let pl=pfStart();
-const D=[];for(const o of O)if(o.t!=6&&!DD[o.i]&&v(o.x+o.w/2,o.y+o.h/2,o.w+80))D.push([o.y+o.h,0,o]);
+const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!DD[o.i]&&v(o.x+o.w/2,o.y+o.h/2,o.w+80))D.push([o.y+o.h,0,o]);
  for(const b of BLD)if(b!==meB&&v(b.x+b.w/2,b.y+b.h/2,b.w))D.push([b.y+b.h+1,3,b]);for(const f of FIRES)if(v(f[0],f[1],120)&&!(f[4]&&f[4]===meB)&&!(f[5]&&DD[f[5].i]))D.push([f[3],5,f]);
  if(s.sh)D.push([s.sh[1]+14,4,s.sh]);
  for(const b of BLD)if(v(b.x+b.w/2,b.y+b.h/2,b.w))D.push([b.y+b.h+.5,6,b]);for(const bx of[1000,3000])for(const yy of[2850,3150])for(const sd of[-1,1])if(v(bx,yy,300))D.push([yy,7,[bx+sd*88,yy,sd]]);

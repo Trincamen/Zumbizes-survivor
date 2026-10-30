@@ -209,7 +209,7 @@ function draw(){requestAnimationFrame(draw);const _p0=pfStart();ZBUD=0;const s=s
  for(const[x,y,an,len,tt]of s.Dh||[]){X.save();X.translate(x,y);X.rotate(an/100);const fl=tt<1;X.fillStyle=fl?'rgba(255,40,40,'+(.12+tt*.25)+')':'rgba(255,90,40,.35)';X.fillRect(0,-50,len,100);X.strokeStyle='#f44';X.lineWidth=3;X.strokeRect(0,-50,len,100);if(fl){X.fillStyle='#f66';for(let u=60;u<len;u+=90){X.beginPath();X.moveTo(u,-14);X.lineTo(u+28,0);X.lineTo(u,14);X.closePath();X.fill()}}X.restore()}
  for(const[x,y,k,vv]of IL){if(!v(x,y))continue;const ib=bAt(x,y);if(ib&&ib!==meB)continue;const bb=Math.sin(t/250+x)*3;drawPickup(x,y,k,vv,t,bb)}
 let pl=pfStart();
-const D=[];for(const o of O)if(o.t!=6&&!DD[o.i]&&v(o.x+o.w/2,o.y+o.h/2,o.w+80))D.push([o.y+o.h,0,o]);
+const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!DD[o.i]&&v(o.x+o.w/2,o.y+o.h/2,o.w+80))D.push([o.y+o.h,0,o]);
  for(const b of BLD)if(b!==meB&&v(b.x+b.w/2,b.y+b.h/2,b.w))D.push([b.y+b.h+1,3,b]);for(const f of FIRES)if(v(f[0],f[1],120)&&!(f[4]&&f[4]===meB)&&!(f[5]&&DD[f[5].i]))D.push([f[3],5,f]);
  if(s.sh)D.push([s.sh[1]+14,4,s.sh]);
  for(const b of BLD)if(v(b.x+b.w/2,b.y+b.h/2,b.w))D.push([b.y+b.h+.5,6,b]);for(const bx of[1000,3000])for(const yy of[2850,3150])for(const sd of[-1,1])if(v(bx,yy,300))D.push([yy,7,[bx+sd*88,yy,sd]]);

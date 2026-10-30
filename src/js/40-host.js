@@ -10,7 +10,7 @@ function spawnLoot(){if(IT.length>260)return;const n=Object.keys(PL).length,put=
  put(9,8,inB('m'));put(10,4,inB('m'));put(8,4,inB('m'),0);for(const it of IT)if(it.k==8&&!it.v)it.v=cv();
  put(9,10+n,anyH);put(9,8,out);put(10,3,anyH);put(7,n+2,anyH);put(7,2,inB('p'));for(let i=0;i<Math.ceil(n/2);i++)put(wk(),1,anyH);
  for(let i=0;i<n+6;i++){const[x,y]=(i%2?anyH:out)();IT.push({x,y,k:8,v:cv()})}}
-function start(){if(Object.keys(PL).length<minP)return;sd=Math.random()*1e9|0;O=genMap(sd);BLD=O.B;buildOB();DECOR=genDecor(sd);initGrid();RK=[];PJ=[];DEADL=[];EV=[];bossPend=null;shopOn=0;ph=1;gt=0;lastMin=0;bossP=0;shopP=0;bossHold=0;bossN=0;sa=0;Z=[];IT=[];for(const p of Object.values(PL)){p.x=2000+R(-60,60);p.y=4500+R(-60,60)}spawnLoot();bn=[Date.now(),'SOBREVIVA!',0]}
+function start(){if(Object.keys(PL).length<minP)return;sd=Math.random()*1e9|0;O=genMap(sd);BLD=O.B;buildOB();DECOR=genDecor(sd);decorObs();buildOB();initGrid();RK=[];PJ=[];DEADL=[];EV=[];bossPend=null;shopOn=0;ph=1;gt=0;lastMin=0;bossP=0;shopP=0;bossHold=0;bossN=0;sa=0;Z=[];IT=[];for(const p of Object.values(PL)){p.x=2000+R(-60,60);p.y=4500+R(-60,60)}spawnLoot();bn=[Date.now(),'SOBREVIVA!',0]}
 function reset(){const o=Object.values(PL);PL={};o.forEach(p=>addP(p.id,p.n));ph=0;sd=0}
 const dl=()=>1+Math.floor(gt/60);
 function startBoss(){bossN++;const e=bossEdge();bossPend={t:5,x:e[0],y:e[1]};bn=[Date.now(),'⚠ BOSS KRAID CHEGANDO ⚠',1]}
@@ -57,7 +57,7 @@ const ev=(t,o,x,y,a,k,c)=>EV.push([t,o?o.i:-1,x|0,y|0,a*100|0,k,c||'',++evid]),c
 function near(x,y,r){const out=[],seen=new Set();for(let gy=Math.max(0,(y-r)/200|0);gy<=Math.min(29,(y+r)/200|0);gy++)for(let gx=Math.max(0,(x-r)/200|0);gx<=Math.min(19,(x+r)/200|0);gx++){const L=OB[gy*20+gx];if(L)for(const o of L)if(!seen.has(o)){seen.add(o);out.push(o)}}return out}
 function regrid(o){for(let gy=Math.max(0,(o.y-30)/CS|0);gy<=Math.min(GH-1,(o.y+o.h+30)/CS|0);gy++)for(let gx=Math.max(0,(o.x-30)/CS|0);gx<=Math.min(GW-1,(o.x+o.w+30)/CS|0);gx++)GB[gy*GW+gx]=blk(gx*CS+CS/2,gy*CS+CS/2,13)?1:0;for(const k in FL)FL[k].sx=-1}
 function smash(o,a){o.dead=1;regrid(o);DEADL.push(o);ev(0,o,o.x+o.w/2,o.y+o.h/2,a,o.t,colOf(o))}
-function wallAt(x,y,r){if(x<r||y<r||x>MW-r||y>MH-r)return 2;let w=0;for(const o of near(x,y,r+4)){if(o.dead||o.t<5)continue;if(x>o.x-r&&x<o.x+o.w+r&&y>o.y-r&&y<o.y+o.h+r){if(o.t==5)return 1;w=2}}return w}
+function wallAt(x,y,r){if(x<r||y<r||x>MW-r||y>MH-r)return 2;let w=0;for(const o of near(x,y,r+4)){if(o.dead||(o.t!=5&&o.t!=6))continue;if(x>o.x-r&&x<o.x+o.w+r&&y>o.y-r&&y<o.y+o.h+r){if(o.t==5)return 1;w=2}}return w}
 function grabNear(z){const c=near(z.x,z.y,300).filter(o=>!o.dead&&o.t>=1&&o.t<=3&&!bAt(o.x+o.w/2,o.y+o.h/2)&&Math.hypot(o.x+o.w/2-z.x,o.y+o.h/2-z.y)<300).sort((a,b)=>Math.hypot(a.x-z.x,a.y-z.y)-Math.hypot(b.x-z.x,b.y-z.y))[0];if(!c)return 0;
  const cx_=c.x+c.w/2,cy_=c.y+c.h/2;c.dead=1;regrid(c);DEADL.push(c);ev(3,c,cx_,cy_,0,c.t,colOf(c));const j={k:c.t,c:colOf(c),ox:cx_,oy:cy_,x:cx_,y:cy_,h:0,rot:0,ph:0,t:0,bz:z};PJ.push(j);z.gr=j;return 1}
 function startReload(p,cu){p.rl=p.rlt=rtOf(cu.c,cu.l);const wd=Math.max(.14,.3/p.rlt),zs=R(.35,.8-wd);p.rz=[zs,zs+wd];p.arF=0}
