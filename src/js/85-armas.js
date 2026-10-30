@@ -1,6 +1,6 @@
 // ---------- ARMAS 3D: GLBs embutidos (assets/armas/*.glb), 1 por tipo de arma ----------
 // ordem: 0 pistola, 1 escopeta, 2 rifle, 3 metralhadora, 4 lança-chamas, 5 sniper
-const WGLB=['@@GLB:assets/armas/pistola.glb@@','@@GLB:assets/armas/escopeta.glb@@','@@GLB:assets/armas/rifle.glb@@','@@GLB:assets/armas/metralhadora.glb@@','@@GLB:assets/armas/lanca_chamas.glb@@','@@GLB:assets/armas/sniper.glb@@','@@GLB:assets/itens/dinheiro.glb@@','@@GLB:assets/itens/kit.glb@@','@@GLB:assets/itens/bandagem.glb@@','@@GLB:assets/itens/pilula.glb@@','@@GLB:assets/itens/corrida.glb@@','@@GLB:assets/itens/upgrade.glb@@'];
+const WGLB=['@@GLB:assets/armas/pistola.glb@@','@@GLB:assets/armas/escopeta.glb@@','@@GLB:assets/armas/rifle.glb@@','@@GLB:assets/armas/metralhadora.glb@@','@@GLB:assets/armas/lanca_chamas.glb@@','@@GLB:assets/armas/sniper.glb@@','@@GLB:assets/itens/dinheiro.glb@@','@@GLB:assets/itens/kit.glb@@','@@GLB:assets/itens/bandagem.glb@@','@@GLB:assets/itens/pilula.glb@@','@@GLB:assets/itens/corrida.glb@@','@@GLB:assets/itens/upgrade.glb@@','@@GLB:assets/itens/desfibrilador.glb@@'];
 // índice 6 = maço de dinheiro (item no chão; não é arma, reaproveita o mesmo carregador/desenho 3D)
 function pgParseGlb(b64){const b=atob(b64),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);
  const dv=new DataView(u.buffer,u.byteOffset,u.byteLength);let off=12,j=null,bin=null;
@@ -64,11 +64,14 @@ function weaponIcon(w){
   const c2=cv.getContext('2d');if(c2){drawWeapon3D(c2,120,64,w,Math.PI/2,Math.min(420,214/WDIM[w]));u=cv.toDataURL()||''}}catch(e){u=''}
  WICON[w]=u;return u}
 // item no chão dentro de esfera translúcida (estilo GTA Vice City)
-const HI={10:7,12:8,13:9};// classe do slot -> modelo GLB do item
-const IT3={8:6,0:7,9:8,10:9,1:10,6:11};
+const HI={10:7,12:8,13:9,11:12};// classe do slot -> modelo GLB do item
+const IT3={8:6,0:7,9:8,10:9,1:12,6:11};
+function itCol(k){return k==8?'#ffc83a':(k==0||k==9||k==10)?'#5cf07a':k==1?'#ff4d4d':k==6?'#ff9a3a':'#4fe8d0'}
+const ITA={};
+function itRGBA(k,a){const key=k+'|'+a;let s=ITA[key];if(s==null){const c=itCol(k);s=ITA[key]='rgba('+parseInt(c.substr(1,2),16)+','+parseInt(c.substr(3,2),16)+','+parseInt(c.substr(5,2),16)+','+a+')'}return s}
 function drawPickup(x,y,k,vv,t,bb){
  const wl=k==2||k==3||k==4||k==5||k==7||k==11,wi=k==7?0:k==11?5:k-1;
- const col=k==8?'#ffc83a':(k==0||k==9||k==10)?'#5cf07a':(k==1||k==6)?'#ffd24a':'#4fe8d0';
+ const col=itCol(k);
  const cr=parseInt(col.substr(1,2),16),cg=parseInt(col.substr(3,2),16),cb=parseInt(col.substr(5,2),16);
  const cc=a=>'rgba('+cr+','+cg+','+cb+','+a+')';
  ell(x,y+12,14,5,'rgba(0,0,0,.4)');

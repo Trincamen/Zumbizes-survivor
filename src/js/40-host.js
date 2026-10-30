@@ -52,7 +52,7 @@ function handle(m){if(m.t=='j')return addP(m.id,m.n);const p=PL[m.id];if(!p||p.d
  else if(m.t=='c')p.tz=null
  else if(m.t=='r')activeReload(p)
  else if(m.t=='o'){const of=p.of;if(!of)return;const i=IT.indexOf(of.it);if(m.ok&&i>=0&&Math.hypot(of.it.x-p.x,of.it.y-p.y)<50){const it=IT.splice(i,1)[0];give(p,it)}else p.skip=of.it;p.of=null}
- else if(m.t=='u'){const s=p.sl[m.n];if(!s)return;if(s.c<6){if(p.cs==m.n){if(p.rl<=0&&s.a<magOf(s.c,s.l))startReload(p,s)}else{p.cs=m.n;p.cw=s.c;p.rl=0}}else if(s.c==10||s.c==12){p.hp=Math.min(p.mx,p.hp+p.mx*(s.c==10?.5:.2));rmSlot(p,m.n)}else if(s.c==13){p.bt=25;rmSlot(p,m.n)}}}
+ else if(m.t=='u'){const s=p.sl[m.n];if(!s)return;if(s.c<6){if(p.cs==m.n){if(p.rl<=0&&s.a<magOf(s.c,s.l))startReload(p,s)}else{p.cs=m.n;p.cw=s.c;p.rl=0}}else if(s.c==10||s.c==12){p.hp=Math.min(p.mx,p.hp+p.mx*(s.c==10?.5:.2));rmSlot(p,m.n)}else if(s.c==13){p.bt=25;rmSlot(p,m.n)}else if(s.c==11){let bd=60,tg=null;for(const k in PL){const d=PL[k];if(d===p||!d.dead)continue;const dd=Math.hypot(d.x-p.x,d.y-p.y);if(dd<bd){bd=dd;tg=d}}if(tg){rmSlot(p,m.n);tg.dead=0;tg.hp=tg.mx*.5}}}}
 const ev=(t,o,x,y,a,k,c)=>EV.push([t,o?o.i:-1,x|0,y|0,a*100|0,k,c||'',++evid]),colOf=o=>o.t==2?o.c:o.t==1?'#2d5a27':'#b84';
 function near(x,y,r){const out=[],seen=new Set();for(let gy=Math.max(0,(y-r)/200|0);gy<=Math.min(29,(y+r)/200|0);gy++)for(let gx=Math.max(0,(x-r)/200|0);gx<=Math.min(19,(x+r)/200|0);gx++){const L=OB[gy*20+gx];if(L)for(const o of L)if(!seen.has(o)){seen.add(o);out.push(o)}}return out}
 function regrid(o){for(let gy=Math.max(0,(o.y-30)/CS|0);gy<=Math.min(GH-1,(o.y+o.h+30)/CS|0);gy++)for(let gx=Math.max(0,(o.x-30)/CS|0);gx<=Math.min(GW-1,(o.x+o.w+30)/CS|0);gx++)GB[gy*GW+gx]=blk(gx*CS+CS/2,gy*CS+CS/2,13)?1:0;for(const k in FL)FL[k].sx=-1}
@@ -114,9 +114,7 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
     else{const ux=Math.cos(aim),uy=Math.sin(aim),off=(Math.random()<.5?-1:1)*R(26,55);ex=s.x-uy*off+ux*30;ey=s.y+ux*off+uy*30}
     FX.push([p.x|0,p.y|0,ex|0,ey|0,p.cw,++fid,p.id,hit?1:0])}
    for(let i=IT.length-1;i>=0;i--){const it=IT[i];if(Math.hypot(it.x-p.x,it.y-p.y)>28||it.nt>Date.now())continue;if(needsConf(p,it)){if(p.skip!==it&&(!p.of||p.of.it!==it))p.of={it};continue}if(give(p,it))IT.splice(i,1)}
-   if(p.of&&(IT.indexOf(p.of.it)<0||Math.hypot(p.of.it.x-p.x,p.of.it.y-p.y)>45))p.of=null;if(p.skip&&(IT.indexOf(p.skip)<0||Math.hypot(p.skip.x-p.x,p.skip.y-p.y)>90))p.skip=null;
-   const di=p.sl.findIndex(q=>q.c==11);
-   if(di>=0)for(const d of all)if(d.dead&&Math.hypot(d.x-p.x,d.y-p.y)<40){rmSlot(p,di);d.dead=0;d.hp=d.mx*.5;break}}
+   if(p.of&&(IT.indexOf(p.of.it)<0||Math.hypot(p.of.it.x-p.x,p.of.it.y-p.y)>45))p.of=null;if(p.skip&&(IT.indexOf(p.skip)<0||Math.hypot(p.skip.x-p.x,p.skip.y-p.y)>90))p.skip=null}
   for(const z of Z){if(z.hp<=0)continue;if(z.k==3&&bossAct(z,dt,all))continue;let n=null,bd=1e9;for(const p of all){if(p.dead)continue;const d=Math.hypot(p.x-z.x,p.y-z.y);if(d<bd){bd=d;n=p}}
    if(!n)break;if(bd>z.r+12||!los(z,n))pathTo(z,'z'+n.id,n.x,n.y,z.s*dt,z.k==3?16:z.r*.7);else{z.fa=Math.atan2(n.y-z.y,n.x-z.x);n.hp-=z.d*dt;if(n.hp<=0){n.hp=0;n.dead=1;n.tz=null}}}
   updPJ(dt,all);for(const r of RK){r.t+=dt;if(!r.h&&r.t>=r.dur){r.h=1;ev(5,null,r.x,r.y,0,r.k,r.c);for(const p of all)if(!p.dead&&Math.hypot(p.x-r.x,p.y-r.y)<70){p.hp-=30+dl()*2;if(p.hp<=0){p.hp=0;p.dead=1;p.tz=null}}}}

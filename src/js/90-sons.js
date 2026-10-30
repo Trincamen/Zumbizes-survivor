@@ -229,7 +229,10 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!DD[o.i]&&v(o.x+o.w/2,o.y+o.h/2,o
     if(h<100||k==2)bar(x-14*bs_,y-(ZH*bs_+6),28*bs_,h/100,'#e33')}}
   else{const[pid,n,c,,,hp,mx,dead,cw]=e,x=r.x,y=r.y,hh=pid.charCodeAt(0)%3,rlf=e[22]|0;
    if(dead){ell(x,y,20,9,'rgba(0,0,0,.4)');drawPlayer(x,y,{k:pid,fa:e[17]/10,aim:null,c:c,gun:'#222',ring:null,shot:0,dead:true,t:t,w:cw});txt('✖',x,y-26,24,'#ddd');ell(x,y,34,14,c,1);txt(n+' (caído)',x,y-48,14,'#bbb')}
-   else{if((e[30]|0)>0)ell(x,y,30+Math.sin(t/160)*2,11,'rgba(80,170,255,.6)',1);if(rlf>0)reloadRing(x,y,rlf);drawPlayer(x,y,{k:pid,fa:e[17]/10,aim:e[25]>0?e[24]/10:null,c:c,gun:WC[cw],ring:c,shot:LSH[pid]||0,dead:false,fast:(e[21]|0)>0||(e[30]|0)>0,t:t,w:cw});bar(x-18,y-56,36,hp/mx,'#3e3');txt(n,x,y-66,14,pid==id?'#ff0':'#fff');if(pid==id)txt('▼',x,y-80,14,'#ff0');if(rlf>0)reloadPill(x,y,rlf,t,e[27]|0,e[28]|0,e[29]|0,pid==id)}}}
+   else{if(pid==id&&IL.length){let bd=220,ik=-1,ix=0,iy=0;
+     for(const[qx,qy,qk]of IL){const dd=Math.hypot(qx-x,qy-y);if(dd>=bd)continue;const ib=bAt(qx,qy);if((ib&&ib!==meB)||!v(qx,qy))continue;bd=dd;ik=qk;ix=qx;iy=qy}
+     if(ik>=0){const a0=Math.atan2((iy-y)/13,(ix-x)/34),ga=X.globalAlpha;X.globalAlpha=.28*(1-bd/220);X.strokeStyle=itCol(ik);X.lineWidth=2;X.beginPath();X.ellipse(x,y,34,13,0,a0-.61,a0+.61);X.stroke();X.globalAlpha=ga}}
+    if((e[30]|0)>0)ell(x,y,30+Math.sin(t/160)*2,11,'rgba(80,170,255,.6)',1);if(rlf>0)reloadRing(x,y,rlf);drawPlayer(x,y,{k:pid,fa:e[17]/10,aim:e[25]>0?e[24]/10:null,c:c,gun:WC[cw],ring:c,shot:LSH[pid]||0,dead:false,fast:(e[21]|0)>0||(e[30]|0)>0,t:t,w:cw});bar(x-18,y-56,36,hp/mx,'#3e3');txt(n,x,y-66,14,pid==id?'#ff0':'#fff');if(pid==id)txt('▼',x,y-80,14,'#ff0');if(rlf>0)reloadPill(x,y,rlf,t,e[27]|0,e[28]|0,e[29]|0,pid==id)}}}
  pfAdd('objetos',po);
  let px=pfStart();drawMark(s,t);edges('b');drawFX();drawProj(s,dtf);pfAdd('fx',px);if(s.sh){const b=bAt(s.sh[0],s.sh[1]);if(b&&b!==meB)txt('🛒 LOJA',b.x+b.w/2,b.y-b.H-22+Math.sin(t/200)*4,26,'#fc3')}
  for(const[x,y,pg]of s.K){if(pg<1){X.fillStyle='rgba(255,40,40,'+(.12+pg*.25)+')';X.beginPath();X.arc(x,y,70,0,7);X.fill();X.strokeStyle='#f88';X.lineWidth=3;X.beginPath();X.arc(x,y,70,0,7);X.stroke();X.strokeStyle='#f22';X.beginPath();X.arc(x,y,70*pg,0,7);X.stroke();}
@@ -268,7 +271,7 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!DD[o.i]&&v(o.x+o.w/2,o.y+o.h/2,o
   X.fillStyle='rgba(0,0,0,.6)';X.fillRect(18,112,150,4);X.fillStyle='#f2c230';X.fillRect(18,112,150*Math.min(1,xp/nd),4);X.restore();
   X.font='bold 13px sans-serif';X.fillStyle='#e8c25a';X.textAlign='left';let ix=18;if(df){X.fillText('⚡ x'+df,ix,148);ix+=52}if(me[21]>0){X.fillText('💊 '+me[21]+'s',ix,148);ix+=62}if(me[30]>0){X.fillStyle='#d8d2c0';X.fillText('🎯 '+me[30]+'s',ix,148)}
   
-  X.restore();if(dead)txt('VOCÊ CAIU — um aliado com desfibrilador (⚡) precisa chegar até você',WW/2,H/hk-110,22,'#f66')}
+  X.restore();if(dead)txt('VOCÊ CAIU — um aliado com desfibrilador (⚡) precisa chegar perto e usar o desfibrilador',WW/2,H/hk-110,22,'#f66')}
  X.fillStyle='#0f140f';X.fillRect(mx0,10,MMW,MMH);
  {const mk=((typeof curSd!=='undefined'&&curSd?curSd:(typeof sd!=='undefined'?sd:0))||0)+'|'+BLD.length+'|'+MMW+'|'+MH;
   if(!MMCV||MMCK!==mk){MMCK=mk;MMCV=mmBuild(MMW,f)}
@@ -282,9 +285,9 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!DD[o.i]&&v(o.x+o.w/2,o.y+o.h/2,o
   else{X.font='bold 8px sans-serif';X.lineWidth=2.5;X.strokeStyle='rgba(0,0,0,.85)';X.strokeText(l.nm,l.lx,l.y);X.fillStyle=T=='h'?'#ff8a8a':T=='p'?'#8fb0ff':'#ffc070';X.fillText(l.nm,l.lx,l.y)}}
  X.strokeStyle='#4a1a1e';X.lineWidth=2;X.strokeRect(mx0,10,MMW,MMH);{const k2=8;X.strokeStyle='#8a1218';X.lineWidth=3;X.beginPath();X.moveTo(mx0,10+k2);X.lineTo(mx0,10);X.lineTo(mx0+k2,10);X.moveTo(mx0+MMW-k2,10);X.lineTo(mx0+MMW,10);X.lineTo(mx0+MMW,10+k2);X.moveTo(mx0,10+MMH-k2);X.lineTo(mx0,10+MMH);X.lineTo(mx0+k2,10+MMH);X.moveTo(mx0+MMW-k2,10+MMH);X.lineTo(mx0+MMW,10+MMH);X.lineTo(mx0+MMW,10+MMH-k2);X.stroke()}
  X.globalCompositeOperation='lighter';
- for(const[x,y]of IL){const ix=mx0+x*f,iy=10+y*f;
-  X.fillStyle='rgba(255,215,90,.2)';X.beginPath();X.arc(ix,iy,4,0,7);X.fill();
-  X.fillStyle='rgba(255,245,180,.9)';X.beginPath();X.arc(ix,iy,1.1,0,7);X.fill()}
+ for(const[x,y,k]of IL){const ix=mx0+x*f,iy=10+y*f;
+  X.fillStyle=itRGBA(k,.2);X.beginPath();X.arc(ix,iy,4,0,7);X.fill();
+  X.fillStyle=itRGBA(k,.9);X.beginPath();X.arc(ix,iy,1.1,0,7);X.fill()}
  X.globalCompositeOperation='source-over';
  for(const[x,y,k]of ZMM)if(k<3){const zx=mx0+x*30*f,zy=10+y*30*f;
   X.fillStyle='rgba(0,0,0,.55)';X.beginPath();X.ellipse(zx,zy+1,2.1,.8,0,0,7);X.fill();
