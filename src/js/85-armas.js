@@ -1,6 +1,6 @@
 // ---------- ARMAS 3D: GLBs embutidos (assets/armas/*.glb), 1 por tipo de arma ----------
 // ordem: 0 pistola, 1 escopeta, 2 rifle, 3 metralhadora, 4 lança-chamas, 5 sniper
-const WGLB=['@@GLB:assets/armas/pistola.glb@@','@@GLB:assets/armas/escopeta.glb@@','@@GLB:assets/armas/rifle.glb@@','@@GLB:assets/armas/metralhadora.glb@@','@@GLB:assets/armas/lanca_chamas.glb@@','@@GLB:assets/armas/sniper.glb@@','@@GLB:assets/itens/dinheiro.glb@@'];
+const WGLB=['@@GLB:assets/armas/pistola.glb@@','@@GLB:assets/armas/escopeta.glb@@','@@GLB:assets/armas/rifle.glb@@','@@GLB:assets/armas/metralhadora.glb@@','@@GLB:assets/armas/lanca_chamas.glb@@','@@GLB:assets/armas/sniper.glb@@','@@GLB:assets/itens/dinheiro.glb@@','@@GLB:assets/itens/kit.glb@@','@@GLB:assets/itens/bandagem.glb@@','@@GLB:assets/itens/pilula.glb@@','@@GLB:assets/itens/corrida.glb@@','@@GLB:assets/itens/upgrade.glb@@'];
 // índice 6 = maço de dinheiro (item no chão; não é arma, reaproveita o mesmo carregador/desenho 3D)
 function pgParseGlb(b64){const b=atob(b64),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);
  const dv=new DataView(u.buffer,u.byteOffset,u.byteLength);let off=12,j=null,bin=null;
@@ -64,6 +64,7 @@ function weaponIcon(w){
   const c2=cv.getContext('2d');if(c2){drawWeapon3D(c2,120,64,w,Math.PI/2,Math.min(420,214/WDIM[w]));u=cv.toDataURL()||''}}catch(e){u=''}
  WICON[w]=u;return u}
 // item no chão dentro de esfera translúcida (estilo GTA Vice City)
+const IT3={8:6,0:7,9:8,10:9,1:10,6:11};
 function drawPickup(x,y,k,vv,t,bb){
  const wl=k==2||k==3||k==4||k==5||k==7||k==11,wi=k==7?0:k==11?5:k-1;
  const col=k==8?'#ffc83a':(k==0||k==9||k==10)?'#5cf07a':(k==1||k==6)?'#ffd24a':'#4fe8d0';
@@ -76,7 +77,7 @@ function drawPickup(x,y,k,vv,t,bb){
  g=X.createRadialGradient(x-R*.25,cy-R*.3,R*.1,x,cy,R);g.addColorStop(0,cc(.04));g.addColorStop(.7,cc(.14));g.addColorStop(1,cc(.45));
  X.fillStyle=g;X.beginPath();X.arc(x,cy,R,0,7);X.fill();
  if(wl)drawWeapon3D(X,x,cy,wi,t/700,Math.min(60,34/WDIM[wi]));
- else if(k==8)drawWeapon3D(X,x,cy,6,t/700,Math.min(90,32/WDIM[6]));
+ else if(IT3[k]!=null&&WPG[IT3[k]])drawWeapon3D(X,x,cy,IT3[k],t/700,Math.min(90,32/WDIM[IT3[k]]));
  else{X.save();X.translate(x,0);X.scale(Math.max(.25,Math.abs(Math.cos(t/500))),1);X.translate(-x,0);
   if(k==0){X.fillStyle='#fff';X.fillRect(x-11,cy-11,22,22);X.fillStyle='#e22';X.fillRect(x-3,cy-8,6,16);X.fillRect(x-8,cy-3,16,6)}
   else if(k==1)txt('⚡',x,cy,30,'#4df');else if(k==6)txt('★',x,cy,32,'#fc0');else if(k==9)txt('🩹',x,cy,26,'#fff');else if(k==10)txt('💊',x,cy,26,'#fff');

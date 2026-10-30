@@ -43,7 +43,7 @@ C.onpointermove=e=>{if(ctl=='tap'){if(e.buttons||e.pressure>0){const n=Date.now(
  if(joy&&e.pointerId==joy.id){joy.x=e.clientX;joy.y=e.clientY;joy.mx=Math.max(joy.mx,Math.hypot(joy.x-joy.x0,joy.y-joy.y0));pushMove()}};
 C.onpointerup=C.onpointercancel=e=>{if(joy&&e.pointerId==joy.id){const j=joy;joy=null;pushMove();if(e.type=='pointerup'&&Date.now()-j.t0<260&&j.mx<12)send({t:'i',id,x:j.x0/ZO-ox,y:j.y0/ZO-oy,f:1})}};
 const MK=['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'];
-addEventListener('keydown',e=>{if(e.target.tagName=='INPUT'||!snap||snap.ph!=1)return;
+addEventListener('keydown',e=>{if(e.target.tagName=='INPUT'||!snap||snap.ph!=1)return;if(e.key=='Escape'){optOpen();return}
  if(me&&me[23]&&(e.code=='Enter'||e.code=='NumpadEnter')){e.preventDefault();ofr(1);return}
  if(me&&me[23]&&e.code=='Escape'){e.preventDefault();ofr(0);return}
  if(e.code=='KeyR'){e.preventDefault();send({t:'r',id});return}

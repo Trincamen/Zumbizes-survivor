@@ -3,7 +3,7 @@ let W,H,ZO=1,cx=2000,cy=4500,ox=0,oy=0;let DPR=1;const _l=k=>{try{return localSt
 let CAM=.928,HUDS=1.4;
 const zbase=()=>MOB?Math.min(1.4,Math.max(1.1,innerHeight/340)):Math.max(.5,Math.min(1,innerWidth/1100)),hkF=()=>(MOB?.6:1)*HUDS;
 function rs(){DPR=Math.min(window.devicePixelRatio||1,2);const zl=Math.max(innerHeight/1900,innerWidth/3000,.45),zh=Math.max(zl,Math.min(1.8,innerWidth/420,innerHeight/220));ZO=Math.max(zl,Math.min(zh,zbase()*CAM));
- C.width=innerWidth*DPR|0;C.height=innerHeight*DPR|0;W=innerWidth/ZO;H=innerHeight/ZO;const ob=$('opt');if(ob)ob.style.right=Math.round(140*hkF()*ZO+8)+'px';const st=document.documentElement.style;if(st.setProperty)st.setProperty('--hs',HUDS)}
+ C.width=innerWidth*DPR|0;C.height=innerHeight*DPR|0;W=innerWidth/ZO;H=innerHeight/ZO;const st=document.documentElement.style;if(st.setProperty)st.setProperty('--hs',HUDS)}
 rs();onresize=rs;
 const WN=['Pistola','Escopeta','Rifle','Metralhad.','Lança-chamas','Sniper'],WC=['#ddd','#f80','#4cf','#fd0','#f44','#9f6'],WL=['P','E','R','M','L','S'];
 const WS_=[[220,12,.7],[130,48,1.5],[420,32,1],[260,4,.1],[110,4,.12],[700,120,1.8]],AM=[7,7,45,30,50,5],RT=[1.2,2.2,2.2,2,3,2.6],SPD=[2200,1600,3200,2600,1,4800];
