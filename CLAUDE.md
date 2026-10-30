@@ -1,4 +1,4 @@
-# CLAUDE.md: Zombizes Survivor / Horda Cooperativa (jogo web co-op de zumbis)
+# CLAUDE.md: ZomBrize / Horda Cooperativa (jogo web co-op de zumbis)
 
 ## Contexto
 
