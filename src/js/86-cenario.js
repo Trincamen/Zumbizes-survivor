@@ -83,7 +83,8 @@ function cenMake(g,target,dim,yaw,ss,Sfix){
  return {cv,ax:(0-x0)*S+MG,ay:(0-y0)*S+MG,w:cw,h:chh,S:S,span:span};
 }
 function cenDraw(ctx,sp,x,y){ if(!sp||!sp.cv)return 0;
- try{ctx.drawImage(sp.cv,x-sp.ax,y-sp.ay,sp.w,sp.h);return 1}catch(e){return 0}
+ if(!sp.bmq&&typeof createImageBitmap=='function'){sp.bmq=1;try{createImageBitmap(sp.cv).then(b=>{sp.bm=b}).catch(()=>{})}catch(e){}}
+ try{ctx.drawImage(sp.bm||sp.cv,x-sp.ax,y-sp.ay,sp.w,sp.h);return 1}catch(e){return 0}
 }
 // ---------- PROJEÇÃO OBLÍQUA (a do jogo): tela = (X − SHK·h, Y − h), SHK=.3 ----------
 // GLB Y-up, frente +Z. X/Y = chão em px do mundo, h = altura em px.
