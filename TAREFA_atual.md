@@ -1,28 +1,28 @@
-# TAREFA_atual.md — Cenário GLB, fase 1: árvores (t:1) e caixas (t:3) viram sprites pré-renderizados
+# TAREFA_atual.md — Cenário GLB fase 1b: todas as árvores em GLB (inclusive menu) + mais props espalhados
 
 > Agente: OpenCode `rapido` (via `escritor`). Se falhar, parar e escrever bloqueio em `saidas/relatorio.txt` (≤15 linhas).
 > **Edite `src/`, NUNCA `game.html`. No fim rode `node build.js` e `node build.js --check`.** Achar código: `grep -n 'texto' src/js/*.js`; ler com `sed -n 'A,Bp' arquivo | cut -c1-500`.
-> Só MUDE O DESENHO. Não altere `genMap`, `O`, `BLD`, colisão (`blk`, `buildOB`), pathfinding, rede nem RNG: o mapa e as caixas de colisão têm de ficar idênticos.
+> NÃO altere `genMap`, `O`, `BLD`, colisão (`blk`, `buildOB`), pathfinding, rede nem o RNG do mapa: colisão e layout existentes ficam idênticos.
 
-## Objetivo
-Em `obst(o)` (`src/js/60-desenho.js`, ~linha 29-31), os ramos `o.t==1` (árvore) e o `else` final (caixa, t:3) passam a desenhar um sprite vindo de GLB, pré-renderizado UMA vez. Carros (t:2), paredes (t:5) e prédios ficam como estão (fase 2).
+## Contexto (já feito, commit 93341dc)
+`src/js/86-cenario.js` já tem `cenLoad`, `cenMake(g,alvo,'x'|'y',yaw,ss)`, `cenDraw(ctx,sp,x,y)` (pé do modelo em `x,y`), `CEN_SPR[0..3]` (0 redonda, 1 pinheiro, 2 morta, 3 caixa_municao) e `initCenario()`. `obst(o)` em `60-desenho.js` usa `CEN_SPR[o.i%3]` para t:1 e `CEN_SPR[3]` para t:3.
 
-## Arquivos
-- Copiar de `~/Downloads/files/pacote_cenario_e_jogador/props/` para `src/assets/props/`: `arvore_redonda.glb`, `arvore_pinheiro.glb`, `arvore_morta.glb`, `caixa_municao.glb`. (Os GLB têm só POSITION + COLOR_0 + índices, sem textura; cada um tem 1-5 nós COM transformações; 170-440 triângulos; Y é para cima.)
-- Embutir como os GLB de armas/itens (placeholder `@@GLB:assets/...@@` no JS, trocado por `build.js`; só mexa em `build.js` se for indispensável, mudança mínima).
-- Novo `src/js/86-cenario.js` (entre `85-armas.js` e `90-sons.js`; confira como `build.js` lista/ordena os arquivos).
-- Editar `src/js/60-desenho.js` (só os dois ramos de `obst`).
+## Parte A — todas as árvores em GLB
+1. **Menu**: `menuScene` em `src/js/90-sons.js` (~linha 98) desenha 9 árvores procedurais (`#2a1a14` / `#16281a`). Troque por `cenDraw(X, CEN_SPR[i%3], x, y)` (pé em `x,y`, a mesma base da elipse de sombra que já existe), mantendo posição, sombra e a escurecida/tom da cena do menu (se o sprite ficar claro demais, aplique `X.globalAlpha`/camada escura por cima como o resto da cena faz). Mantenha o desenho antigo como fallback se o sprite for null.
+2. **Detritos voando** (`src/js/80-jogador.js` ~157 e ~159, `objShape`): `k==1` (árvore) e `k==11` (arbusto) ainda são procedurais. Troque `k==1` pelo mesmo sprite de árvore, e `k==11` pelo sprite de `arbusto.glb` (novo, ver B). Mantenha fallback procedural. Se o contexto de transformação (rotação/escala) da função tornar `cenDraw` inadequado, desenhe com `drawImage` equivalente respeitando a origem atual.
+3. `grep -n "2d5a27\|3f7a35" src/js/*.js` no fim: não deve sobrar árvore procedural ativa (só fallbacks).
 
-## Passos
-1. Em `86-cenario.js`, parser próprio de GLB que REAPROVEITA `pgParseGlb(b64)` (retorna `{j,acc}`) mas aplica a hierarquia de nós (`translation`, `rotation` quaternion, `scale`, `matrix`; `scene.nodes` e `children`) a cada malha, gerando `{P:Float32Array(9*n), C:Uint8Array(3*n), n}` como o `WPG` (cor por face = média de `COLOR_0` dos 3 vértices ×255; se `COLOR_0` for float 0..1 multiplique, se for normalizado inteiro divida; sem COLOR_0 use 200). Não use `WPG` (só traz geometria sem transformações).
-2. Função de render offscreen SEM limite de faces (não use `drawWeapon3D`, que tem `W3MAX=450` e buffers fixos): copie a lógica (yaw, descarte de faces de costas com `SE/CE`, sombreamento `LV`, ordenação por profundidade, projeção `y-(vy-vz*K2)*S`) usando buffers próprios dimensionados pelo `n` do modelo. Yaw fixo (ex.: `0.6`; árvores simétricas). Desenhe num `canvas` offscreen (guarde o próprio canvas, não dataURL), com folga de margem e âncora no pé (base do modelo) para `drawImage` posicionar o pé em um ponto conhecido.
-3. Tamanhos-alvo no mundo (px de altura aproximada do sprite): redonda 100, pinheiro 110, morta 90, caixa_municao ≈ largura 40 (a caixa de colisão é 36×36; fica coerente). Escala `S = alvo / altura_do_modelo(Y max−min)`.
-4. `obst`, ramo árvore (`o.t==1`): escolha determinística do modelo por `o.i % 3` (redonda, pinheiro, morta); mantenha a sombra elíptica atual (`ell`) e desenhe o sprite com o pé em `(x+12, y+12)` (mesmo ponto `cx,cy` de hoje). Ramo caixa (`else`): mantenha a sombra, desenhe o sprite centrado em `(x+w/2, y+h/2)` com pé em `y+h`.
-5. Fallback: se o GLB falhar ao carregar/parsear (try/catch) ou o sprite ainda não existir, usar o desenho procedural atual (não apague o código antigo; mova para uma função ou deixe como `else`).
-6. Carregar os sprites no mesmo ponto do boot onde os ícones/GLB das armas são preparados (veja `weaponIcon`/`WPG` e `99-iniciar.js`). Medir e imprimir no console o tempo total de pré-renderização (`console.log('cenario ms',...)`).
+## Parte B — mais props (variedade; hoje só existe a caixa de munição)
+Copiar de `~/Downloads/files/pacote_cenario_e_jogador/props/` para `src/assets/props/` e embutir como os atuais (`@@GLB:assets/props/NOME.glb@@`): `arbusto`, `pedra_pequena`, `pedra_media`, `pedra_grande`, `poste_luz`, `poste_luz_quebrado`, `hidrante`, `galao_combustivel`, `caixa_municao_pequena`, `caixa_cartuchos`, `cabine_telefonica`, `ponto_onibus`. (Mesmo formato dos já usados: POSITION+COLOR_0, nós com transformações; o loader atual serve.)
+Estenda `CENGLB`/`initCenario` com os novos (alvos de tamanho em px: arbusto 34 de altura; pedra_pequena 22, média 36, grande 60 (altura); poste_luz 130, poste quebrado 130; hidrante 30; galão 28; caixa pequena largura 26; cartuchos largura 24; cabine 80; ponto_onibus largura 150 (`'x'`)). Mantenha tempo total de pré-render < 400 ms (imprima o `console.log('cenario ms',...)` que já existe).
+
+1. **Caixas (t:3) variadas**: em `obst`, em vez de sempre `CEN_SPR[3]`, escolha por `o.i` (determinístico, ex.: `(o.i*7)%4`) entre caixa_municao, caixa_municao_pequena, galão e caixa_cartuchos (cartuchos mais rara). Sombra e colisão (36×36) ficam iguais; âncora no centro da base como hoje.
+2. **Decoração espalhada (sem colisão, só visual)**: crie `genDecor(sd)` em `86-cenario.js` com PRNG PRÓPRIO (ex.: mulberry32 com semente `sd^0x5bd1e995`), chamado junto de onde `genMap(sd)` é chamado no host (`start()` em `40-host.js`) e no cliente (`onSnap` em `50-cliente.js`; use grep): TODOS os clientes têm de gerar a mesma lista a partir da mesma semente. Gere ~350 itens `{x,y,s}` (s = índice do sprite): arbusto e pedras (pequena/média, grande rara) em áreas de grama; poste_luz (e 1 em 6 quebrado), hidrante, cabine e ponto_onibus ao longo das bordas dos quarteirões (calçada/rua), poucos. Rejeitar posição se: `blk(x,y,40)` for verdadeiro, estiver dentro/perto (60 px) de prédio (`bAt`/`BLD`), no rio (`RY0..RY1` + margem) ou a menos de 200 px do spawn (2000,4500). Não use `ROWS` fixo inventado: use os mesmos limites do mundo (`MW`,`MH`) e `ROWS`.
+3. **Desenho**: inclua os decorativos na lista ordenada por y que o `draw()` já usa para obstáculos (`D.push(...)` + `D.sort`, ~linhas 108-132 de `90-sons.js`; veja o formato de `ty`), com culling pelo mesmo teste de visibilidade (`v(x,y,r)`) dos outros objetos; sombra elíptica leve (`ell`) e `cenDraw`. Adicione um novo tipo `ty` sem mexer nos existentes. Não desenhar nada se o sprite for null.
+4. Decorativos NÃO entram em `O`, `OB`, `GB`, snapshots nem pathfinding.
 
 ## Critério de pronto
-- `node build.js --check` ok; `node --check` do maior `<script>` ok; sem erro de console ao abrir `game.html` em `solo()`.
-- Print no Firefox headless (veja RETOMADA, "Como testar") mostrando árvores e caixas como modelos 3D coloridos, com sombra, ordenadas por y (jogador passa por trás/na frente corretamente).
-- Colisão idêntica: nenhum arquivo além de `60-desenho.js`, `86-cenario.js`, assets (e `build.js` se indispensável) alterado.
-- Pré-renderização < 300 ms.
+- `node build.js --check` ok; `node --check` do maior `<script>` ok; sem erro de console em `solo()` e no menu.
+- Print (veja RETOMADA, "Como testar") do menu com árvores 3D e de um trecho do jogo mostrando variedade (arbustos, pedras, postes, hidrantes, caixas diferentes).
+- Colisão/mapa idênticos; arquivos alterados só: `86-cenario.js`, `60-desenho.js`, `90-sons.js`, `80-jogador.js`, `40-host.js`/`50-cliente.js` (só a chamada de `genDecor`), `src/assets/props/`.
+- Nenhum FPS perceptivelmente pior (itens fora da tela são pulados).
