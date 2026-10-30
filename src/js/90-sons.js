@@ -163,12 +163,12 @@ function pfEnd(t){if(!pfOn())return;PROF.acc.total=(PROF.acc.total||0)+(performa
 // ---------- cache do chão estático (grama+asfalto+ruas+calçadas) em chunks de 1000 px ----------
 const GRD={sd:null,map:new Map(),order:[]};
 function grdChunk(ci,cj){
- const key=ci+','+cj,hit=GRD.map.get(key);if(hit){GRD.order.push(key);return hit}
+ const key=ci+','+cj,hit=GRD.map.get(key);if(hit){const oi=GRD.order.indexOf(key);if(oi>=0)GRD.order.splice(oi,1);GRD.order.push(key);return hit}
  const cv=document.createElement('canvas');cv.width=1000;cv.height=1000;const g=cv.getContext('2d');
  if(g){g.translate(-ci*1000,-cj*1000);
   try{cenRuaSpr(g,ci*1000,cj*1000,ci*1000+1000,cj*1000+1000);cenBlocks(g,ci*1000,cj*1000,ci*1000+1000,cj*1000+1000)}catch(e){}}
  GRD.map.set(key,cv);GRD.order.push(key);
- while(GRD.order.length>8){const old=GRD.order.shift();if(old!==key)GRD.map.delete(old)}
+ while(GRD.order.length>16){const old=GRD.order.shift();if(old!==key)GRD.map.delete(old)}
  return cv}
 function groundChunks(){
  if(GRD.sd!==sd){GRD.sd=sd;GRD.map.clear();GRD.order.length=0}
@@ -224,8 +224,8 @@ const D=[];for(const o of O)if(o.t!=6&&!DD[o.i]&&v(o.x+o.w/2,o.y+o.h/2,o.w+80))D
   else{const q=pg-1;X.strokeStyle='rgba(210,185,140,'+(1-q)+')';X.lineWidth=8;X.beginPath();X.arc(x,y,40+q*50,0,7);X.stroke()}}
  X.restore();
  let ph_=pfStart();X.fillStyle='rgba(20,10,50,.2)';X.fillRect(0,0,W,H);
- if(!VIG||VIG.w!==W||VIG.h!==H){VIG={w:W,h:H,g:X.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,H*.95)}}
- VIG.g.addColorStop(0,'rgba(0,0,0,0)');VIG.g.addColorStop(1,'rgba(0,0,0,.5)');X.fillStyle=VIG.g;X.fillRect(0,0,W,H);
+ if(!VIG||VIG.w!==W||VIG.h!==H){VIG={w:W,h:H,g:X.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,H*.95)};VIG.g.addColorStop(0,'rgba(0,0,0,0)');VIG.g.addColorStop(1,'rgba(0,0,0,.5)')}
+ X.fillStyle=VIG.g;X.fillRect(0,0,W,H);
  const arrow=(tx,ty,col,lb)=>{const dx=tx-cx,dy=ty-cy;if(Math.abs(dx)>W/2||Math.abs(dy)>H/2){const a=Math.atan2(dy,dx),q=Math.min(W,H)/2-90;X.fillStyle=col;poly(W/2+Math.cos(a)*q,H/2+Math.sin(a)*q,22,3,a);if(lb)txt(lb,W/2+Math.cos(a)*(q-32),H/2+Math.sin(a)*(q-32),16,col)}};
  const bz=s.Z.find(z=>z[2]==3);if(bz&&me)arrow(bz[0],bz[1],'#f0f');if(s.sh&&me)arrow(s.sh[0],s.sh[1],'#fc3','LOJA');if(s.bp&&me)arrow(s.bp[0],s.bp[1],'#f33','BOSS');
  if(s.bp){const pu=1+Math.sin(t/110)*.08;txt('⚠ KRAID CHEGANDO EM '+s.bp[2]+'s ⚠',W/2,MOB?26:44,(MOB?18:30)*pu,'#ff4040')}
