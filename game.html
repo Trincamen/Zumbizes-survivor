@@ -1461,21 +1461,63 @@ function audioFrame(s,t,mr){if(!AU.c||AU.c.state!='running')return;
  const cur={};for(const[x,y,pg]of s.K){const k=x+','+y;cur[k]=1;if(pg>=1&&!AU.rk[k]){AU.rk[k]=1;const d=Math.hypot(x-cx,y-cy);SND.rock(Math.max(.2,1-d/1300),(x-cx)/600)}}for(const k in AU.rk)if(!cur[k])delete AU.rk[k]}
 // ---------- cena do menu: entardecer sombrio, floresta, estrada e veículo ----------
 let MSC={k:'',bg:null,fog:null,veh:null,glow:null};
-function msTree(c,yb,minH,maxH,col,step,sd){ // silhueta de floresta em camadas
- c.fillStyle=col;c.beginPath();c.moveTo(-8,yb+4);
- for(let i=0,x=-8;x<W+24;i++,x+=step){const v=Math.sin(i*12.9898+sd*78.233)*43758.5453,f=v-Math.floor(v),h=minH+(maxH-minH)*f;
-  c.lineTo(x+step*.45,yb-h);c.lineTo(x+step*.55,yb-h*.55);c.lineTo(x+step,yb)}
- c.lineTo(W+24,yb+4);c.closePath();c.fill()}
+// skyline: prédios do jogo (hospital/delegacia/mercado) + poucas árvores, desfocado uma vez por tamanho
+function msSky(c,hz){
+ const bw=Math.max(2,Math.round(W)),bh=Math.max(2,Math.round(hz+H*.02));
+ const lw=Math.max(2,Math.round(bw/3)),lh=Math.max(2,Math.round(bh/3));
+ const low=document.createElement('canvas');low.width=lw;low.height=lh;
+ const d=low.getContext('2d');if(!d)return;
+ d.setTransform(lw/bw,0,0,lh/bh,0,0);
+ let x=-W*.12;
+ for(let i=0;x<W*1.12;i++){
+  const f=Math.sin(i*12.9898+7.7)*43758.5453,v=f-Math.floor(f),T=['h','p','m'][(v*3)|0],sc=.35+.35*((v*7)%1);
+  let ok=0;
+  if(typeof CEN_PSZ!=='undefined')try{const sp=cenBldSpr({T:T,w:CEN_PSZ[T][0],h:CEN_PSZ[T][1],H:CEN_PSZ[T][2]},false);
+   if(sp&&sp.cv){d.drawImage(sp.cv,x-sp.ax*sc,hz+2-sp.ay*sc,sp.w*sc,sp.h*sc);x+=sp.w*sc*.55;ok=1}}catch(e){}
+  if(!ok){const w2=W*(.06+.08*v),h2=H*(.05+.09*v);d.fillStyle='#43424a';d.fillRect(x,hz-h2,w2,h2+4);x+=w2*.6}
+ }
+ for(let i=0;i<7;i++){
+  const f=Math.sin(i*31.7+2.3)*43758.5453,v=f-Math.floor(f),x2=W*(.03+.145*i)+v*W*.05,sc=.26+.12*v;
+  try{const sp=CEN_SPR[i%3];if(sp&&sp.cv)d.drawImage(sp.cv,x2-sp.ax*sc,hz+3-sp.ay*sc,sp.w*sc,sp.h*sc)}catch(e){}
+ }
+ d.globalCompositeOperation='source-atop';d.fillStyle='rgba(88,84,80,.45)';d.fillRect(0,0,bw,bh);d.globalCompositeOperation='source-over';
+ c.imageSmoothingEnabled=true;
+ try{c.filter='blur(3px)'}catch(e){}
+ c.drawImage(low,0,0,bw,bh);
+ try{c.filter='none'}catch(e){}
+ const g=c.createLinearGradient(0,hz-H*.16,0,hz+H*.04);
+ g.addColorStop(0,'rgba(150,132,116,0)');g.addColorStop(.55,'rgba(172,148,126,.38)');g.addColorStop(1,'rgba(190,160,130,.82)');
+ c.fillStyle=g;c.fillRect(0,hz-H*.2,W,H*.3);
+}
+// zumbis 3D do menu: atrás do carro, vindo pela estrada
+function msZumbis(){
+ const A=[];
+ for(let i=0;i<10;i++){
+  const f=Math.sin(i*91.7+3.1)*43758.5453,v=f-Math.floor(f),f2=Math.sin(i*17.3+8.9)*43758.5453,v2=f2-Math.floor(f2),
+   tt=Math.max(.14,Math.min(.7,.16+.5*(i/9)+(v2-.5)*.05));
+  A.push({t:tt,dx:(v-.5)*1.15,mi:[0,1,2,3,4,5][(v*6)|0],cn:v2>.74?'run':'walk',yaw:v2>.5?1:0,
+   ph:v2*.93,s:.7+2.4*tt,a:.4+.6*tt});
+ }
+ A.sort((a,b)=>a.t-b.t);return A}
 function msVeh(){
- const sp=(VEH_SPR[vehIdx({i:4})]||[])[0]; // modelo da polícia
- if(!sp||!sp.cv)return null;
- const vh=H*.62,k=Math.min(vh/sp.h,W*.5/sp.w),cw=Math.max(1,Math.round(sp.w*k)),ch=Math.max(1,Math.round(sp.h*k));
- const cv=document.createElement('canvas');cv.width=cw;cv.height=ch;const c=cv.getContext('2d');
- if(!c)return null;
- c.drawImage(sp.bm||sp.cv,0,0,cw,ch);
- c.globalCompositeOperation='source-atop';c.fillStyle='rgba(0,0,0,.45)';c.fillRect(0,0,cw,ch);
- c.globalCompositeOperation='source-over';
- return {cv,ax:sp.ax*k,ay:sp.ay*k,w:cw,h:ch}}
+ const PPM=Math.max(46,Math.min(96,Math.round(H*.075))),M=3; // jeep: cabine aberta
+ let sz=null,sp=null;
+ try{
+  sz=vehSize(cenLoad(VGLB[M]));
+  if(sz){const g=vehCrop(cenLoad(VGLB[M],nm=>/^(glass|loot_)/.test(nm)),sz[0],sz[1],sz[2]);
+   sp=cenMakeObl(g,{w:sz[1]*PPM,d:sz[0]*PPM,hpx:sz[2]*PPM,ss:2,rot:-Math.PI/2,fx:sz[1],fz:sz[0],cx:0,cz:0,fy:sz[2]})}
+ }catch(e){sp=null}
+ if(!sp||!sp.cv||!sz)return null;
+ const cw=Math.round(sp.w),ch=Math.round(sp.h),cv=document.createElement('canvas');
+ cv.width=cw;cv.height=ch;const c=cv.getContext('2d');if(!c)return null;
+ c.drawImage(sp.cv,0,0,cw,ch);
+ const ax=sp.ax,ay=sp.ay,Wp=sz[1]*PPM,Hp=sz[2]*PPM;
+ // vão da cabine (coords do sprite): jogadores e vidro são desenhados por cima em menuScene
+ const cab={x:ax-Wp*.5,y:ay-Hp*.95,w:Wp,h:Hp*.9};
+ c.globalCompositeOperation='source-atop';c.fillStyle='rgba(0,0,0,.25)';c.fillRect(0,0,cw,ch);c.globalCompositeOperation='source-over';
+ // posição dos faróis (frente do carro = base do sprite)
+ const ly=ay+(sz[0]/2)*PPM-Hp*.34;
+ return {cv,ax,ay,w:cw,h:ch,cab,cw:cw,ch:ch,lx1:ax-Wp*.33-Hp*.1,lx2:ax+Wp*.33-Hp*.1,ly:ly}}
 function msGlow(){
  const r=Math.max(20,H*.12),cv=document.createElement('canvas');cv.width=cv.height=Math.ceil(r*2);
  const c=cv.getContext('2d');if(!c)return null;
@@ -1495,9 +1537,7 @@ function msBuild(){
  c.fillStyle=g;c.fillRect(0,0,W,hz);
  for(let i=0;i<18;i++){const f=Math.sin(i*37.7+4.1)*43758.5453,v=f-Math.floor(f);
   c.fillStyle='rgba(36,38,40,'+(.04+.05*v).toFixed(3)+')';c.fillRect(W*(v-.15),hz*(.08+.045*i),W*(.35+.4*v),5+6*v)}
- msTree(c,hz+3,H*.05,H*.11,'#565751',26,1);
- msTree(c,hz+6,H*.07,H*.16,'#3d3f3c',20,2);
- msTree(c,hz+10,H*.09,H*.2,'#292c29',16,3);
+ msSky(c,hz);
  c.fillStyle='#2e2c28';c.fillRect(0,hz+H*.01,W,H-hz);
  const vx=W*.6,vy=hz+H*.015;
  const road=(w0,w1,col)=>{c.fillStyle=col;c.beginPath();c.moveTo(vx-w0,vy);c.lineTo(vx+w0,vy);c.lineTo(W*.5+w1,H);c.lineTo(W*.5-w1,H);c.closePath();c.fill()};
@@ -1515,30 +1555,51 @@ function msBuild(){
  const fv=document.createElement('canvas');fv.width=Math.max(2,Math.round(W*.6));fv.height=64;
  const fc=fv.getContext('2d');
  if(fc){const fg=fc.createLinearGradient(0,0,0,64);fg.addColorStop(0,'rgba(196,196,190,0)');fg.addColorStop(.5,'rgba(196,196,190,1)');fg.addColorStop(1,'rgba(196,196,190,0)');fc.fillStyle=fg;fc.fillRect(0,0,fv.width,64)}
- MSC.fog=fv;MSC.veh=msVeh();MSC.glow=msGlow();
+ MSC.fog=fv;MSC.veh=msVeh();MSC.glow=msGlow();MSC.zs=msZumbis();
 }
 function menuScene(t){
  const key=W+'x'+H+'x'+Math.round((ZO||1)*(DPR||1)*10);
- if(MSC.k!=key){MSC.k=key;MSC.bg=MSC.fog=MSC.veh=MSC.glow=null;msBuild()}
+ if(MSC.k!=key){MSC.k=key;MSC.bg=MSC.fog=MSC.veh=MSC.glow=null;MSC.zs=null;msBuild()}
  if(MSC.bg)X.drawImage(MSC.bg,0,0,W,H);else{X.fillStyle='#15161a';X.fillRect(0,0,W,H)}
  const hz=H*.52;
  if(MSC.fog)for(let i=0;i<3;i++){const ph=(t/(9000+i*4200)+i*.37)%1;
   X.globalAlpha=.5-.11*i;X.drawImage(MSC.fog,(ph*2-1)*W*.25-W*.08,hz-H*.03+i*H*.075,W*1.15,H*(.085+i*.03))}
  X.globalAlpha=1;
- const zs=Math.min(1,W/1100)*.62;
- for(let i=0;i<4;i++){const ph=(t/(26000+i*3600)+i*.29)%1,x=-40+ph*(W*.55);
-  person(x,hz+H*(.1+(i%3)*.028)+Math.sin(t/1600+i)*2,{s:zs*(.9-i*.06),ph:t/(420+i*60)+i,fa:1.57,sh:'#20221f',sk:'#24261f',pn:'#1a1c19',hr:'#151614',ey:'#7a2a22',zm:1})}
- const gx=W*.8,gy=hz+H*.36;
- if(MSC.veh)X.drawImage(MSC.veh.cv,gx-MSC.veh.ax,gy-MSC.veh.ay);
- else{const cw=W*.3,ch=H*.15,bx=gx-cw*.5,by=gy-ch;
-  X.fillStyle='#0f1012';X.beginPath();X.moveTo(bx,gy);X.lineTo(bx+2,by+ch*.42);X.lineTo(bx+cw*.22,by+ch*.2);X.lineTo(bx+cw*.72,by+ch*.18);X.lineTo(bx+cw*.97,by+ch*.5);X.lineTo(bx+cw,gy);X.closePath();X.fill();
-  ell(bx+cw*.22,gy,ch*.14,ch*.09,'#0a0b0c');ell(bx+cw*.78,gy,ch*.14,ch*.09,'#0a0b0c')}
- const sw=W*.27;X.fillStyle='rgba(0,0,0,.5)';X.beginPath();X.ellipse(gx,gy+4,sw,sw*.16,0,0,7);X.fill();
- if(MSC.glow){const fl=.85+.15*Math.sin(t/230)+.05*Math.sin(t/71),r=MSC.glow.r;
+ // zumbis 3D do jogo vindo pela estrada (atrás do carro)
+ const vz=hz+H*.015;
+ for(const z of MSC.zs||[]){
+  const zy=vz+(H*.93-vz)*Math.pow(z.t,1.7),zx=W*.6+(W*.5-W*.6)*z.t+z.dx*W*(.006+.4*z.t)*.8;
+  const ph=((t/800+z.ph)%1+1)%1,sp=zsprGet(z.mi,z.cn,Math.floor(ph*8)%8,z.yaw);
+  if(!sp)continue;
+  X.globalAlpha=z.a;zDraw(X,sp,zx,zy,z.s,1);
+ }
+ X.globalAlpha=1;
+ const hg=X.createLinearGradient(0,hz-H*.02,0,hz+H*.22);
+ hg.addColorStop(0,'rgba(180,158,136,.6)');hg.addColorStop(1,'rgba(180,158,136,0)');
+ X.fillStyle=hg;X.fillRect(0,hz-H*.02,W,H*.26);
+ // carro de frente, ocupantes na cabine, faróis acesos
+ const gx=W*.8;
+ const vy0=MSC.veh?H*.97-MSC.veh.h:hz+H*.36;
+ X.fillStyle='rgba(0,0,0,.5)';X.beginPath();X.ellipse(gx,H*.95,MSC.veh?Math.min(W*.3,MSC.veh.ax*.9):W*.2,H*.03,0,0,7);X.fill();
+ if(MSC.veh)X.drawImage(MSC.veh.cv,gx-MSC.veh.ax,vy0);
+ else{const cw=W*.3,ch=H*.15,bx=gx-cw*.5,by=vy0+ch*.5;
+  X.fillStyle='#0f1012';X.fillRect(bx,by-ch*.5,cw,ch);
+  ell(bx+cw*.22,by+ch*.5,ch*.14,ch*.09,'#0a0b0c');ell(bx+cw*.78,by+ch*.5,ch*.14,ch*.09,'#0a0b0c')}
+ if(MSC.veh){ // ocupantes (tronco/cabeça) na cabine + para-brisa escuro
+  const cb=MSC.veh.cab,bx=gx-MSC.veh.ax,cols=['#3a5a8a','#3a6a3a'];
+  X.save();X.beginPath();X.rect(bx+cb.x,vy0+cb.y,cb.w,cb.h);X.clip();
+  for(let i=0;i<2;i++)try{drawPlayer(bx+cb.x+cb.w*(.30+.40*i),vy0+cb.y+cb.h,{k:i,s:Math.max(1.1,cb.h*.021),c:cols[i],fa:1.5708,aim:null,gun:null,ring:null,shot:0,idle:true,t:t})}catch(e){}
+  X.restore();
+  X.fillStyle='rgba(20,30,35,.45)';X.beginPath();
+  X.moveTo(bx+cb.x+cb.w*.06,vy0+cb.y+cb.h*.72);X.lineTo(bx+cb.x+cb.w*.94,vy0+cb.y+cb.h*.72);
+  X.lineTo(bx+cb.x+cb.w*.88,vy0+cb.y+cb.h*.99);X.lineTo(bx+cb.x+cb.w*.12,vy0+cb.y+cb.h*.99);
+  X.closePath();X.fill()}
+ if(MSC.glow){const fl=.85+.15*Math.sin(t/230)+.05*Math.sin(t/71),r=MSC.glow.r,
+  lx1=MSC.veh?gx-MSC.veh.ax+MSC.veh.lx1:gx-W*.05,lx2=MSC.veh?gx-MSC.veh.ax+MSC.veh.lx2:gx+W*.05,ly=MSC.veh?vy0+MSC.veh.ly:H*.86;
   X.globalCompositeOperation='lighter';
-  X.globalAlpha=.5*fl;X.drawImage(MSC.glow.cv,gx-W*.115-r*.2,gy-H*.075-r,r*2,r*2);
-  X.globalAlpha=.38*fl;X.drawImage(MSC.glow.cv,gx-W*.055-r*.15,gy-H*.06-r*.8,r*1.5,r*1.5);
-  X.globalAlpha=.14*fl;X.fillStyle='#ffd28a';X.beginPath();X.moveTo(gx-W*.11,gy-H*.07);X.lineTo(W*.05,gy+H*.02);X.lineTo(W*.02,gy+H*.08);X.lineTo(gx-W*.1,gy-H*.02);X.closePath();X.fill();
+  X.globalAlpha=.55*fl;X.drawImage(MSC.glow.cv,lx1-r,ly-r,r*2,r*2);
+  X.drawImage(MSC.glow.cv,lx2-r,ly-r,r*2,r*2);
+  X.globalAlpha=.12*fl;X.fillStyle='#ffd28a';X.beginPath();X.moveTo(lx1,ly);X.lineTo(W*.02,H*.99);X.lineTo(W*.16,H*.99);X.lineTo(lx2,ly);X.closePath();X.fill();
   X.globalCompositeOperation='source-over';X.globalAlpha=1}
  X.globalAlpha=.03;X.fillStyle='#000';for(let i=0;i<3;i++)X.fillRect((t/7+i*W*.37)%W,(t/11+i*H*.29)%H,W*.2,1);X.globalAlpha=1;
 }
