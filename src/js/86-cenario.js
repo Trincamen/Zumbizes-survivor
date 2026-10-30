@@ -1,6 +1,9 @@
-// ---------- CENÁRIO 3D: props (árvores t:1, caixas t:3) pré-renderizados UMA vez a partir de GLB ----------
-// Índices: 0 redonda, 1 pinheiro, 2 morta, 3 caixa de munição
-const CENGLB=['@@GLB:assets/props/arvore_redonda.glb@@','@@GLB:assets/props/arvore_pinheiro.glb@@','@@GLB:assets/props/arvore_morta.glb@@','@@GLB:assets/props/caixa_municao.glb@@'];
+// ---------- CENÁRIO 3D: props (árvores t:1, caixas t:3, decoração) pré-renderizados UMA vez a partir de GLB ----------
+// Índices fixos: 0 redonda, 1 pinheiro, 2 morta, 3 caixa de munição (NÃO mudar: usados por CEN_SPR[o.i%3] e CEN_SPR[3])
+// 4 arbusto, 5 pedra_pequena, 6 pedra_media, 7 pedra_grande, 8 poste_luz, 9 poste_luz_quebrado, 10 hidrante,
+// 11 galão, 12 caixa_municao_pequena, 13 caixa_cartuchos, 14 cabine, 15 ponto_onibus
+const CENGLB=['@@GLB:assets/props/arvore_redonda.glb@@','@@GLB:assets/props/arvore_pinheiro.glb@@','@@GLB:assets/props/arvore_morta.glb@@','@@GLB:assets/props/caixa_municao.glb@@','@@GLB:assets/props/arbusto.glb@@','@@GLB:assets/props/pedra_pequena.glb@@','@@GLB:assets/props/pedra_media.glb@@','@@GLB:assets/props/pedra_grande.glb@@','@@GLB:assets/props/poste_luz.glb@@','@@GLB:assets/props/poste_luz_quebrado.glb@@','@@GLB:assets/props/hidrante.glb@@','@@GLB:assets/props/galao_combustivel.glb@@','@@GLB:assets/props/caixa_municao_pequena.glb@@','@@GLB:assets/props/caixa_cartuchos.glb@@','@@GLB:assets/props/cabine_telefonica.glb@@','@@GLB:assets/props/ponto_onibus.glb@@'];
+const CENCFG=[[100,'y'],[110,'y'],[90,'y'],[40,'x'],[34,'y'],[22,'y'],[36,'y'],[60,'y'],[130,'y'],[130,'y'],[30,'y'],[28,'y'],[26,'x'],[24,'x'],[80,'y'],[150,'x']];
 const CEN_SPR=[];
 const CEN_CSS={};
 
@@ -82,9 +85,36 @@ function cenDraw(ctx,sp,x,y){
 // pré-renderiza uma única vez no boot
 function initCenario(){
  const t0=(performance&&performance.now?performance.now():Date.now());
- const cfg=[[100,'y'],[110,'y'],[90,'y'],[40,'x']];
+ const cfg=CENCFG;
  for(let i=0;i<CENGLB.length;i++){CEN_SPR[i]=null;
-  try{CEN_SPR[i]=cenMake(cenLoad(CENGLB[i]),cfg[i][0],cfg[i][1],.6,3)}catch(e){CEN_SPR[i]=null;console.warn('cenario',i,e)}}
+  try{CEN_SPR[i]=cenMake(cenLoad(CENGLB[i]),cfg[i][0],cfg[i][1],.6,i<4?3:2)}catch(e){CEN_SPR[i]=null;console.warn('cenario',i,e)}}
  console.log('cenario ms',Math.round((performance&&performance.now?performance.now():Date.now())-t0));
 }
 initCenario();
+// ---------- DECORAÇÃO espalhada (sem colisão, só visual) ----------
+// PRNG próprio + semente derivada de sd: host e TODOS os clientes geram a mesma lista.
+let DECOR=[];
+function cenRng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function genDecor(sd){
+ const rnd=cenRng((sd^0x5bd1e995)>>>0),q=(m,n)=>m+rnd()*(n-m),out=[],cells=[];
+ for(const j of ROWS)for(let i=0;i<8;i++)cells.push([i,j]);
+ const ok=(x,y)=>{if(x<40||y<40||x>MW-40||y>MH-40)return 0;
+  if(y>RY0-90&&y<RY1+90)return 0;
+  if(Math.hypot(x-2000,y-4500)<200)return 0;
+  if(blk(x,y,40))return 0;
+  for(const b of BLD)if(x>b.x-60&&x<b.x+b.w+60&&y>b.y-60&&y<b.y+b.h+60)return 0;
+  return 1};
+ for(let n=0;out.length<350&&n<1600;n++){
+  const c=cells[n%cells.length],bx=c[0]*500+60,by=c[1]*500+60;let x=0,y=0,s=-1;
+  if(rnd()<.7){ // grama: arbusto e pedras
+   x=bx+q(20,355);y=by+q(20,355);const r=rnd();
+   s=r<.68?4:r<.84?5:r<.96?6:7}
+  else{ // calçada/rua, na borda do quarteirão
+   const e=rnd()*4|0,u=q(30,350);
+   if(e==0){x=bx+u;y=by-26}else if(e==1){x=bx+u;y=by+404}else if(e==2){x=bx-26;y=by+u}else{x=bx+404;y=by+u}
+   const r=rnd();s=r<.6?(rnd()<1/6?9:8):r<.8?10:r<.92?14:15}
+  if(s<0||!ok(x,y))continue;
+  out.push({x:Math.round(x),y:Math.round(y),s});
+ }
+ return out;
+}

@@ -154,9 +154,9 @@ function drawPlayer(x,y,o){const t=o.t||Date.now(),s=o.s||1;
 function bushFront(x,y,em){X.globalAlpha=Math.min(1,em/.5);for(const o of[-34,0,34]){ell(x+o+6,y+8,26,8,'rgba(0,0,0,.3)');X.fillStyle='#2f6b2a';X.beginPath();X.arc(x+o,y-10,24,0,7);X.fill();X.fillStyle='#3f8a35';X.beginPath();X.arc(x+o-6,y-18,13,0,7);X.fill()}X.globalAlpha=1}
 function stars(x,y,t){for(let i=0;i<5;i++){const a=t/260+i*1.2566;X.fillStyle='#ffe45a';poly(x+Math.cos(a)*38,y-186+Math.sin(a)*10,7,5,t/200+i,3);X.strokeStyle='#a80';X.lineWidth=1;X.stroke()}}
 function objShape(k,c){if(k==2){X.fillStyle=c;X.fillRect(-46,-12,92,24);X.fillStyle='rgba(255,255,255,.2)';X.fillRect(-46,-12,92,8);X.fillStyle='#1c2a3a';X.fillRect(-22,-9,44,14);X.fillStyle='#111';X.beginPath();X.arc(-28,12,6,0,7);X.arc(28,12,6,0,7);X.fill()}
- else if(k==1){X.fillStyle='#543';X.fillRect(-4,-4,8,24);X.fillStyle='#2d5a27';X.beginPath();X.arc(0,-14,24,0,7);X.fill();X.fillStyle='#3f7a35';X.beginPath();X.arc(-6,-20,14,0,7);X.fill()}
+ else if(k==1){if(!cenDraw(X,CEN_SPR[1],0,20)){X.fillStyle='#543';X.fillRect(-4,-4,8,24);X.fillStyle='#2d5a27';X.beginPath();X.arc(0,-14,24,0,7);X.fill();X.fillStyle='#3f7a35';X.beginPath();X.arc(-6,-20,14,0,7);X.fill()}}
  else if(k==3){X.fillStyle='#b84';X.fillRect(-18,-18,36,36);X.strokeStyle='#5a3a18';X.lineWidth=2;X.strokeRect(-15,-15,30,30)}
- else if(k==11){X.fillStyle='#2d5a27';X.beginPath();X.arc(0,0,22,0,7);X.fill();X.fillStyle='#3f7a35';X.beginPath();X.arc(-6,-6,12,0,7);X.fill()}
+ else if(k==11){if(!cenDraw(X,CEN_SPR[4],0,16)){X.fillStyle='#2d5a27';X.beginPath();X.arc(0,0,22,0,7);X.fill();X.fillStyle='#3f7a35';X.beginPath();X.arc(-6,-6,12,0,7);X.fill()}}
  else if(k==12){X.fillStyle='#6a4a2a';X.fillRect(-4,-14,8,28)}else{X.fillStyle='#b8843a';X.fillRect(-12,-3,24,6)}}
 function pts(n,x,y,c,sp,vz,sz,l){for(let i=0;i<n&&PT.length<320;i++){const a=Math.random()*6.28,v=Math.random()*sp;PT.push({x,y,z:5,vx:Math.cos(a)*v,vy:Math.sin(a)*v*.6,vz:Math.random()*vz,c,s:sz*(.6+Math.random()*.8),l:l*(.6+Math.random()*.8),t:0})}}
 function fly(k,c,x,y,vx,vy,vz,vr){if(FL2.length<60)FL2.push({k,c,x,y,z:10,vx,vy,vz,r:0,vr,b:0})}
