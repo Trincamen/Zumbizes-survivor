@@ -1485,44 +1485,6 @@ function msEyePair(){
   c.fillStyle=g;c.beginPath();c.arc(px,7,1.9,0,7);c.fill()}
  return {cv,w:30,h:14}}
 // olho grande: amêndoa vertical, íris vermelha, pupila fendida
-function msBigEye(){
- const w=W*.064,h=W*.104,ss=MSQ()*1.8,cv=MSV(w*ss,h*ss),c=cv.getContext('2d');if(!c)return null;
- c.setTransform(ss,0,0,ss,0,0);
- const cx=w/2,cy=h/2,ew=w*.5,eh=h*.5;
- const shape=()=>{c.beginPath();c.moveTo(cx,cy-eh);c.bezierCurveTo(cx+ew*.95,cy-eh*.40,cx+ew*.88,cy+eh*.46,cx,cy+eh);
-  c.bezierCurveTo(cx-ew*.88,cy+eh*.46,cx-ew*.95,cy-eh*.40,cx,cy-eh);c.closePath()};
- shape();
- // íris escura (quase apagada) com aro quente
- let g=c.createRadialGradient(cx,cy,0,cx,cy,eh);
- g.addColorStop(0,'rgba(150,16,14,.52)');g.addColorStop(.40,'rgba(116,10,10,.48)');g.addColorStop(.72,'rgba(66,4,4,.46)');g.addColorStop(1,'rgba(26,2,2,.30)');
- c.fillStyle=g;c.fill();
- c.save();shape();c.clip();
- c.strokeStyle='rgba(255,70,44,.22)';c.lineWidth=Math.max(.5,w*.008);
- for(let i=0;i<14;i++){const a=i/14*6.283+a0v(i),r0=eh*(.60+.36*MSR(i,3.7)),r1=eh*.14;
-  c.beginPath();c.moveTo(cx+Math.cos(a)*ew*.72*r0/eh,cy+Math.sin(a)*r0);
-  c.quadraticCurveTo(cx+Math.cos(a+1.1)*ew*.26,cy+Math.sin(a+1.1)*r0*.5,cx+Math.cos(a)*r1*.4,cy+Math.sin(a)*r1);c.stroke()}
- // aro interno (borda da pálpebra) — o vermelho vivo do contorno
- g=c.createRadialGradient(cx,cy,eh*.35,cx,cy,eh);
- g.addColorStop(0,'rgba(255,50,36,0)');g.addColorStop(.72,'rgba(226,36,28,.34)');g.addColorStop(1,'rgba(255,86,56,.62)');
- c.fillStyle=g;c.fillRect(cx-ew,cy-eh,ew*2,eh*2);
- c.restore();
- // pupila fendida
- c.fillStyle='rgba(4,0,0,.97)';
- c.beginPath();c.ellipse(cx,cy,w*.070,h*.315,0,0,7);c.fill();
- c.fillStyle='rgba(128,10,8,.5)';
- c.beginPath();c.ellipse(cx,cy,w*.086,h*.345,0,0,7);c.fill();
- c.fillStyle='rgba(4,0,0,.98)';
- c.beginPath();c.ellipse(cx,cy,w*.062,h*.30,0,0,7);c.fill();
- // contorno quente fino
- c.strokeStyle='rgba(255,74,48,.50)';c.lineWidth=Math.max(.7,w*.014);shape();c.stroke();
- return {cv,w,h}}
-function a0v(i){return MSR(i,5.1)*.5-.25}
-// halo vermelho para o pulsar
-function msEyeGlow(r){
- const cv=MSV(r*2,r*2),c=cv.getContext('2d');if(!c)return null;
- const g=c.createRadialGradient(r,r,0,r,r,r);
- g.addColorStop(0,'rgba(200,26,22,.55)');g.addColorStop(.35,'rgba(150,14,12,.26)');g.addColorStop(1,'rgba(90,6,6,0)');
- c.fillStyle=g;c.fillRect(0,0,r*2,r*2);return {cv,r}}
 function msWarm(r){
  const cv=MSV(r*2,r*2),c=cv.getContext('2d');if(!c)return null;
  const g=c.createRadialGradient(r,r,0,r,r,r);
@@ -1582,7 +1544,8 @@ function msFog(){
  const cv=MSV(W*.75,64),c=cv.getContext('2d');if(!c)return null;
  const g=c.createLinearGradient(0,0,0,64);
  g.addColorStop(0,'rgba(120,96,74,0)');g.addColorStop(.45,'rgba(130,102,78,1)');g.addColorStop(1,'rgba(104,82,62,0)');
- c.fillStyle=g;c.fillRect(0,0,cv.width,64);return cv}
+ c.fillStyle=g;c.fillRect(0,0,cv.width,64);
+ c.globalCompositeOperation='destination-in';const m=c.createLinearGradient(0,0,cv.width,0);m.addColorStop(0,'rgba(0,0,0,0)');m.addColorStop(.18,'rgba(0,0,0,1)');m.addColorStop(.82,'rgba(0,0,0,1)');m.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=m;c.fillRect(0,0,cv.width,64);c.globalCompositeOperation='source-over';return cv}
 function msBuild(){
  const q=MSQ(),cv=MSV(W*q,H*q),c=cv.getContext('2d');if(!c)return;
  c.setTransform(q,0,0,q,0,0);
@@ -1644,12 +1607,6 @@ function msBuild(){
   c.fillStyle='#0f0c0a';c.fillRect(bx,by,bw,bh);
   c.fillStyle='rgba(255,196,130,.16)';c.fillRect(bx,by,Math.max(1,bw*.16),bh);
   c.fillStyle='rgba(255,214,160,.10)';c.fillRect(bx,by,bw,Math.max(1,bh*.06))}
- // ---- arame/fios saindo do topo do poste ----
- const wy0=PLY-6.16*S;
- c.strokeStyle='rgba(14,11,9,.85)';c.lineWidth=Math.max(.6,W*.0012);
- for(let i=0;i<3;i++){const ey=H*(.02+.16*i),ex=W*(1.02+.02*i);
-  c.beginPath();c.moveTo(PLX,wy0+i*H*.012);
-  c.quadraticCurveTo(PLX+W*.16,wy0+ (ey-wy0)*.62+ H*.05,ex,ey);c.stroke()}
  // ---- poste: escurece e adiciona borda quente do lado da lâmpada ----
  if(pole){
   const pc=document.createElement('canvas');pc.width=Math.round(pole.w*2);pc.height=Math.round(pole.h*2);
@@ -1691,15 +1648,12 @@ function msBuild(){
   if(x>W*.62&&y>H*.72)a*=.55; // perto do cone, apaga
   A.push({x,y,w:H*(.023+.016*v4),a:Math.max(.10,Math.min(1,a)),pc:2400+7000*v5,ph:v2,os:900+1400*v4,os2:1500+2200*v5})}
  MSC.eyeS=msEyePair();MSC.pairs=A;
- MSC.big=[{x:W*.46,y:H*.135,off:.0,po:0},{x:W*.62,y:H*.155,off:.52,po:2.1}];
- MSC.eyeg=msEyeGlow(W*.075);
  MSC.fog=msFog();MSC.glow=msWarm(H*.16);MSC.core=msCore(H*.035);
  MSC.cone=msCone();MSC.refl=msRefl();MSC.dust=msDust();
- if(MSC.big){MSC.big[0].e=msBigEye();MSC.big[1].e=msBigEye()}
 }
 function menuScene(t){
  const key=W+'x'+H+'x'+Math.round((ZO||1)*(DPR||1)*10);
- if(MSC.k!=key){MSC.k=key;MSC.bg=MSC.vig=MSC.fog=MSC.cone=MSC.glow=MSC.core=MSC.refl=MSC.eyeS=MSC.big=MSC.eyeg=null;MSC.pairs=MSC.dust=null;msBuild()}
+ if(MSC.k!=key){MSC.k=key;MSC.bg=MSC.vig=MSC.fog=MSC.cone=MSC.glow=MSC.core=MSC.refl=MSC.eyeS=null;MSC.pairs=MSC.dust=null;msBuild()}
  if(MSC.bg)X.drawImage(MSC.bg,0,0,W,H);else{X.fillStyle='#060405';X.fillRect(0,0,W,H)}
  // olhinhos vermelhos na escuridão
  if(MSC.pairs&&MSC.eyeS){const es=MSC.eyeS;
@@ -1713,14 +1667,6 @@ function menuScene(t){
  if(MSC.fog)for(let i=0;i<3;i++){const ph=(t/(11000+i*5300)+i*.41)%1;
   X.globalAlpha=.40-.10*i;
   X.drawImage(MSC.fog,(ph*2-1)*W*.30-W*.14,H*(.58+i*.105)+H*.018*Math.sin(t/7000+i*2),W*1.34,H*(.095+i*.032))}
- X.globalAlpha=1;
- // olhos gigantes
- if(MSC.eyeg)for(let i=0;i<2;i++){const e=MSC.big[i],E=e&&e.e;if(!E)continue;
-  const blk=(t/7000+e.off)%1,k=blk<.0214?Math.abs(1-blk/.0214*2):1,pulse=.62+.38*Math.sin(t/4000*6.283+e.po),r=MSC.eyeg.r;
-  X.globalCompositeOperation='lighter';X.globalAlpha=.62*pulse;
-  X.drawImage(MSC.eyeg.cv,e.x-r,e.y-r,r*2,r*2);
-  X.globalCompositeOperation='source-over';X.globalAlpha=.42+.34*pulse;
-  const dh=E.h*k;X.drawImage(E.cv,e.x-E.w/2,e.y-dh/2,E.w,Math.max(1,dh))}
  X.globalAlpha=1;
  // cone de luz + lâmpada + poeira + reflexo
  const L=MSC.lamp;
@@ -1743,14 +1689,7 @@ function menuScene(t){
  X.beginPath();X.ellipse(px+W*.018,py+1,W*.026,H*.007,0,0,7);X.fill();
  X.beginPath();X.ellipse(px+W*.050,py+3,W*.050,H*.010,.05,0,7);X.fill();
  try{drawPlayer(px,py,{k:'menu',s:H*.20/46,fa:-Math.PI/2,aim:-.45,c:'#1e2430',gun:'#3a3d44',ring:null,shot:0,dead:false,idle:true,t:t,w:0})}catch(e){}
- // contra-luz: escurece a silhueta em 3 manchas (cabeça, tronco, pernas) + luz quente do poste
- const blobs=[[0,-.188,.037,.044,.72],[0,-.112,.045,.080,.82],[0,-.044,.035,.053,.74]];
- X.fillStyle='#04050a';
- for(const b of blobs){
-  const dg=X.createRadialGradient(px,py+b[1]*H,H*.004,px,py+b[1]*H,Math.max(b[2],b[3])*H);
-  const a=b[4].toFixed(2);
-  dg.addColorStop(0,'rgba(4,5,10,'+a+')');dg.addColorStop(.40,'rgba(4,5,10,'+(b[4]*.78).toFixed(2)+')');dg.addColorStop(.70,'rgba(4,5,10,'+(b[4]*.42).toFixed(2)+')');dg.addColorStop(.88,'rgba(4,5,10,'+(b[4]*.16).toFixed(2)+')');dg.addColorStop(1,'rgba(4,5,10,0)');
-  X.fillStyle=dg;X.beginPath();X.ellipse(px,py+b[1]*H,b[2]*H,b[3]*H,0,0,7);X.fill()}
+ // luz quente do poste no contorno
  const wg=X.createLinearGradient(px-H*.05,0,px+H*.05,0);
  wg.addColorStop(0,'rgba(255,190,120,0)');wg.addColorStop(.72,'rgba(255,186,112,.04)');wg.addColorStop(1,'rgba(255,196,128,.17)');
  X.globalCompositeOperation='lighter';X.fillStyle=wg;X.beginPath();X.ellipse(px,py-H*.112,H*.042,H*.072,0,0,7);X.fill();X.globalCompositeOperation='source-over';
