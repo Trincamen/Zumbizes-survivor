@@ -26,11 +26,8 @@ let lastTap=0,joy=null,mvLast=[0,0],mvT0=0,hintT=0,ctl=LS.get('ctl')||'auto';con
 const CTL=[['auto','🤖 Automático','celular: joystick • PC: WASD ou setas'],['joy','🕹 Joystick na tela','toque e arraste na metade de baixo'],['tap','👆 Toque para andar','toque onde quer ir (modo antigo)']];
 function ctlBtns(){for(const k of['ctl1','ctl2']){const e=$(k);if(e)e.innerHTML=CTL.map(c=>`<button class=sb style="display:block;width:100%;text-align:left;margin:4px 0;background:${ctl==c[0]?'linear-gradient(90deg,#8a1218,#4a0a0e)':'#0a0a0c'};border-color:${ctl==c[0]?'#d83a3a':'#4a1a1e'};transform:none;font:700 15px sans-serif;letter-spacing:0" onclick="setCtl('${c[0]}')">${c[1]}<br><small>${c[2]}</small></button>`).join('')}}
 function setCtl(m){ctl=m;LS.set('ctl',m);joy=null;ctlBtns();pushMove()}
-function syncOpt(){for(const[k,v]of[['cam1',camV],['cam3',camV],['hud1',hudV],['hud3',hudV]]){const e=$(k);if(e)e.value=v}}
-function setCam(v){camV=+v;LS.set('cam',v);CAM=1.3-camV/100*.6;rs();syncOpt()}
-function setHud(v){hudV=+v;LS.set('hud',v);HUDS=.7+hudV/100*.7;rs();syncOpt()}
 function optOpen(){const p=$('opp'),o=p.style.display!='block';p.style.display=o?'block':'none';if(o){$('vol3').value=AU.vol*100;$('mvol3').value=AU.mv*100;ctlBtns()}}
-ctlBtns();syncOpt();
+ctlBtns();
 function pushMove(){if(!snap||snap.ph!=1)return;let x=0,y=0;
  if(joy){const dx=joy.x-joy.x0,dy=joy.y-joy.y0,L=Math.hypot(dx,dy),R_=JR();if(L>8){const m=Math.min(1,(L-8)/(R_-8));x=dx/L*m;y=dy/L*m}}
  if(!x&&!y){x=(KS.KeyD||KS.ArrowRight?1:0)-(KS.KeyA||KS.ArrowLeft?1:0);y=(KS.KeyS||KS.ArrowDown?1:0)-(KS.KeyW||KS.ArrowUp?1:0);const L=Math.hypot(x,y);if(L>1){x/=L;y/=L}}

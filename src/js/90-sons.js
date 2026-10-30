@@ -143,14 +143,14 @@ const D=[];for(const o of O)if(o.t!=6&&!DD[o.i]&&v(o.x+o.w/2,o.y+o.h/2,o.w+80))D
  if(s.bp){const pu=1+Math.sin(t/110)*.08;txt('⚠ KRAID CHEGANDO EM '+s.bp[2]+'s ⚠',W/2,MOB?26:44,(MOB?18:30)*pu,'#ff4040')}
  const hk=hkF(),WW=W/hk,MMW=130,f=MMW/MW,MMH=MH*f,mx0=WW-MMW-10;X.save();X.scale(hk,hk);
  {const L=s.P.slice().sort((a,b)=>b[18]-a[18]),ry=MMH+20,ph=28+L.length*24;X.fillStyle='rgba(10,8,10,.85)';X.fillRect(WW-190,ry,180,ph);X.strokeStyle='#4a1a1e';X.lineWidth=2;X.strokeRect(WW-190,ry,180,ph);X.fillStyle='#8a1218';X.fillRect(WW-190,ry,5,ph);txt('☠ ABATES',WW-100,ry+14,16,'#d83a3a');L.forEach((p,i)=>{X.font='16px sans-serif';X.fillStyle=p[0]==id?'#e8c25a':'#d8d2c0';X.textAlign='left';X.fillText((i+1)+'. '+p[1].replace(/&lt;/g,'<').slice(0,10),WW-182,ry+40+i*24);X.textAlign='right';X.fillText(p[18],WW-16,ry+40+i*24)})}
- if(me){const[,,,,,hp,mx,dead,cw,lv,xp,nd,df]=me;if(HLV!=null&&lv>HLV)HLT=t;HLV=lv;
+ if(me){const[,,,,,hp,mx,dead,cw,lv,xp,nd,df]=me;if(HLV!=null&&lv>HLV)HLT=t;HLV=lv;X.save();X.scale(.8,.8);
   rr(6,6,300,98,2);const pn_=X.createLinearGradient(6,6,306,104);pn_.addColorStop(0,'rgba(10,10,12,.88)');pn_.addColorStop(1,'rgba(20,14,16,.85)');X.fillStyle=pn_;X.fill();X.strokeStyle='#4a1a1e';X.lineWidth=2;X.stroke();X.fillStyle='#8a1218';X.fillRect(6,6,5,98);badge(44,52,30,lv,t,t-HLT<2000);
   const rt=s.sh?'🛒 LOJA — '+s.sh[2]+'s':'⏱ '+fmt(s.gt)+'  •  Zumbis '+s.left;X.textAlign='left';X.textBaseline='middle';X.font='bold 15px sans-serif';X.lineWidth=3;X.strokeStyle='rgba(0,0,0,.7)';X.strokeText(rt,88,24);X.fillStyle='#d8d2c0';X.fillText(rt,88,24);
   const hf=hp/mx,hc=hf>.5?['#d83a3a','#8a1218']:hf>.25?['#e0701a','#8a3a0a']:['#ff2a2a','#600808'];
   pbar(88,36,204,18,hf,hc[0],hc[1],'♥ '+hp+' / '+mx,hf<=.25?.8+.2*Math.sin(t/120):null);pbar(88,60,204,12,xp/nd,'#d8c88a','#8a7a3a','XP '+xp+' / '+nd);
   X.font='bold 13px sans-serif';X.fillStyle='#e8c25a';X.textAlign='left';let ix=88;if(df){X.fillText('⚡ x'+df,ix,88);ix+=52}if(me[21]>0){X.fillText('💊 '+me[21]+'s',ix,88);ix+=62}if(me[30]>0){X.fillStyle='#d8d2c0';X.fillText('🎯 '+me[30]+'s',ix,88)}
   
-  if(dead)txt('VOCÊ CAIU — um aliado com desfibrilador (⚡) precisa chegar até você',WW/2,H/hk-110,22,'#f66')}
+  X.restore();if(dead)txt('VOCÊ CAIU — um aliado com desfibrilador (⚡) precisa chegar até você',WW/2,H/hk-110,22,'#f66')}
  X.fillStyle='#0f140f';X.fillRect(mx0,10,MMW,MMH);X.fillStyle='#1d3646';X.fillRect(mx0,10+RY0*f,MMW,600*f);X.fillStyle='#6a6a70';for(const bx of[1000,3000])X.fillRect(mx0+(bx-80)*f-.5,10+2500*f,160*f+1.5,1000*f);
  for(const b of BLD){X.fillStyle=b.T=='h'?'#fff':b.T=='p'?'#58f':b.T=='m'?'#fa5':'#55555a';X.fillRect(mx0+b.x*f,10+b.y*f,b.w*f,b.h*f)}
  X.textAlign='center';X.textBaseline='middle';const lbs=[];

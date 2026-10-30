@@ -1,6 +1,6 @@
 const $=s=>document.getElementById(s),C=$('c'),X=C.getContext('2d'),MW=4000,MH=6000,RY0=2700,RY1=3300,MOB=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent),ROWS=[0,1,2,3,4,7,8,9,10,11];
 let W,H,ZO=1,cx=2000,cy=4500,ox=0,oy=0;let DPR=1;const _l=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
-let camV=_l('cam')==null?50:+_l('cam'),hudV=_l('hud')==null?43:+_l('hud'),CAM=1.3-camV/100*.6,HUDS=.7+hudV/100*.7;
+let CAM=.928,HUDS=1.4;
 const zbase=()=>MOB?Math.min(1.4,Math.max(1.1,innerHeight/340)):Math.max(.5,Math.min(1,innerWidth/1100)),hkF=()=>(MOB?.6:1)*HUDS;
 function rs(){DPR=Math.min(window.devicePixelRatio||1,2);const zl=Math.max(innerHeight/1900,innerWidth/3000,.45),zh=Math.max(zl,Math.min(1.8,innerWidth/420,innerHeight/220));ZO=Math.max(zl,Math.min(zh,zbase()*CAM));
  C.width=innerWidth*DPR|0;C.height=innerHeight*DPR|0;W=innerWidth/ZO;H=innerHeight/ZO;const ob=$('opt');if(ob)ob.style.right=Math.round(140*hkF()*ZO+8)+'px';const st=document.documentElement.style;if(st.setProperty)st.setProperty('--hs',HUDS)}

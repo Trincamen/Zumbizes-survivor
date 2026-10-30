@@ -33,7 +33,7 @@ canvas{display:block;width:100%;height:100%}
 .mob #sk{bottom:50px}.mob #sk button{width:110px;font-size:11px;padding:6px;margin:2px}.mob #shop{top:64px!important;padding:4px;font-size:11px;left:4px!important}.mob #shB button{width:150px;font-size:11px;padding:5px;margin:2px 0}
 .opt{position:fixed;top:10px;right:150px;width:44px;height:44px;border-radius:2px;border:2px solid #4a1a1e;border-left:4px solid #8a1218;background:#0a0a0cf0;color:#d8d2c0;font-size:22px;display:none;padding:0}.mob .opt{width:36px;height:36px;font-size:18px}
 #opp{position:fixed;top:60px;right:10px;display:none;z-index:6;width:min(340px,92vw)}.mob #opp{top:50px;font-size:12px}
-#wb{transform:scale(var(--hs,1));transform-origin:left bottom}#sk{transform:scale(var(--hs,1));transform-origin:center bottom}#shop{transform:scale(var(--hs,1));transform-origin:left top}
+#wb{transform:scale(calc(var(--hs,1)*.75));transform-origin:left bottom}#sk{transform:scale(var(--hs,1));transform-origin:center bottom}#shop{transform:scale(var(--hs,1));transform-origin:left top}
 #wb button{background-image:linear-gradient(to top,rgba(255,226,122,.65) var(--rl,0%),rgba(0,0,0,0) var(--rl,0%)),linear-gradient(to top,rgba(0,0,0,0) var(--zs,0%),var(--zc,rgba(60,150,255,.8)) var(--zs,0%),var(--zc,rgba(60,150,255,.8)) var(--ze,0%),rgba(0,0,0,0) var(--ze,0%)),linear-gradient(180deg,#0a0a0ce8,#181012e8);position:relative}
 .kn{position:absolute;top:0;left:0;z-index:2;font-style:normal;font:700 10px 'Arial Black',sans-serif;background:#8a1218;color:#f0e6d8;padding:0 4px;line-height:14px;border-radius:0 0 2px 0}
 .wn{position:absolute;top:1px;left:22px;right:3px;z-index:2;text-align:left;font:700 10px 'Arial Black',sans-serif;text-transform:uppercase;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 2px #000}
@@ -51,7 +51,7 @@ canvas{display:block;width:100%;height:100%}
 
 </style></head><body>
 <canvas id=c></canvas><div id=bn></div><div id=sk></div><div id=shop style="position:fixed;left:10px;top:120px;background:#0a0a0cf2;border:2px solid #4a1a1e;border-left:6px solid #8a1218;border-radius:2px;padding:8px;color:#d8d2c0;display:none"><b id=shT></b><div id=shB></div></div><div id=wb></div><button id=opt class=opt onclick=optOpen()>⚙</button>
-<div id=cf class=pn style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);display:none;z-index:7;text-align:center"></div><div id=opp class=pn><b>⚙ Opções</b><div id=ctl2 style="margin:6px 0"></div><div style="margin:8px 0">🔍 Câmera: <small>perto</small> <input type=range id=cam3 min=0 max=100 oninput="setCam(this.value)" style="width:55%"> <small>longe</small><br>🧩 HUD: <small>pequeno</small> <input type=range id=hud3 min=0 max=100 oninput="setHud(this.value)" style="width:55%"> <small>grande</small><br><button class="sb v" onclick="setCam(50);setHud(43)">Restaurar padrão</button></div>🔊 Efeitos <input type=range id=vol3 min=0 max=100 oninput="setVol(this.value)" style="width:60%"><br>🎵 Música <input type=range id=mvol3 min=0 max=100 oninput="setMus(this.value)" style="width:60%"><br><button class=sb onclick=optOpen()>FECHAR</button><button class=sb style="background:#a33" onclick=location.reload()>SAIR PARA O MENU</button></div>
+<div id=cf class=pn style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);display:none;z-index:7;text-align:center"></div><div id=opp class=pn><b>⚙ Opções</b><div id=ctl2 style="margin:6px 0"></div>🔊 Efeitos <input type=range id=vol3 min=0 max=100 oninput="setVol(this.value)" style="width:60%"><br>🎵 Música <input type=range id=mvol3 min=0 max=100 oninput="setMus(this.value)" style="width:60%"><br><button class=sb onclick=optOpen()>FECHAR</button><button class=sb style="background:#a33" onclick=location.reload()>SAIR PARA O MENU</button></div>
 <div id=menu class=ov>
 <div id=logo><div class=l1>ZOMBIZES</div><div class=l2>SURVIVOR</div></div>
 <div id=net></div>
@@ -64,7 +64,7 @@ canvas{display:block;width:100%;height:100%}
 <div id=s-multi class=scr style=display:none><div class=pn>
  <div id=tab-on><div id=onS></div><div class=lst id=onL></div><button class=sb onclick=loadRooms()>🔄 ATUALIZAR</button><span id=ho></span></div>
  <br><button class="sb v" onclick="show('main')">← VOLTAR</button></div></div>
-<div id=s-set class=scr style=display:none><div class=pn>Seu nome:<br><input id=nm onchange="LS.set('name',this.value)"><br><br>🎮 Controle:<div id=ctl1></div><br>🖥 Visão:<div style="margin:8px 0">🔍 Câmera: <small>perto</small> <input type=range id=cam1 min=0 max=100 oninput="setCam(this.value)" style="width:55%"> <small>longe</small><br>🧩 HUD: <small>pequeno</small> <input type=range id=hud1 min=0 max=100 oninput="setHud(this.value)" style="width:55%"> <small>grande</small><br><button class="sb v" onclick="setCam(50);setHud(43)">Restaurar padrão</button></div>🔊 Efeitos:<br><input type=range id=vol min=0 max=100 oninput="setVol(this.value)" style="width:100%"><br>🎵 Música:<br><input type=range id=mvol min=0 max=100 oninput="setMus(this.value)" style="width:100%"><button class="sb v" onclick="show('main')">← VOLTAR</button></div></div>
+<div id=s-set class=scr style=display:none><div class=pn>Seu nome:<br><input id=nm onchange="LS.set('name',this.value)"><br><br>🎮 Controle:<div id=ctl1></div><br>🖥 Visão:🔊 Efeitos:<br><input type=range id=vol min=0 max=100 oninput="setVol(this.value)" style="width:100%"><br>🎵 Música:<br><input type=range id=mvol min=0 max=100 oninput="setMus(this.value)" style="width:100%"><button class="sb v" onclick="show('main')">← VOLTAR</button></div></div>
 <div id=s-how class=scr style=display:none><div class=pn><b>Como jogar</b><br>• Toque no chão para andar e no zumbi para atacar. A arma atira sozinha para onde você olha.<br>• Pegue armas, curas e dinheiro nas casas. Hospital = curas, delegacia = armas.<br>• Arraste um slot para fora da barra para soltar o item.<br>• A cada 5 rounds vem um boss. Depois dele abre a loja por 1 minuto.<br>• Desfibrilador revive um aliado caído.<br><button class="sb v" onclick="show('main')">← VOLTAR</button></div></div>
 <div id=s-lobby class=scr style="display:none;left:50%;top:8%;transform:translateX(-50%);text-align:center"><div class=pn><h2 style="margin:4px">SALA</h2><div id=rm style="color:#c9a54a;font-size:22px"></div><div id=pl></div><div id=hc style=display:none>Mínimo para iniciar:<br><button class=sb onclick="minP=Math.max(1,minP-1)">−</button> <b id=mp>1</b> <button class=sb onclick="minP=Math.min(8,minP+1)">+</button><br><button class="mb g" style="margin:10px auto" id=st onclick=start()>INICIAR</button></div><p id=wt>Aguardando o host iniciar...</p></div></div>
 <div id=tag>SOBREVIVA <b>COM SEUS AMIGOS</b><br>E DERROTE OS ZUMBIS!</div>
@@ -73,7 +73,7 @@ canvas{display:block;width:100%;height:100%}
 <script>
 const $=s=>document.getElementById(s),C=$('c'),X=C.getContext('2d'),MW=4000,MH=6000,RY0=2700,RY1=3300,MOB=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent),ROWS=[0,1,2,3,4,7,8,9,10,11];
 let W,H,ZO=1,cx=2000,cy=4500,ox=0,oy=0;let DPR=1;const _l=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
-let camV=_l('cam')==null?50:+_l('cam'),hudV=_l('hud')==null?43:+_l('hud'),CAM=1.3-camV/100*.6,HUDS=.7+hudV/100*.7;
+let CAM=.928,HUDS=1.4;
 const zbase=()=>MOB?Math.min(1.4,Math.max(1.1,innerHeight/340)):Math.max(.5,Math.min(1,innerWidth/1100)),hkF=()=>(MOB?.6:1)*HUDS;
 function rs(){DPR=Math.min(window.devicePixelRatio||1,2);const zl=Math.max(innerHeight/1900,innerWidth/3000,.45),zh=Math.max(zl,Math.min(1.8,innerWidth/420,innerHeight/220));ZO=Math.max(zl,Math.min(zh,zbase()*CAM));
  C.width=innerWidth*DPR|0;C.height=innerHeight*DPR|0;W=innerWidth/ZO;H=innerHeight/ZO;const ob=$('opt');if(ob)ob.style.right=Math.round(140*hkF()*ZO+8)+'px';const st=document.documentElement.style;if(st.setProperty)st.setProperty('--hs',HUDS)}
@@ -326,11 +326,8 @@ let lastTap=0,joy=null,mvLast=[0,0],mvT0=0,hintT=0,ctl=LS.get('ctl')||'auto';con
 const CTL=[['auto','🤖 Automático','celular: joystick • PC: WASD ou setas'],['joy','🕹 Joystick na tela','toque e arraste na metade de baixo'],['tap','👆 Toque para andar','toque onde quer ir (modo antigo)']];
 function ctlBtns(){for(const k of['ctl1','ctl2']){const e=$(k);if(e)e.innerHTML=CTL.map(c=>`<button class=sb style="display:block;width:100%;text-align:left;margin:4px 0;background:${ctl==c[0]?'linear-gradient(90deg,#8a1218,#4a0a0e)':'#0a0a0c'};border-color:${ctl==c[0]?'#d83a3a':'#4a1a1e'};transform:none;font:700 15px sans-serif;letter-spacing:0" onclick="setCtl('${c[0]}')">${c[1]}<br><small>${c[2]}</small></button>`).join('')}}
 function setCtl(m){ctl=m;LS.set('ctl',m);joy=null;ctlBtns();pushMove()}
-function syncOpt(){for(const[k,v]of[['cam1',camV],['cam3',camV],['hud1',hudV],['hud3',hudV]]){const e=$(k);if(e)e.value=v}}
-function setCam(v){camV=+v;LS.set('cam',v);CAM=1.3-camV/100*.6;rs();syncOpt()}
-function setHud(v){hudV=+v;LS.set('hud',v);HUDS=.7+hudV/100*.7;rs();syncOpt()}
 function optOpen(){const p=$('opp'),o=p.style.display!='block';p.style.display=o?'block':'none';if(o){$('vol3').value=AU.vol*100;$('mvol3').value=AU.mv*100;ctlBtns()}}
-ctlBtns();syncOpt();
+ctlBtns();
 function pushMove(){if(!snap||snap.ph!=1)return;let x=0,y=0;
  if(joy){const dx=joy.x-joy.x0,dy=joy.y-joy.y0,L=Math.hypot(dx,dy),R_=JR();if(L>8){const m=Math.min(1,(L-8)/(R_-8));x=dx/L*m;y=dy/L*m}}
  if(!x&&!y){x=(KS.KeyD||KS.ArrowRight?1:0)-(KS.KeyA||KS.ArrowLeft?1:0);y=(KS.KeyS||KS.ArrowDown?1:0)-(KS.KeyW||KS.ArrowUp?1:0);const L=Math.hypot(x,y);if(L>1){x/=L;y/=L}}
@@ -938,14 +935,14 @@ const D=[];for(const o of O)if(o.t!=6&&!DD[o.i]&&v(o.x+o.w/2,o.y+o.h/2,o.w+80))D
  if(s.bp){const pu=1+Math.sin(t/110)*.08;txt('⚠ KRAID CHEGANDO EM '+s.bp[2]+'s ⚠',W/2,MOB?26:44,(MOB?18:30)*pu,'#ff4040')}
  const hk=hkF(),WW=W/hk,MMW=130,f=MMW/MW,MMH=MH*f,mx0=WW-MMW-10;X.save();X.scale(hk,hk);
  {const L=s.P.slice().sort((a,b)=>b[18]-a[18]),ry=MMH+20,ph=28+L.length*24;X.fillStyle='rgba(10,8,10,.85)';X.fillRect(WW-190,ry,180,ph);X.strokeStyle='#4a1a1e';X.lineWidth=2;X.strokeRect(WW-190,ry,180,ph);X.fillStyle='#8a1218';X.fillRect(WW-190,ry,5,ph);txt('☠ ABATES',WW-100,ry+14,16,'#d83a3a');L.forEach((p,i)=>{X.font='16px sans-serif';X.fillStyle=p[0]==id?'#e8c25a':'#d8d2c0';X.textAlign='left';X.fillText((i+1)+'. '+p[1].replace(/&lt;/g,'<').slice(0,10),WW-182,ry+40+i*24);X.textAlign='right';X.fillText(p[18],WW-16,ry+40+i*24)})}
- if(me){const[,,,,,hp,mx,dead,cw,lv,xp,nd,df]=me;if(HLV!=null&&lv>HLV)HLT=t;HLV=lv;
+ if(me){const[,,,,,hp,mx,dead,cw,lv,xp,nd,df]=me;if(HLV!=null&&lv>HLV)HLT=t;HLV=lv;X.save();X.scale(.8,.8);
   rr(6,6,300,98,2);const pn_=X.createLinearGradient(6,6,306,104);pn_.addColorStop(0,'rgba(10,10,12,.88)');pn_.addColorStop(1,'rgba(20,14,16,.85)');X.fillStyle=pn_;X.fill();X.strokeStyle='#4a1a1e';X.lineWidth=2;X.stroke();X.fillStyle='#8a1218';X.fillRect(6,6,5,98);badge(44,52,30,lv,t,t-HLT<2000);
   const rt=s.sh?'🛒 LOJA — '+s.sh[2]+'s':'⏱ '+fmt(s.gt)+'  •  Zumbis '+s.left;X.textAlign='left';X.textBaseline='middle';X.font='bold 15px sans-serif';X.lineWidth=3;X.strokeStyle='rgba(0,0,0,.7)';X.strokeText(rt,88,24);X.fillStyle='#d8d2c0';X.fillText(rt,88,24);
   const hf=hp/mx,hc=hf>.5?['#d83a3a','#8a1218']:hf>.25?['#e0701a','#8a3a0a']:['#ff2a2a','#600808'];
   pbar(88,36,204,18,hf,hc[0],hc[1],'♥ '+hp+' / '+mx,hf<=.25?.8+.2*Math.sin(t/120):null);pbar(88,60,204,12,xp/nd,'#d8c88a','#8a7a3a','XP '+xp+' / '+nd);
   X.font='bold 13px sans-serif';X.fillStyle='#e8c25a';X.textAlign='left';let ix=88;if(df){X.fillText('⚡ x'+df,ix,88);ix+=52}if(me[21]>0){X.fillText('💊 '+me[21]+'s',ix,88);ix+=62}if(me[30]>0){X.fillStyle='#d8d2c0';X.fillText('🎯 '+me[30]+'s',ix,88)}
   
-  if(dead)txt('VOCÊ CAIU — um aliado com desfibrilador (⚡) precisa chegar até você',WW/2,H/hk-110,22,'#f66')}
+  X.restore();if(dead)txt('VOCÊ CAIU — um aliado com desfibrilador (⚡) precisa chegar até você',WW/2,H/hk-110,22,'#f66')}
  X.fillStyle='#0f140f';X.fillRect(mx0,10,MMW,MMH);X.fillStyle='#1d3646';X.fillRect(mx0,10+RY0*f,MMW,600*f);X.fillStyle='#6a6a70';for(const bx of[1000,3000])X.fillRect(mx0+(bx-80)*f-.5,10+2500*f,160*f+1.5,1000*f);
  for(const b of BLD){X.fillStyle=b.T=='h'?'#fff':b.T=='p'?'#58f':b.T=='m'?'#fa5':'#55555a';X.fillRect(mx0+b.x*f,10+b.y*f,b.w*f,b.h*f)}
  X.textAlign='center';X.textBaseline='middle';const lbs=[];
