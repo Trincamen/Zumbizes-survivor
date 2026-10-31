@@ -1,7 +1,34 @@
 // ---------- mapa (por semente: igual em todos os aparelhos) ----------
+// 1b-ii-b2: casas GLB de src/assets/casas/. Por modelo: [footprint_x m, footprint_z m, wall_height m,
+// doorX_m] (doorX = x do nó zombie_entry_door no GLB, frente +Z/sul). Usado por genMap (vão dx) e por
+// 89c-glpredios.js (escala anisotrópica) — o base64 dos GLBs fica só em 89c.
+const CASA_EXT=[[6.4,5.2,2.4,.1],[8.4,6,2.4,-1.55],[6.8,6.4,2.4,1.5],[10.4,6.4,2.4,-1],[7.4,5.6,2.4,0],
+ [10.4,3.8,2.3,3.25],[9.4,6.8,2.4,0],[7.2,7.2,2.4,0],[7.4,5.6,2.4,0],[8,5.2,2.4,0]];
+// Modelo da casa 'x': DETERMINÍSTICO e sem RNG (igual em host e clientes). Só considera modelos cuja porta
+// cabe no vão desta casa (senão o clamp de dx desalinharia portas de parede); entre eles prefere a proporção
+// mais próxima de w/h. st.u = modelos já usados no mapa: enquanto faltar modelo, a casa pega o melhor ainda
+// não usado (garante os 10 no mapa); depois fica entre os 5 melhores, escolhido pelo hash de (x,y,w,h).
+function casaPick(x,y,w,h,st){
+ const t=Math.log(w/Math.max(1,h)),a=[],f=[];
+ for(let i=0;i<CASA_EXT.length;i++){
+  const e=CASA_EXT[i],d=Math.abs(Math.log(e[0]/e[1])-t),px=x+w/2+e[3]*(w/e[0])-28,it=[d,i];
+  a.push(it);if(px>=x+14&&px<=x+w-70)f.push(it)} // 14 = TT das paredes 'x' (genMap)
+ const cmp=(p,q)=>p[0]-q[0]||p[1]-q[1];
+ a.sort(cmp);f.sort(cmp);
+ const L=f.length?f:a;
+ const u=(Math.imul(x|0,73856093)^Math.imul(y|0,19349663)^Math.imul(w|0,83492791)^Math.imul(h|0,2654435761))>>>0;
+ if(st&&st.u){let miss=0;for(let i=0;i<CASA_EXT.length;i++)if(!st.u[i]){miss=1;break}
+  if(miss){for(let r=0;r<L.length;r++){const i=L[r][1];if(!st.u[i]){st.u[i]=1;return i}}
+   // nenhum modelo livre cabe nesta casa: usa o livre de melhor proporção mesmo que a porta precise de clamp
+   for(let r=0;r<a.length;r++){const i=a[r][1];if(!st.u[i]){st.u[i]=1;return i}}}}
+ return L[u%5][1];
+}
 function genMap(sd){let a=sd;const r=()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296},q=(m,n)=>m+r()*(n-m),o=[],B=[],TT=14;
  const hc=['#a87','#789','#b98','#6a8','#c96','#899'],rc=['#722','#445','#543','#264','#632'],cc=['#c33','#38c','#ccc','#ca3','#3a5','#a4c'];
- const mk=(x,y,w,h,T,c,d,H,part,nc)=>{const dx0=x+q(24,w-80),dx=(T=='h'||T=='p'||T=='m')?x+w/2-28:dx0,b={x,y,w,h,H,c,d,dx,T,W:T=='W'};B.push(b);
+ const cst={u:{}}; // modelos de casa já usados neste mapa (casaPick)
+ const mk=(x,y,w,h,T,c,d,H,part,nc)=>{const dx0=x+q(24,w-80),cm_=T=='x'?casaPick(x,y,w,h,cst):-1,
+  dx=(T=='h'||T=='p'||T=='m')?x+w/2-28:cm_<0?dx0:Math.max(x+TT,Math.min(x+w-TT-56,Math.round(x+w/2+CASA_EXT[cm_][3]*(w/CASA_EXT[cm_][0])-28))),
+  b={x,y,w,h,H,c,d,dx,T,W:T=='W'};if(cm_>=0)b.cm=cm_;B.push(b);
   o.push({t:5,b,x,y,w,h:TT,wl:'n'},{t:5,b,x,y,w:TT,h,wl:'w'},{t:5,b,x:x+w-TT,y,w:TT,h,wl:'e'},{t:5,b,x,y:y+h-TT,w:dx-x,h:TT,wl:'s'},{t:5,b,x:dx+56,y:y+h-TT,w:x+w-dx-56,h:TT,wl:'s'});
   for(let p=0;p<part;p++){const mx=x+w*(p+1)/(part+1),gy=y+q(50,h-172);o.push({t:5,b,x:mx,y:y+TT,w:TT,h:gy-y-TT,wl:'i'},{t:5,b,x:mx,y:gy+68,w:TT,h:y+h-TT-70-gy-68,wl:'i'})}
   for(let k=0;k<nc;k++)o.push({t:3,x:q(x+22,x+w-58),y:q(y+22,y+h-95),w:36,h:36})};

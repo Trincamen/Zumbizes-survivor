@@ -6,10 +6,17 @@
 // ocultar roof/chimney/exterior_props e baixar wall_south (16 px) e walls_interior (26 px) quando b===meB.
 // Pulados como no cenBldBuild 2D (CEN_SKIP_EXT): loot_*, player_spawn, zombie_*, parking, cart_corral.
 // Galpões 'W' (sem GLB): caixa procedural com 4 paredes + telhado b.d + faixa escura da porta no vão dx..dx+56.
-// 'x' (casas) ficam para a 1b-ii-b2: hoje não são desenhadas nem no 2D (glLive) nem aqui.
+// 'x' (1b-ii-b2): uma das 10 casas GLB de src/assets/casas/, escolhida por casaPick (10-mapa.js) a partir
+// de b.cm; footprint/wall_height/doorX vêm de CASA_EXT (mesma tabela que gerou o vão dx). Base64 só aqui.
 // Culling: só visible=true para prédios a ≤1500 px do centro da câmera (≤ ~150 draw calls).
 const GR_SRC=CEN_PGLB; // mesmos GLBs do 2D (86-cenario.js): sem duplicar o base64
+const GR_CASA=['@@GLB:assets/casas/casa_01_chale_pequeno.glb@@','@@GLB:assets/casas/casa_02_duas_salas.glb@@',
+ '@@GLB:assets/casas/casa_03_cabana_madeira.glb@@','@@GLB:assets/casas/casa_04_garagem.glb@@',
+ '@@GLB:assets/casas/casa_05_quintal.glb@@','@@GLB:assets/casas/casa_06_trailer.glb@@',
+ '@@GLB:assets/casas/casa_07_fazenda.glb@@','@@GLB:assets/casas/casa_08_esquina.glb@@',
+ '@@GLB:assets/casas/casa_09_queimada.glb@@','@@GLB:assets/casas/casa_10_bangalo_azul.glb@@'];
 const GR_EXT={h:{footprint_xz:[22.4,14.4],wall_height:3.4},p:{footprint_xz:[16.4,12.4],wall_height:3.2},m:{footprint_xz:[10,7],wall_height:2.8}};
+for(let i=0;i<CASA_EXT.length;i++)GR_EXT['c'+i]={footprint_xz:[CASA_EXT[i][0],CASA_EXT[i][1]],wall_height:CASA_EXT[i][2]};
 const GR_SKIP=/^(loot_|player_spawn|zombie_|parking|cart_corral)/;
 // nós escondidos quando o jogador está DENTRO: telhado/chaminé/props externos e as peças da fachada
 // (sign/awning/canopy/flag/doors) — o 2D também só desenha o sprite de interior nesse caso.
@@ -37,13 +44,13 @@ function grGrab(T,g){
  GR.geo[T]=geo;GR.nodes[T]=list;
 }
 function grLoad(){
- if(GR.st)return;GR.st=1;GR.left=3;
+ if(GR.st)return;GR.st=1;GR.left=3+GR_CASA.length;
  const done=()=>{if(--GR.left<=0)GR.rdy=1};
  const ld=new THREE.GLTFLoader();
- for(const T of['h','p','m']){
-  try{ld.parse(gmBuf(GR_SRC[T]),'',g=>{try{grGrab(T,g)}catch(e){console.warn('glpredios',T,e)}done()},e=>{console.warn('glpredios',T,e);done()})}
-  catch(e){console.warn('glpredios',T,e);done()}
- }
+ const one=(key,buf)=>{try{ld.parse(buf,'',g=>{try{grGrab(key,g)}catch(e){console.warn('glpredios',key,e)}done()},e=>{console.warn('glpredios',key,e);done()})}
+  catch(e){console.warn('glpredios',key,e);done()}};
+ for(const T of['h','p','m'])one(T,gmBuf(GR_SRC[T]));
+ for(let i=0;i<GR_CASA.length;i++)one('c'+i,gmBuf(GR_CASA[i]));
 }
 // superfície do chão sob a pegada (as camadas do 89-glmundo têm alturas diferentes) + folga p/ não brigar com o gramado
 function grBase(b){
@@ -51,9 +58,9 @@ function grBase(b){
  for(const fx of[.12,.5,.88])for(const fz of[.12,.5,.88]){const q=gpH(b.x+b.w*fx,b.y+b.h*fz);if(q>h)h=q}
  return h+.25;
 }
-// prédio h/p/m a partir do GLB: Group escalado + 1 malha por nó
-function grBldGlb(b){
- const T=b.T,geo=GR.geo[T],nodes=GR.nodes[T];if(!geo||!nodes)return null;
+// prédio a partir do GLB: Group escalado + 1 malha por nó (key = 'h'|'p'|'m'|'c0'..'c9')
+function grBldGlb(b,key){
+ const T=key||b.T,geo=GR.geo[T],nodes=GR.nodes[T];if(!geo||!nodes)return null;
  const ext=GR_EXT[T]||{},fp=ext.footprint_xz||[b.w/12.5,b.h/12.5],wh=ext.wall_height||3;
  const kX=b.w/Math.max(.001,fp[0]),kZ=b.h/Math.max(.001,fp[1]),kY=b.H/Math.max(.001,wh);
  const grp=new THREE.Group();
@@ -100,16 +107,17 @@ function grInside(it,ins){
 function grBuild(sn){
  const t0=(performance&&performance.now?performance.now():Date.now());
  grClear();
- let nGlb=0,nBox=0;
+ let nGlb=0,nBox=0,nCasa=0;
  for(const b of BLD){
   let it=null;
   if(b.T=='h'||b.T=='p'||b.T=='m'){it=grBldGlb(b);if(it)nGlb++;else it=grBldBox(b)}
+  else if(b.T=='x'){it=grBldGlb(b,'c'+(((b.cm|0)%10+10)%10));if(it)nCasa++;else it=grBldBox(b)}
   else if(b.T=='W')it=grBldBox(b);
   if(it){GR.items.push(it);nBox++}
  }
  GR.sd=sn;GR.built=1;
  GR.ms=Math.round((performance&&performance.now?performance.now():Date.now())-t0);
- console.log('glpredios ms',GR.ms,'predios',GR.items.length,'glb',nGlb,'box',nBox);
+ console.log('glpredios ms',GR.ms,'predios',GR.items.length,'glb',nGlb,'casas',nCasa,'box',nBox);
 }
 // por quadro: carrega GLBs, (re)monta por sd e atualiza visibilidade/estado dentro-fora. Sem alocação por quadro.
 function glPrediosFrame(){
