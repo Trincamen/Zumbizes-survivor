@@ -43,10 +43,10 @@ function glInit(){
   GLW=new THREE.Group();GLW.scale.set(1,1,1/GLCOS);GLSCN.add(GLW);
   const gr=new THREE.Mesh(new THREE.PlaneGeometry(30000,30000),new THREE.MeshLambertMaterial({color:0x1b2e16}));
   gr.rotation.x=-Math.PI/2;gr.position.set(MW/2,0,MH/2);GLW.add(gr);
-  // 1b-i: luz quase neutra para o chão 3D bater com o 2D (grama #3a4a2b -> ~-9% R, -7% G, -3% B, dentro dos 12%);
-  // face para cima recebe hemi(.8)+dir(.2*cos) ~= 0.97. O tom frio continua vindo do tint/vinheta 2D por cima. Sem sombra.
-  GLSCN.add(new THREE.HemisphereLight(0xf2f6ff,0x2a2a33,.8));
-  const dl=new THREE.DirectionalLight(0xe8f0ff,.2);dl.position.set(-.35,1,.55);GLSCN.add(dl);
+  // 1b-i (correção 5): luz NEUTRA para o chão 3D bater com o 2D — fator ≈1,0 em faces para cima
+  // (hemi .8 com céu=chão branco + dir .2) e sem tingir; o tom frio vem do tint/vinheta 2D por cima. Sem sombra.
+  GLSCN.add(new THREE.HemisphereLight(0xffffff,0xffffff,.8));
+  const dl=new THREE.DirectionalLight(0xffffff,.2);dl.position.set(-.35,1,.55);GLSCN.add(dl);
   cv.addEventListener('webglcontextlost',function(e){e.preventDefault();glKill()},false);
   glLive=1;
  }catch(e){glKill()}

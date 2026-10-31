@@ -5,13 +5,16 @@
 // 5) quarteirões: calçada #807a6a + gramado alternado (por cima das ruas, cobrindo 10 px de cada borda).
 // Chunks de 1000×1000 (mesma grade do cache de chão 2D): constrói no máx. 1/quadro, descarta a >2500 px, máx. 12.
 // ALTURAS em px do mundo (evita Z-FIGHTING; 0,3 px ≈ 55 unidades de profundidade em 24 bits):
-// grama .3 < rio .6 < asfalto .9 < tile v 2.3 / h 2.6 / cruz 2.9 < calçada 4.8 < gramado 5.1.
+// grama .3 < rio .6 < asfalto .9 < tile v 2.3 / h 2.6 / cruz 2.9 < ponte 4.2 < calçada 4.8 < gramado 5.1.
+// A ponte fica ACIMA do núcleo da esquina (2.9): senão a calçada do tile de cruzamento/corredor aparece
+// atravessando o tabuleiro (no 2D o bridgeGround é desenhado por cima do chão).
 // O plano liso da 1a fica em y=0 (abaixo de tudo) e só aparece fora do mundo.
 const GM_GLB=['@@GLB:assets/rua/rua_reta.glb@@','@@GLB:assets/rua/rua_cruzamento.glb@@','@@GLB:assets/rua/rua_T.glb@@','@@GLB:assets/rua/rua_curva.glb@@'];
 const GM_PX=12.5,GM_TS=300,GM_CHS=1000;
-const GM_Y={gr:.3,ri:.6,as:.9,tv:2.3,th:2.6,tx:2.9,sw:4.8,bg:5.1};
+const GM_Y={gr:.3,ri:.6,as:.9,tv:2.3,th:2.6,tx:2.9,br:4.2,br2:4.35,sw:4.8,bg:5.1};
 const GM_HX=h=>[(h>>16&255)/255,(h>>8&255)/255,(h&255)/255];
-const GM_C={gr:GM_HX(0x3a4a2b),ri:GM_HX(0x2d6fa8),as:GM_HX(0x34343a),sw:GM_HX(0x807a6a),bg0:GM_HX(0x3c4d2a),bg1:GM_HX(0x44562f)};
+const GM_C={gr:GM_HX(0x3a4a2b),ri:GM_HX(0x2d6fa8),as:GM_HX(0x34343a),sw:GM_HX(0x807a6a),bg0:GM_HX(0x3c4d2a),bg1:GM_HX(0x44562f),
+ br:GM_HX(0x45454d),brl:GM_HX(0xd8d8d8),brd:GM_HX(0xccaa44)};
 const GM_T={},GM_TG={},GM_CH=new Map();
 const GM_ST={load:0,rdy:0};
 let GM_MAT=null;
@@ -93,6 +96,22 @@ function gmHalf(v,a,lim,s){
  }
  return o;
 }
+// há tile de núcleo (cruzamento/T/curva) nesta esquina? (mesma escolha do cenRuaSpr)
+function gmCoreAt(px,py){
+ const a=cenArms(px,py),n=(a&1)+((a>>1)&1)+((a>>2)&1)+((a>>3)&1);
+ return n>=4||(n==3&&CEN_TV[a]!=null)||(n==2&&CEN_CV[a]!=null);
+}
+// sub-faixas de [a,b] FORA dos intervalos cut=[[s,e],...] (as retas são cortadas no núcleo das esquinas)
+function gmRuns(a,b,cut){
+ const out=[];let s=a;
+ for(const[c0,c1]of cut.slice().sort((p,q)=>p[0]-q[0])){
+  if(c1<=s)continue;if(c0>=b)break;
+  if(c0>s)out.push([s,Math.min(c0,b)]);
+  s=Math.max(s,c1);if(s>=b)break;
+ }
+ if(s<b)out.push([s,b]);
+ return out;
+}
 // coloca um tile centrado em (ox,oz) recortado ao retângulo [x0,x1]×[z0,z1] (px do mundo)
 function gmTile(ti,r,ox,oz,yl,x0,z0,x1,z1,P,C,N){
  const g=gmTileGeo(ti,r);if(!g)return;
@@ -136,18 +155,22 @@ function gmBuild(ci,cj){
  // 3) asfalto: faixas verticais (fora do rio) e horizontais
  for(const[ya,yb]of[[0,2500],[3500,6000]])for(let k=0;k<=8;k++)rect(k*500-60,ya,k*500+60,yb,GM_Y.as,GM_C.as);
  for(const ky of CEN_HV)rect(0,ky*500-60,MW,ky*500+60,GM_Y.as,GM_C.as);
- // 4) tiles: retas verticais
+ // 4) tiles: retas verticais (cortadas no núcleo 120×120 das esquinas → só o tile de cruzamento/T/curva ali)
  for(const[ya,yb]of[[0,2500],[3500,6000]]){
   const cy0=Math.max(ya,Y0),cy1=Math.min(yb,Y1);if(cy1<=cy0)continue;
   for(let k=0;k<=8;k++){const xc=k*500,cx0=Math.max(xc-60,X0),cx1=Math.min(xc+60,X1);
    if(cx1<=cx0)continue;
-   for(let yy=Math.floor(cy0/GM_TS)*GM_TS;yy<cy1;yy+=GM_TS)gmTile(0,0,xc,yy+GM_TS/2,GM_Y.tv,cx0,cy0,cx1,cy1,P,C,N)}
+   const cut=[];for(const ky of CEN_HV)if(gmCoreAt(xc,ky*500))cut.push([ky*500-60,ky*500+60]);
+   for(const[a0,a1]of gmRuns(cy0,cy1,cut))
+    for(let yy=Math.floor(a0/GM_TS)*GM_TS;yy<a1;yy+=GM_TS)gmTile(0,0,xc,yy+GM_TS/2,GM_Y.tv,cx0,a0,cx1,a1,P,C,N)}
  }
- // retas horizontais (giradas 90°)
+ // retas horizontais (giradas 90°), também cortadas no núcleo das esquinas
  for(const ky of CEN_HV){const yc=ky*500,cy0=Math.max(yc-60,Y0),cy1=Math.min(yc+60,Y1);
   if(cy1<=cy0)continue;
   const xx0=Math.max(0,X0),xx1=Math.min(MW,X1);if(xx1<=xx0)continue;
-  for(let xx=Math.floor(xx0/GM_TS)*GM_TS;xx<xx1;xx+=GM_TS)gmTile(0,1,xx+GM_TS/2,yc,GM_Y.th,xx0,cy0,xx1,cy1,P,C,N)}
+  const cut=[];for(let k=0;k<=8;k++)if(gmCoreAt(k*500,yc))cut.push([k*500-60,k*500+60]);
+  for(const[a0,a1]of gmRuns(xx0,xx1,cut))
+   for(let xx=Math.floor(a0/GM_TS)*GM_TS;xx<a1;xx+=GM_TS)gmTile(0,1,xx+GM_TS/2,yc,GM_Y.th,xx0,cy0,a1,cy1,P,C,N)}
  // cruzamentos: só o núcleo de 120×120 (T/curva/4 vias escolhidos pelos braços reais)
  for(let k=0;k<=8;k++)for(const ky of CEN_HV){
   const px=k*500,py=ky*500,x0=Math.max(px-60,X0),x1=Math.min(px+60,X1),z0=Math.max(py-60,Y0),z1=Math.min(py+60,Y1);
@@ -156,6 +179,15 @@ function gmBuild(ci,cj){
   if(n>=4){gmTile(1,0,px,py,GM_Y.tx,x0,z0,x1,z1,P,C,N);continue}
   if(n==3&&CEN_TV[a]!=null){gmTile(2,CEN_TV[a],px,py,GM_Y.tx,x0,z0,x1,z1,P,C,N);continue}
   if(n==2&&CEN_CV[a]!=null)gmTile(3,CEN_CV[a],px,py,GM_Y.tx,x0,z0,x1,z1,P,C,N);
+ }
+ // 4b) pontes: tabuleiro em 3D (o 2D chama bridgeGround dentro do bloco !glLive, logo não aparece no ?gl=1).
+ // Mesmas medidas/cores do bridgeGround: deck #45454d em [bx-80,bx+80]×[2500,3500], faixas claras #d8d8d8
+ // nas bordas e a faixa central tracejada #ccaa44 (= '#ca4') dash 30/30 lw 3. Pilares/cabos seguem 2D (tipo 7 do D).
+ for(const bx of[1000,3000]){
+  rect(bx-80,2500,bx+80,3500,GM_Y.br,GM_C.br);
+  rect(bx-74,2500,bx-71,3500,GM_Y.br2,GM_C.brl);
+  rect(bx+71,2500,bx+74,3500,GM_Y.br2,GM_C.brl);
+  for(let yy=2500;yy<3500;yy+=60)rect(bx-1.5,yy,bx+1.5,yy+30,GM_Y.br2,GM_C.brd);
  }
  // 5) quarteirões (depois das ruas)
  for(const j of ROWS)for(let i=0;i<8;i++){const bx=i*500+60,by=j*500+60;
@@ -168,6 +200,9 @@ function gmBuild(ci,cj){
  ge.setAttribute('normal',new THREE.BufferAttribute(new Float32Array(N),3));
  const me=new THREE.Mesh(ge,gmMat());me.frustumCulled=false;
  const grp=new THREE.Group();grp.add(me);GLW.add(grp);
+ // centro do chunk em px do MUNDO (x,z) — o mesmo espaço de cx,cy usado no descarte; sem isto Math.hypot=NaN
+ // e nem o raio de 2500 px nem o teto de 12 chunks disparam (vazamento de chunks/geometrias).
+ grp.userData={x:(X0+X1)/2,z:(Y0+Y1)/2};
  GM_CH.set(K,grp);
 }
 function gmDrop(k){
