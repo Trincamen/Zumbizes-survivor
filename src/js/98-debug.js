@@ -70,7 +70,7 @@
   for(let i=0;i<24&&blk(x,y,22);i++){x=b.dx+28+((i%2)?1:-1)*34*Math.ceil(i/2);y=b.y+b.h+36+i*18}
   if(blk(x,y,22)){x=b.x+b.w/2;y=b.y+b.h+70}
   p.x=x;p.y=y;p.tx=null;p.tz=null;p.dd=0}
- function zoom(d){if(d){CAM=Math.max(.5,Math.min(2.2,CAM+d))}else CAM=.928;rs()}
+ function zoom(d){if(d){CAM=Math.max(.5,Math.min(2.2,CAM+d))}else CAM=1.29;rs()}
 
  // ---------- painel ----------
  const BT='font:700 11px sans-serif;background:#160d0d;color:#d8d2c0;border:1px solid #4a1a1e;border-left:3px solid #8a1218;border-radius:2px;padding:5px 7px;margin:2px;cursor:pointer;text-align:left';
