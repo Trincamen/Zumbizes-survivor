@@ -9,9 +9,9 @@
 const glOn=/[?&]gl=1(?:&|$)/.test(location.search||'')||LS.get('gl')=='1';
 const GTLT=55*Math.PI/180,GLCOS=Math.cos(GTLT),GLSIN=Math.sin(GTLT),GCAMR=30000;
 let GLR=null,GLSCN=null,GLCAM=null,GLW=null,GLCV=null,GLBAD=0,glLive=0;
-// GQ = interruptores de QUALIDADE (preparação do modo celular): blob = sombra em disco dos zumbis (89e);
-// esfera = esfera translúcida dos itens no chão e halo = brilho aditivo (89f; sem eles o item continua visível)
-const GQ={blob:1,esfera:1,halo:1};
+// GQ (declarado em 00-base.js) = interruptores de QUALIDADE: blob = sombra em disco dos zumbis (89e);
+// esfera = esfera translúcida dos itens no chão e halo = brilho aditivo (89f; sem eles o item continua visível);
+// scale = passo de resolução aplicado ao DPR (O1-2).
 const _gv=new THREE.Vector3(),_gp=new THREE.Vector3(),_gq=new THREE.Vector3();
 // mundo -> tela CSS (px). Em 2D: idêntico a (x+ox, y+oy)*ZO.
 function w2s(x,y,h){
@@ -37,7 +37,7 @@ function glInit(){
  const cv=$('glc');if(!cv)return 0;
  try{
   GLR=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance',alpha:false,stencil:false});
-  GLR.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  GLR.setPixelRatio(Math.min(window.devicePixelRatio||1,2)*GQ.scale);
   GLR.setSize(innerWidth,innerHeight,false);
   GLCV=cv;cv.style.display='block';document.body.style.background='transparent';
   GLSCN=new THREE.Scene();GLSCN.background=new THREE.Color(0x101a10);
@@ -59,7 +59,7 @@ function glInit(){
 function glFrame(){
  if(!glOn||GLBAD)return;
  if(!glLive&&!glInit())return;
- const d=Math.min(window.devicePixelRatio||1,2),cw=innerWidth*d|0,ch=innerHeight*d|0;
+ const d=Math.min(window.devicePixelRatio||1,2)*GQ.scale,cw=innerWidth*d|0,ch=innerHeight*d|0;
  if(GLCV.width!==cw||GLCV.height!==ch){GLR.setPixelRatio(d);GLR.setSize(innerWidth,innerHeight,false)}
  GLCAM.left=-W/2;GLCAM.right=W/2;GLCAM.top=H/2;GLCAM.bottom=-H/2;
  GLCAM.updateProjectionMatrix();

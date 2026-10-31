@@ -415,14 +415,33 @@ function glowPut(sp,x0,y0){X.drawImage(sp.c,x0-sp.m/sp.gs,y0-sp.m/sp.gs,sp.c.wid
 // opção do jogador (só desenho; a simulação do host roda a 30 Hz independente): limite de FPS (0 = sem limite) e contador na tela
 let FPSL=+(LS.get('fpslim')||60);if(!(FPSL>=0&&FPSL<=360))FPSL=60;
 let FPS_NF=0,FPS_DT=FPSL?1000/FPSL:0,FPSSHOW=LS.get('fpsshow')=='1',FPS_C=0,FPS_T0=0;
+function fpsText(f){let s=Math.round(f)+' FPS · '+Math.round(GQ.scale*100)+'%';if(host&&STEP_MS>0)s+=' · sim '+STEP_MS.toFixed(1)+' ms (máx '+STEP_MAX.toFixed(1)+')';return s}
 function fpsUi(){for(const e of document.querySelectorAll('.fpsl'))e.value=String(FPSL);for(const e of document.querySelectorAll('.fpss'))e.checked=FPSSHOW;const b=$('fpsb');if(b)b.style.display=FPSSHOW?'block':'none'}
 function setFpsLim(v){FPSL=+v||0;FPS_DT=FPSL?1000/FPSL:0;FPS_NF=0;LS.set('fpslim',String(FPSL));fpsUi()}
 function setFpsShow(c){FPSSHOW=!!c;FPS_C=0;FPS_T0=0;LS.set('fpsshow',c?'1':'0');fpsUi()}
-fpsUi();
+// O1-2: qualidade gráfica — passo fixo (Alta/Média/Baixa) ou Auto (adaptativo medido em draw())
+const GQA={chg:0,ema:0,slow:0,fast:0,last:0};
+function gfxUi(){for(const e of document.querySelectorAll('.gfx'))e.value=GFX}
+function gfxApply(){GQA.chg=performance.now();GQA.ema=0;GQA.slow=0;GQA.fast=0;rs();if(glLive&&GLR)GLR.setPixelRatio(Math.min(window.devicePixelRatio||1,2)*GQ.scale)}
+function setGfx(v){GFX=(v=='auto'||GQS.indexOf(+v)<0)?'auto':v;LS.set('gfx',GFX);GQ.scale=GFX=='auto'?GQS[0]:+GFX;gfxApply();gfxUi()}
+function gfxMove(d){const i=GQS.indexOf(GQ.scale),j=Math.max(0,Math.min(GQS.length-1,(i<0?0:i)+d));if(GQS[j]===GQ.scale)return;GQ.scale=GQS[j];gfxApply()}
+// Auto: EMA do intervalo entre quadros ACEITOS; >1,25x o alvo por 2 s desce 1 passo; <=1,15x por 10 s sobe 1; >=5 s entre mudanças
+function gfxTick(n){
+ if(GFX!='auto')return;
+ if(!GQA.last){GQA.last=n;return}
+ const dt=n-GQA.last;GQA.last=n;if(dt<=0||dt>400)return;
+ GQA.ema=GQA.ema?GQA.ema*.85+dt*.15:dt;
+ if(n-GQA.chg<5000)return;
+ const iv=1000/(FPSL||60);
+ if(GQA.ema>iv*1.25){GQA.slow+=dt;GQA.fast=0;if(GQA.slow>=2000)gfxMove(1)}
+ else if(GQA.ema<=iv*1.15){GQA.fast+=dt;GQA.slow=0;if(GQA.fast>=10000)gfxMove(-1)}
+ else{GQA.slow=0;GQA.fast=0}}
+fpsUi();gfxUi();
 function draw(){requestAnimationFrame(draw);const _n=performance.now();
  // limitador por acumulador (em 144 Hz alterna 2/3 refreshes e a média fica no alvo; em taxa <= alvo passa todos)
  if(FPS_DT){if(_n<FPS_NF-1)return;FPS_NF=_n-FPS_NF>100?_n+FPS_DT:FPS_NF+FPS_DT}
- if(FPSSHOW){FPS_C++;if(!FPS_T0)FPS_T0=_n;else if(_n-FPS_T0>=500){const b=$('fpsb');if(b)b.textContent=Math.round(FPS_C*1000/(_n-FPS_T0))+' FPS';FPS_C=0;FPS_T0=_n}}
+ gfxTick(_n);
+ if(FPSSHOW){FPS_C++;if(!FPS_T0)FPS_T0=_n;else if(_n-FPS_T0>=500){const b=$('fpsb');if(b)b.textContent=fpsText(FPS_C*1000/(_n-FPS_T0));FPS_C=0;FPS_T0=_n}}
  const _p0=pfStart();ZBUD=0;const s=snap,t=Date.now(),dtf=Math.min(.1,(t-LT)/1000);LT=t;FR++;DT_=dtf;X.setTransform(ZO*DPR,0,0,ZO*DPR,0,0);if(glLive)X.clearRect(0,0,W,H);else{X.fillStyle='#000';X.fillRect(0,0,W,H)}if(!s||s.ph==0){menuScene(t);return}
  if(FR%180==0){for(const k in RP)if(RP[k].u<FR-120)delete RP[k];zsClean()}
  const mr=me?sm('p'+id,me[3],me[4],dtf):null;if(mr){cx=mr.x;cy=mr.y}meB=bAt(cx,cy);audioFrame(s,t,mr);ox=Math.round(W/2-cx);oy=Math.round(H/2-cy);if(glOn)glFrame();const shx=(Math.random()-.5)*QK*14,shy=(Math.random()-.5)*QK*14;QK=Math.max(0,QK-dtf*1.6);X.save();X.translate(ox+shx,oy+shy);
@@ -448,7 +467,7 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!(glLive&&(o.t==5||o.t==1||o.t==2
  for(const b of BLD)if(!glLive&&b!==meB&&v(b.x+b.w/2,b.y+b.h/2,b.w))D.push([b.y+b.h+1,3,b]);for(const f of FIRES)if(v(f[0],f[1],120)&&!(f[4]&&f[4]===meB)&&!(f[5]&&DD[f[5].i]))D.push([f[3],5,f]);
  if(s.sh)D.push([s.sh[1]+14,4,s.sh]);
  for(const b of BLD)if(!glLive&&v(b.x+b.w/2,b.y+b.h/2,b.w))D.push([b.y+b.h+.5,6,b]);for(const bx of[1000,3000])for(const yy of[2850,3150])for(const sd of[-1,1])if(v(bx,yy,300))D.push([yy,7,[bx+sd*88,yy,sd]]);
- for(const z of s.Z){const r=zSmooth(z[6],z[0],z[1],dtf);if(v(r.x,r.y))D.push([r.y,1,z,r])}
+ for(const z of s.Z){if(!v(z[0],z[1]))continue;const r=zSmooth(z[6],z[0],z[1],dtf);D.push([r.y,1,z,r])}
  for(const q of DECOR)if(!glLive&&v(q.x,q.y,110))D.push([q.y,8,q]);
  for(const p of s.P){const r=p[0]==id?mr:sm('p'+p[0],p[3],p[4],dtf);D.push([r.y,2,p,r])}
  pfAdd('lista',pl);

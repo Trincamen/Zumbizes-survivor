@@ -16,7 +16,12 @@ const relayWs=()=>relayBase().replace(/^http/,'ws');
 function hostOnline(){const code=Math.random().toString(36).slice(2,6).toUpperCase();connect(relayWs()+'/ws?id='+id+'&h=1&room='+code+'&name='+encodeURIComponent(myName()),1,code)}
 function joinRoom(c){connect(relayWs()+'/ws?id='+id+'&room='+c,0,c)}
 function fs_(){try{document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{})}catch(e){}}
-function startLoop(){try{const w=new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(0),33)'])));w.onmessage=()=>step()}catch(e){setInterval(step,33)}}
+// O1-1: medidor da simulacao do host (EMA em STEP_MS, maximo do ultimo segundo em STEP_MAX). Custo = 2 performance.now()
+let STEP_MS=0,STEP_MAX=0,STEP_MX=0,STEP_T=0;
+function stepT(){const t0=performance.now();step();const d=performance.now()-t0;
+ STEP_MS=STEP_MS?STEP_MS*.9+d*.1:d;if(d>STEP_MX)STEP_MX=d;
+ const nw=Date.now();if(!STEP_T)STEP_T=nw;else if(nw-STEP_T>=1000){STEP_MAX=STEP_MX;STEP_MX=0;STEP_T=nw}}
+function startLoop(){try{const w=new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(0),33)'])));w.onmessage=()=>stepT()}catch(e){setInterval(stepT,33)}}
 function solo(){host=1;ws=null;fs_();addP(id,myName());startLoop();minP=1;start()}
 function connect(u,h,code){host=h;rc=code||'';fs_();const n=myName();ws=new WebSocket(u);
  ws.onopen=()=>{show('lobby');$('rm').textContent=code?'Sala: '+code:'';if(h){$('hc').style.display='';$('wt').style.display='none';addP(id,n);startLoop()}else send({t:'j',id,n})};

@@ -1,8 +1,12 @@
 const $=s=>document.getElementById(s),C=$('c'),X=C.getContext('2d'),MW=4000,MH=6000,RY0=2700,RY1=3300,MOB=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent),ROWS=[0,1,2,3,4,7,8,9,10,11];
 let W,H,ZO=1,cx=2000,cy=4500,ox=0,oy=0;let DPR=1;const _l=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 let CAM=1.29,HUDS=1.4;
+// O1-2: qualidade grafica. GQ.scale multiplica o DPR dos dois canvases (1 = nativo; passos GQS).
+// GFX = 'auto' (adaptativo) ou um passo fixo; salvo em LS 'gfx'. Alta=1, Media=.7, Baixa=.55.
+const GQS=[1,.85,.7,.55],GQ={blob:1,esfera:1,halo:1,scale:1};
+let GFX=_l('gfx')||'auto';if(GFX!='auto'&&GQS.indexOf(+GFX)<0)GFX='auto';if(GFX!='auto')GQ.scale=+GFX;
 const zbase=()=>MOB?Math.min(1.4,Math.max(1.1,innerHeight/340)):Math.max(.5,Math.min(1,innerWidth/1100)),hkF=()=>(MOB?.6:1)*HUDS;
-function rs(){DPR=Math.min(window.devicePixelRatio||1,2);const zl=Math.max(innerHeight/1900,innerWidth/3000,.45),zh=Math.max(zl,Math.min(1.8,innerWidth/420,innerHeight/220));ZO=Math.max(zl,Math.min(zh,zbase()*CAM));
+function rs(){DPR=Math.min(window.devicePixelRatio||1,2)*GQ.scale;const zl=Math.max(innerHeight/1900,innerWidth/3000,.45),zh=Math.max(zl,Math.min(1.8,innerWidth/420,innerHeight/220));ZO=Math.max(zl,Math.min(zh,zbase()*CAM));
  C.width=innerWidth*DPR|0;C.height=innerHeight*DPR|0;W=innerWidth/ZO;H=innerHeight/ZO;const st=document.documentElement.style;if(st.setProperty)st.setProperty('--hs',HUDS)}
 rs();onresize=rs;
 const WN=['Pistola','Escopeta','Rifle','Metralhad.','Lança-chamas','Sniper'],WC=['#ddd','#f80','#4cf','#fd0','#f44','#9f6'],WL=['P','E','R','M','L','S'];
