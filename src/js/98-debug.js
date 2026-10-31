@@ -55,7 +55,7 @@
    if(blk(x,y,20)){x=p.x;y=p.y-110}
    spawnZ(k,x,y);if(k==3){const z=Z[Z.length-1];if(z)z.em=1.3}}}
  function killAll(){if(host)Z.length=0}
- function bossNow(){if(!host)return;startBoss();if(bossPend)bossPend.t=.3}
+ function bossNow(){if(!host)return;startBoss();if(bossPend){bossPend.t0=performance.now()-(BOSS_LEAD-.3)*1000;bossPend.t=.3}}
  const AID='dbg_ally';
  function allyAlive(){const p=me_();if(!p||!host)return;if(!PL[AID])addP(AID,'ALIADO DBG');const a=PL[AID];if(!a)return;
   a.x=p.x+42;a.y=p.y+8;a.mx=100;a.hp=100;a.dead=0;a.c='#8fd0ff';a.sl=[{c:0,l:0,a:7}];a.cs=0;a.cw=0}

@@ -187,7 +187,7 @@ function handleEv(e){const[t,oid,x,y,a,k,c]=e,ang=a/100,d=Math.hypot(x-cx,y-cy),
  else if(t==8){ftext(x,y-70,'RECARGA PERFEITA!','#7fe3ff',17);pts(14,x,y-20,'#7fd0ff',220,260,5,.7);SND.perfect(c==id?1:.4)}
  else if(t==9){ftext(x,y-70,'FALHOU','#ff6a6a',14);SND.fail(c==id?1:.3)}
  else if(t==6)SND.throwW(v,p)
- else if(t==7){pts(40,x,y,'#3f8a35',360,520,8,1.4);pts(12,x,y,'#7a5a30',240,300,6,1);QK=Math.max(QK,.9);SND.roar(Math.max(.4,v),p)}}
+ else if(t==7){if(typeof bmEv7==='function')bmEv7();pts(40,x,y,'#3f8a35',360,520,8,1.4);pts(12,x,y,'#7a5a30',240,300,6,1);QK=Math.max(QK,.9);SND.roar(Math.max(.4,v),p)}}
 function drawLvl(){const now=Date.now();LUE=LUE.filter(e=>now-e.t<1700);
  for(const e of LUE){const r=RP['p'+e.pid];if(!r)continue;const u=(now-e.t)/1700,x=r.x,y=r.y;X.save();X.globalCompositeOperation='lighter';
   for(let k=0;k<4;k++){const v=(u*1.3+k*.2)%1.3,yy=y-v*110,a=Math.max(0,.55-v*.42);X.strokeStyle='rgba(90,170,255,'+a+')';X.lineWidth=3;X.beginPath();X.ellipse(x,yy,26*(1-v*.25),9,0,0,7);X.stroke()}

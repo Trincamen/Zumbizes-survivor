@@ -13,7 +13,9 @@ function spawnLoot(){if(IT.length>260)return;const n=Object.keys(PL).length,put=
 function start(){if(Object.keys(PL).length<minP)return;sd=Math.random()*1e9|0;O=genMap(sd);BLD=O.B;buildOB();DECOR=genDecor(sd);decorObs();buildOB();initGrid();RK=[];PJ=[];DEADL=[];EV=[];bossPend=null;shopOn=0;ph=1;gt=0;lastMin=0;bossP=0;shopP=0;bossHold=0;bossN=0;sa=0;Z=[];IT=[];for(const p of Object.values(PL)){p.x=2000+R(-60,60);p.y=4500+R(-60,60)}spawnLoot();bn=[Date.now(),'SOBREVIVA!',0]}
 function reset(){const o=Object.values(PL);PL={};o.forEach(p=>addP(p.id,p.n));ph=0;sd=0}
 const dl=()=>1+Math.floor(gt/60);
-function startBoss(){bossN++;const e=bossEdge();bossPend={t:5,x:e[0],y:e[1]};bn=[Date.now(),'⚠ BOSS KRAID CHEGANDO ⚠',1]}
+// MU2: lead-in da musica do boss (10,14 s = 6 compassos de 1,6896 s a 142 BPM; ver saidas/boss_cut_medidas.md)
+const BOSS_LEAD=10.14;
+function startBoss(){bossN++;const e=bossEdge();bossPend={t:BOSS_LEAD,t0:performance.now(),x:e[0],y:e[1]};bn=[Date.now(),'⚠ BOSS KRAID CHEGANDO ⚠',1]}
 function minuteTick(m){const ba=bossPend||Z.some(z=>z.k==3&&z.hp>0);if(m%6==0)spawnLoot();let boss=0;
  if(!ba&&!shopOn&&gt>=bossHold){bossP+=10;if(Math.random()*100<bossP){bossP=0;boss=1;startBoss()}}
  if(!boss&&!ba&&!shopOn&&m>=6){shopP+=10;if(Math.random()*100<shopP){shopP=0;openShop();bossHold=gt+120;bossP=0}}}
@@ -92,7 +94,7 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
   gt+=dt;const m_=Math.floor(gt/60),nA=all.filter(p=>!p.dead).length||1;
   if(!shopOn){sa+=(.5+.2*Math.min(m_,22))*(1+.35*(nA-1))*dt;const cap=Math.min(330,120+m_*12+nA*20);while(sa>=1){sa--;if(Z.length<cap)spawnZ()}}
   if(m_>lastMin){lastMin=m_;minuteTick(m_)}
-  if(bossPend){bossPend.t-=dt;if(bossPend.t<=0){const bp=bossPend;bossPend=null;spawnZ(3,bp.x,bp.y);const bz=Z[Z.length-1];if(bz&&bz.k==3){bz.em=1.3;ev(7,null,bz.x,bz.y,0,0,'')}}}
+  if(bossPend){bossPend.t=BOSS_LEAD-(performance.now()-bossPend.t0)/1000;if(bossPend.t<=0){const bp=bossPend;bossPend=null;spawnZ(3,bp.x,bp.y);const bz=Z[Z.length-1];if(bz&&bz.k==3){bz.em=1.3;ev(7,null,bz.x,bz.y,0,0,'')}}}
   if(shopOn){shopT-=dt;if(shopT<=0){shopOn=0;shopP=0}}
   for(const p of all){if(p.dead)continue;p.hp=Math.min(p.mx,p.hp+p.rc*1.5*dt);if(p.bt>0)p.bt-=dt;if(p.arT>0)p.arT-=dt;
    const cu=p.sl[p.cs],rg=rgOf(p.cw,cu.l);let t=p.tz&&p.tz.hp>0?p.tz:(p.tz=null),gx=null,gy,mv=0,mvx=0,mvy=0,mvL=0;
@@ -122,7 +124,7 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
   if(DEADL.length>=8&&tick%30==0&&Date.now()-lastResp>20000){lastResp=Date.now();let n=3+(Math.random()*3|0);for(let tr=0;tr<25&&n>0&&DEADL.length;tr++){const i=Math.random()*DEADL.length|0,o=DEADL[i],cx_=o.x+o.w/2,cy_=o.y+o.h/2;if(all.some(p=>Math.hypot(p.x-cx_,p.y-cy_)<90)||Z.some(z=>Math.hypot(z.x-cx_,z.y-cy_)<z.r+70)||PJ.some(j=>Math.hypot(j.x-cx_,j.y-cy_)<90))continue;o.dead=0;regrid(o);DEADL.splice(i,1);ev(4,o,cx_,cy_,0,o.t,colOf(o));n--}}
   if(tick%30==0)IT=IT.filter(i=>!i.ex||i.ex>Date.now());
   Z=Z.filter(z=>z.hp>0)}
- const base={t:'S',ph,gt:gt|0,bn,sd,left:Z.length,sh:shopOn?[shopX|0,shopY|0,shopT|0]:0,bp:bossPend?[bossPend.x|0,bossPend.y|0,Math.ceil(bossPend.t)]:0,F:FX,K:RK.map(r=>[r.x|0,r.y|0,r.t<r.dur?r.t/r.dur:1+(r.t-r.dur)/.4]),Pj:PJ.map(j=>[j.k,j.c,j.x|0,j.y|0,j.h|0,j.rot*100|0]),EV,Dh:Z.filter(z=>z.dash).map(z=>[z.dash.x0|0,z.dash.y0|0,z.dash.a*100|0,750,z.dash.t]),
+ const base={t:'S',ph,gt:gt|0,bn,sd,left:Z.length,sh:shopOn?[shopX|0,shopY|0,shopT|0]:0,bp:bossPend?[bossPend.x|0,bossPend.y|0,Math.ceil(Math.max(0,bossPend.t)),+Math.max(0,bossPend.t).toFixed(3)]:0,F:FX,K:RK.map(r=>[r.x|0,r.y|0,r.t<r.dur?r.t/r.dur:1+(r.t-r.dur)/.4]),Pj:PJ.map(j=>[j.k,j.c,j.x|0,j.y|0,j.h|0,j.rot*100|0]),EV,Dh:Z.filter(z=>z.dash).map(z=>[z.dash.x0|0,z.dash.y0|0,z.dash.a*100|0,750,z.dash.t]),
   P:all.map(p=>[p.id,p.n,p.c,p.x|0,p.y|0,p.hp|0,p.mx|0,p.dead,p.cw,p.lv,p.xp|0,need(p.lv),p.sl.filter(q=>q.c==11).length,p.o,p.sl.map(q=>[q.c,q.l,q.a]),p.sl[p.cs].l,p.cs,p.fa*10|0,p.k,p.money|0,p.da,Math.ceil(Math.max(0,p.bt)),p.rl>0?p.rl/(p.rlt||RT[p.cw])*100|0:0,p.of?[wiOf(p.of.it.k),p.of.it.l||0,p.sl[p.cs].c,p.sl[p.cs].l]:0,p.aim*10|0,(p.ls&&Date.now()-p.ls<450)?(p.bkf>.4?2:1):0,p.tz&&p.tz.hp>0?p.tz.i:0,p.rl>0&&p.rz?p.rz[0]*100|0:0,p.rl>0&&p.rz?p.rz[1]*100|0:0,p.arF?1:0,Math.ceil(Math.max(0,p.arT||0))])};
  if(tick%6==0){base.I=IT.map(i=>[i.x|0,i.y|0,i.k,i.v|0]);base.ZM=Z.map(z=>[z.x/30|0,z.y/30|0,z.k]);base.DS=DEADL.map(o=>o.i)}
  const zA=Z.map(z=>[z.x|0,z.y|0,z.k,z.hp/z.mx*100|0,z.v,z.fa*10|0,z.i].concat(z.k==3?[z.bs|0,z.arm*100|0,Math.ceil(Math.max(0,z.stun||0)*10),Math.ceil(Math.max(0,z.em||0)*10)]:[]));

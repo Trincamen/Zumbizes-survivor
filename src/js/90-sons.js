@@ -440,6 +440,17 @@ function gfxTick(n){
  else if(GQA.ema<=iv*1.15){GQA.fast+=dt;GQA.slow=0;if(GQA.fast>=10000)gfxMove(-1)}
  else{GQA.slow=0;GQA.fast=0}}
 fpsUi();gfxUi();
+// MU2-3(b): o HUD migrado para DOM (#glh e a vinheta #vig) trem junto com o mundo enquanto QK>0,02.
+// Só escreve transform, uma vez por quadro e apenas quando o valor muda; zera quando o tremor acaba.
+let HUD_SH='';
+function hudShake(shx,shy){
+ const h=$('glh'),g=$('vig');if(!h)return;
+ if(h.style.display==='none'){HUD_SH='';return}
+ let tr='';
+ if(QK>0.02)tr='translate('+(shx*ZO*.5).toFixed(1)+'px,'+(shy*ZO*.5).toFixed(1)+'px)';
+ if(tr===HUD_SH)return;HUD_SH=tr;
+ h.style.transform=tr;if(g)g.style.transform=tr;
+}
 function draw(){requestAnimationFrame(draw);const _n=performance.now();
  // limitador por acumulador (em 144 Hz alterna 2/3 refreshes e a média fica no alvo; em taxa <= alvo passa todos)
  if(FPS_DT){if(_n<FPS_NF-1)return;FPS_NF=_n-FPS_NF>100?_n+FPS_DT:FPS_NF+FPS_DT}
@@ -447,7 +458,9 @@ function draw(){requestAnimationFrame(draw);const _n=performance.now();
  if(FPSSHOW){FPS_C++;if(!FPS_T0)FPS_T0=_n;else if(_n-FPS_T0>=500){const b=$('fpsb');if(b)b.textContent=fpsText(FPS_C*1000/(_n-FPS_T0));FPS_C=0;FPS_T0=_n}}
  const _p0=pfStart();ZBUD=0;const s=snap,t=Date.now(),dtf=Math.min(.1,(t-LT)/1000);LT=t;FR++;DT_=dtf;X.setTransform(ZO*DPR,0,0,ZO*DPR,0,0);if(glLive)X.clearRect(0,0,W,H);else{X.fillStyle='#000';X.fillRect(0,0,W,H)}if(!s||s.ph==0){if(glLive)glHudShow(0);menuScene(t);{const _d=performance.now()-_n;DRAW_MS=DRAW_MS?DRAW_MS*.9+_d*.1:_d}return}
  if(FR%180==0){for(const k in RP)if(RP[k].u<FR-120)delete RP[k];zsClean()}
- const mr=me?sm('p'+id,me[3],me[4],dtf):null;if(mr){cx=mr.x;cy=mr.y}meB=bAt(cx,cy);audioFrame(s,t,mr);ox=Math.round(W/2-cx);oy=Math.round(H/2-cy);if(glOn)glFrame();const shx=(Math.random()-.5)*QK*14,shy=(Math.random()-.5)*QK*14;QK=Math.max(0,QK-dtf*1.6);X.save();X.translate(ox+shx,oy+shy);
+ const mr=me?sm('p'+id,me[3],me[4],dtf):null;if(mr){cx=mr.x;cy=mr.y}meB=bAt(cx,cy);audioFrame(s,t,mr);ox=Math.round(W/2-cx);oy=Math.round(H/2-cy);
+ const shx=(Math.random()-.5)*QK*14,shy=(Math.random()-.5)*QK*14;GL_SHX=shx;GL_SHY=shy;
+ if(glOn)glFrame();if(glLive)hudShake(shx,shy);QK=Math.max(0,QK-dtf*1.6);X.save();X.translate(ox+shx,oy+shy);
  const v=(x,y,m=90)=>Math.abs(x-cx)<W/2+m&&Math.abs(y-cy)<H/2+m;
  if(!glLive){X.fillStyle='#1b2e16';X.fillRect(cx-W/2-60,cy-H/2-60,W+120,H+120);
  let pt=pfStart();groundChunks();pfAdd('chao',pt);

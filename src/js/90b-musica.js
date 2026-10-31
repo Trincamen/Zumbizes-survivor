@@ -6,7 +6,7 @@ const MUS_T=[
  {n:'Zambolino — Rotten Bones',f:'Zambolino - Rotten Bones (freetouse.com).mp3',db:-12.2},
  {n:'Nebulite — Iron Pulse',f:'Nebulite - Iron Pulse (freetouse.com).mp3',db:-16.1}];
 // st: parado | espera | tocando | saindo ; A = faixa atual, B = próxima no crossfade; env 0..1
-const MUS={st:'parado',A:null,B:null,last:-1,order:[],wait:0,out:0,xf:0,xfBad:0,dead:0,duck:0,wantDuck:0};
+const MUS={st:'parado',A:null,B:null,last:-1,order:[],wait:0,out:0,xf:0,xfBad:0,dead:0,duck:0,wantDuck:0,dm:1,dm0:1,dm1:1,dmt:0,dmd:0};
 const MUS_FADE_IN=3000,MUS_FADE_OUT=1500,MUS_XF=3000,MUS_DELAY=1200;
 // Dois elementos fixos (A/B), criados só quando a partida começa e reaproveitados em todas as faixas
 let MUS_EA=null,MUS_EB=null;
@@ -22,7 +22,10 @@ function musSlot(){
  return s;
 }
 function musAssign(s,idx){if(!s)return s;try{s.a.pause()}catch(e){}s.idx=idx;s.env=0;s.a.volume=0;s.a.src='music/'+encodeURIComponent(MUS_T[idx].f);return s}
-function musVolOf(s,m){return Math.min(1,Math.max(0,Math.pow(10,MUS_T[s.idx].db/20)*AU.mv*1.2*s.env*m))}
+// MUS.dm = atenuador da playlist para o boss (MU2): 1 normal, 0 enquanto a musica do boss toca
+function musVolOf(s,m){return Math.min(1,Math.max(0,Math.pow(10,MUS_T[s.idx].db/20)*AU.mv*1.2*s.env*m*MUS.dm))}
+// fade do atenuador da playlist (ms); usado pelo boss (0,8 s ao entrar em lead, 4 s na saida)
+function musDuckPlaylist(to,ms){MUS.dm0=MUS.dm;MUS.dm1=to;MUS.dmt=performance.now();MUS.dmd=Math.max(1,ms|0)}
 function musPlay(s){try{const p=s.a.play();if(p&&p.catch)p.catch(()=>{if(MUS.A===s){MUS.dead=1;musStop();MUS.st='parado'}else if(MUS.B===s){MUS.B=null;MUS.xfBad=1}})}catch(e){}}
 function musPick(){let i;do{i=Math.random()*MUS_T.length|0}while(MUS_T.length>1&&i===MUS.last);
  MUS.last=i;MUS.order.push(MUS_T[i].n);if(MUS.order.length>64)MUS.order.shift();return i}
@@ -40,7 +43,11 @@ function musDuckApply(){
  const g=AU.msyn.gain,t=AU.c.currentTime;
  try{g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);g.linearRampToValueAtTime(MUS.duck?0:1,t+1.5)}catch(e){}
 }
+function musDmTick(now){
+ if(MUS.dmd>0){const u=Math.min(1,(now-MUS.dmt)/MUS.dmd);MUS.dm=MUS.dm0+(MUS.dm1-MUS.dm0)*u;if(u>=1)MUS.dmd=0}
+}
 function musApply(now){
+ musDmTick(now);
  const m=MUS.st=='saindo'?Math.max(0,1-(now-MUS.out)/MUS_FADE_OUT):1;
  if(MUS.A)MUS.A.a.volume=musVolOf(MUS.A,m);
  if(MUS.B)MUS.B.a.volume=musVolOf(MUS.B,m);
@@ -60,6 +67,8 @@ function musTickPlaying(now){
 }
 function musFrame(){
  const now=performance.now();
+ if(typeof bmFrame==='function')bmFrame(); // MU2: musica do boss (por quadro; 120 ms fora da partida)
+ musDmTick(now);
  const inMatch=typeof snap!=='undefined'&&snap&&snap.ph==1;
  if(!inMatch){
   if(MUS.st=='tocando'||MUS.st=='espera'){MUS.st='saindo';MUS.out=now;MUS.wantDuck=0}
@@ -73,8 +82,112 @@ function musFrame(){
  if(MUS.st=='espera'){if(now>=MUS.wait)musStart();musDuckApply();return}
  musTickPlaying(now);musApply(now);musDuckApply();
 }
+// ---------- MU2: musica do BOSS sincronizada com o drop (HTMLAudioElement A/B, sem WebAudio) ----------
+// Medidas em saidas/boss_cut_medidas.md: BM_START = 1a batida do lead-in (depois do artefato de 32,7 ms),
+// BM_DROP = degrau do drop (batida 256), BM_LOOP_A..BM_LOOP_B = corpo do loop (71 compassos, emenda de -39 dB),
+// BM_BAR = 1,6896 s (compasso a 142 BPM). O audio e posicionado para a primeira batida do drop cair na chegada
+// do boss (ev 7); o relogio de AUDIO e o mestre do disparo, com BM_LAT de compensacao da saida.
+const BM_START=1.03632,BM_DROP=11.1739,BM_LOOP_A=11.1767,BM_LOOP_B=131.1383,BM_BAR=1.6896,BM_LAT=.03,BM_BOSS_DB=-3.3,BM_END=140;
+// st: bi(ocioso) -> lead(contagem) -> loop(luta) -> saida(espera o compasso) -> outro -> bi
+const BM={st:'bi',EA:null,EB:null,A:null,B:null,envA:0,envB:0,eA0:0,eB0:0,eA1:0,eB1:0,et0:0,ed:0,swapP:0,
+ rem:0,remAt:0,started:0,played:0,corr:0,dropDone:0,dropPerf:0,ev7Perf:0,posEv7:-1,seen:0,fail:0,
+ out0:0,outStarted:0,backAt:0};
+function bmBoss(){return !!(typeof snap!=='undefined'&&snap&&snap.Z&&snap.Z.some(z=>z[2]==3))}
+function bmInit(){
+ if(BM.EA)return 1;
+ try{
+  const mk=()=>{const a=new Audio();a.preload='auto';a.volume=0;a.src='music/boss_cut.mp3';
+   a.addEventListener('playing',()=>{if(a===BM.A)BM.played=1});
+   a.addEventListener('error',()=>{if(a===BM.A)BM.fail=1});
+   a.addEventListener('stalled',()=>{});
+   return a};
+  BM.EA=mk();BM.EB=mk();
+ }catch(e){BM.fail=1;return 0}
+ return 1;
+}
+function bmVol(e){return Math.min(1,Math.max(0,Math.pow(10,BM_BOSS_DB/20)*AU.mv*1.2*(e._env||0)))}
+function bmPlay(e){if(!e)return;try{const p=e.play();if(p&&p.catch)p.catch(()=>{if(e===BM.A)BM.fail=1})}catch(x){if(e===BM.A)BM.fail=1}}
+function bmSeek(e,t){try{if(e&&e.readyState>=1)e.currentTime=Math.max(0,t)}catch(x){}}
+function bmEnv(a,b,ms,now){BM.eA0=BM.envA;BM.eB0=BM.envB;BM.eA1=a;BM.eB1=b;BM.et0=now;BM.ed=Math.max(1,ms|0)}
+function bmSwap(){const e=BM.A;BM.A=BM.B;BM.B=e;const v=BM.envA;BM.envA=BM.envB;BM.envB=v;if(BM.B){try{BM.B.pause()}catch(x){}BM.B._env=0}}
+function bmHalt(){for(const e of[BM.EA,BM.EB])if(e){try{e.pause()}catch(x){}e._env=0}
+ BM.A=BM.B=null;BM.envA=BM.envB=0;BM.ed=0;BM.swapP=0;BM.played=0;BM.started=0;BM.dropDone=0;BM.outStarted=0;BM.backAt=0}
+function bmApply(now){
+ if(BM.ed>0){const u=Math.min(1,(now-BM.et0)/BM.ed);BM.envA=BM.eA0+(BM.eA1-BM.eA0)*u;BM.envB=BM.eB0+(BM.eB1-BM.eB0)*u;if(u>=1)BM.ed=0}
+ if(BM.A){BM.A._env=BM.envA;BM.A.volume=bmVol(BM.A)}
+ if(BM.B){BM.B._env=BM.envB;BM.B.volume=bmVol(BM.B)}
+}
+function bmLead(now){
+ BM.st='lead';BM.seen=0;BM.played=0;BM.started=0;BM.corr=0;BM.dropDone=0;BM.swapP=0;BM.backAt=0;
+ BM.rem=+snap.bp[3]||0;BM.remAt=now;
+ BM.A=BM.EA;BM.B=BM.EB;BM.envA=BM.envB=0;BM.ed=0;
+ bmSeek(BM.A,BM_START);
+ musDuckPlaylist(0,800); // playlist sai em 0,8 s; a sintetica ja esta baixa (MUS duck)
+}
+function bmLoop(now,fade){
+ BM.st='loop';BM.dropDone=1;BM.swapP=0;BM.seen=bmBoss()?1:0;BM.backAt=0;
+ BM.A=BM.EA;BM.B=BM.EB;BM.envA=0;BM.envB=0;BM.ed=0;BM.played=1;
+ bmSeek(BM.A,BM_LOOP_A);bmPlay(BM.A);bmEnv(1,0,fade||1000,now);
+ musDuckPlaylist(0,800);
+}
+function musDrop(){if(BM.dropDone)return;BM.dropDone=1;BM.dropPerf=performance.now();BM.st='loop';BM.seen=1;QK=Math.max(QK,1.6)}
+function bmEv7(){BM.ev7Perf=performance.now();BM.posEv7=BM.A?BM.A.currentTime:-1}
+function bmFrame(){
+ const now=performance.now();
+ const inM=typeof snap!=='undefined'&&snap&&snap.ph==1;
+ if(!inM){
+  if(BM.st!='bi'){
+   if(!BM.out0){BM.out0=now;BM.eA0=BM.envA;BM.eB0=BM.envB}
+   const u=Math.min(1,(now-BM.out0)/1000);
+   BM.ed=0;BM.envA=BM.eA0*(1-u);BM.envB=BM.eB0*(1-u);
+   if(u>=1){bmHalt();BM.st='bi'}
+  }
+  if(MUS.dm<1&&!MUS.dmd)musDuckPlaylist(1,1500);
+  bmApply(now);return;
+ }
+ BM.out0=0;
+ if(!BM.EA&&!bmInit())return;
+ if(BM.fail){if(BM.st!='bi'){bmHalt();BM.st='bi';musDuckPlaylist(1,1500)}bmApply(now);return}
+ if(BM.st=='bi'){
+  if(snap.bp)bmLead(now);
+  else if(bmBoss())bmLoop(now,1000); // entrou no meio da luta: direto no loop, sem drop
+ }
+ if(BM.st=='lead'){
+  const r=BM.rem-(now-BM.remAt)/1000,a=BM.A;
+  if(a){const pos=Math.min(BM_LOOP_B-.5,Math.max(BM_START,BM_DROP-r));
+   if(!BM.started&&!BM.fail&&a.readyState>=1){a.currentTime=pos;bmPlay(a);BM.started=1;bmEnv(1,0,40,now)}
+   else if(BM.started&&!BM.played&&!BM.fail&&a.readyState>=1&&a.paused)bmPlay(a);
+   if(BM.played&&!BM.corr){const dr=a.currentTime-(BM_DROP-r);if(Math.abs(dr)>0.05&&r>1.5){bmSeek(a,a.currentTime-dr);BM.corr=1}else if(r<=1.5)BM.corr=1}
+   if(BM.played&&!BM.dropDone&&a.currentTime>=BM_DROP+BM_LAT)musDrop();
+  }
+ }
+ if(BM.st=='loop'){
+  const a=BM.A,b=BM.B;if(a){
+   if(!BM.seen&&bmBoss())BM.seen=1;
+   if(BM.seen&&!bmBoss()){const ct=a.currentTime;BM.st='saida';BM.backAt=0;
+    let k=Math.ceil((ct-BM_LOOP_A)/BM_BAR);if(k<1)k=1;BM.tg=Math.min(BM_LOOP_B,BM_LOOP_A+k*BM_BAR)}
+   else{const ct=a.currentTime;
+    if(BM.swapP&&BM.ed==0){BM.swapP=0;bmSwap()}
+    else if(!BM.swapP&&ct>=BM_LOOP_B-.06&&b){bmSeek(b,BM_LOOP_A-(BM_LOOP_B-ct));bmEnv(0,1,60,now);BM.swapP=1;bmPlay(b)}}
+  }
+ }
+ if(BM.st=='saida'){
+  const a=BM.A,b=BM.B;
+  if(a&&b){const ct=a.currentTime,tg=BM.tg||0;
+   if(ct>=tg-1e-3||ct>=BM_LOOP_B-.06){
+    bmSeek(b,BM_LOOP_B);bmEnv(0,1,60,now);BM.swapP=1;bmPlay(b);
+    BM.st='outro';BM.outStarted=now;BM.backAt=now+3000}}
+ }
+ if(BM.st=='outro'){
+  if(BM.swapP&&BM.ed==0){BM.swapP=0;bmSwap()}
+  if(BM.backAt&&now>=BM.backAt){musDuckPlaylist(1,4000);BM.backAt=0}
+  if(BM.A&&BM.A.currentTime>=BM_END){bmHalt();BM.st='bi'}
+ }
+ bmApply(now);
+}
 try{Object.defineProperty(window,'__mus',{configurable:true,get:()=>{
  const A=MUS.A,a=A&&A.a;
- return {estado:MUS.st,faixa:A?MUS_T[A.idx].n:null,ordem:MUS.order.slice(),vol:a?a.volume:0,t:a?a.currentTime:0,dur:a&&isFinite(a.duration)?a.duration:0,sinteticaGain:AU.msyn?AU.msyn.gain.value:null};
+ return {estado:MUS.st,faixa:A?MUS_T[A.idx].n:null,ordem:MUS.order.slice(),vol:a?a.volume:0,t:a?a.currentTime:0,dur:a&&isFinite(a.duration)?a.duration:0,sinteticaGain:AU.msyn?AU.msyn.gain.value:null,
+  boss:{estado:BM.st,t:BM.A?BM.A.currentTime:0,drop_disparado_perf:BM.dropPerf||null,ev7_perf:BM.ev7Perf||null,pos_no_ev7:BM.posEv7,rem:BM.st=='lead'?Math.max(0,BM.rem-(performance.now()-BM.remAt)/1000):0}};
 }})}catch(e){}
 setInterval(musFrame,120);

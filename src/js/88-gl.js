@@ -9,6 +9,9 @@
 const glOn=/[?&]gl=1(?:&|$)/.test(location.search||'')||LS.get('gl')=='1';
 const GTLT=55*Math.PI/180,GLCOS=Math.cos(GTLT),GLSIN=Math.sin(GTLT),GCAMR=30000;
 let GL_SOFT=0,GL_GPU='',GLR=null,GLSCN=null,GLCAM=null,GLW=null,GLCV=null,GLBAD=0,glLive=0;
+// MU2-3: tremor (QK) compartilhado — 90-sons.js calcula shx/shy ANTES de glFrame e a camera 3D usa o mesmo
+// deslocamento em px de mundo do canvas 2D (sem isso so a camada 2D tremia).
+let GL_SHX=0,GL_SHY=0;
 // GQ (declarado em 00-base.js) = interruptores de QUALIDADE: blob = sombra em disco dos zumbis (89e);
 // esfera = esfera translúcida dos itens no chão e halo = brilho aditivo (89f; sem eles o item continua visível);
 // scale = passo de resolução aplicado ao DPR (O1-2).
@@ -71,7 +74,7 @@ function glFrame(){
  GLCAM.left=-W/2;GLCAM.right=W/2;GLCAM.top=H/2;GLCAM.bottom=-H/2;
  GLCAM.updateProjectionMatrix();
  // usa o centro ROUNDado (ox,oy) do 2D, senão sobra um deslocamento sub-pixel entre as camadas
- const gx=W/2-ox,cyS=(H/2-oy)/GLCOS;
+ const gx=W/2-ox-GL_SHX,cyS=(H/2-oy-GL_SHY)/GLCOS;
  GLCAM.position.set(gx,GCAMR*GLCOS,cyS+GCAMR*GLSIN);
  GLCAM.lookAt(gx,0,cyS);
  GLCAM.updateMatrixWorld(true);
