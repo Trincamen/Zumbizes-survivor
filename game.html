@@ -57,9 +57,86 @@ canvas{display:block;width:100%;height:100%}
 #wb button.arr{border:2px solid #3a3226;border-left-width:2px;border-radius:2px;background-color:#0a0a0c;background-image:none;color:#d8d2c0;font-size:12px;padding:0}
 @media(max-width:900px){#wb button{width:84px;height:64px;margin-right:4px;border-left-width:3px}.kn{font-size:8px;line-height:11px;padding:0 3px}.wn{left:18px;font:700 8px 'Arial Black',sans-serif}.ws{font-size:9px}.ci{font-size:22px;line-height:22px}.cn{font-size:8px}#wb button.wl{padding:0;font-size:8px;line-height:8px}}
 .mob #wb button{width:62px;height:48px}.mob .wi{width:92%;max-height:55%}.mob .wn{left:3px;font:700 7px 'Arial Black',sans-serif}.mob .ws{font-size:7px}.mob .ci{font-size:18px;line-height:18px}.mob .cn{font-size:6px}.mob #wb button.wl{padding:0;font-size:7px;line-height:7px}
+/* ---------- M1 (89g-glhud.js): vinheta/tint + HUD de tela em DOM. Só aparece com glLive ---------- */
+#vig{position:fixed;inset:0;pointer-events:none;z-index:0;display:none;background:var(--vig,none),rgba(20,10,50,.2)}
+#c{position:relative;z-index:0}
+#glh{position:fixed;inset:0;pointer-events:none;z-index:5;display:none;--hh:calc(var(--hs,1)*var(--zo,1))}
+.mob #glh{--hh:calc(var(--hs,1)*var(--zo,1)*.6)}
+#gh2{position:absolute;left:0;top:0;transform-origin:0 0;transform:scale(calc(var(--hh)*.8));display:none}
+#gh2>*,#gh2 i,#gh2 span{pointer-events:none}
+.hst{position:absolute;white-space:nowrap;font-family:sans-serif;text-align:left;
+ text-shadow:-2.5px 0 0 rgba(0,0,0,.85),2.5px 0 0 rgba(0,0,0,.85),0 -2.5px 0 rgba(0,0,0,.85),0 2.5px 0 rgba(0,0,0,.85),-2px -2px 0 rgba(0,0,0,.85),2px -2px 0 rgba(0,0,0,.85),-2px 2px 0 rgba(0,0,0,.85),2px 2px 0 rgba(0,0,0,.85)}
+#ghclk{position:absolute;left:18.75px;top:6.75px;width:20.5px;height:20.5px;box-sizing:border-box;border:2.5px solid #d8d2c0;border-radius:50%}
+#ghc1{position:absolute;left:27.75px;top:11px;width:2.5px;height:6px;background:#d8d2c0}
+#ghc2{position:absolute;left:29px;top:15.75px;width:5.83px;height:2.5px;background:#d8d2c0;transform-origin:0 50%;transform:rotate(30.96deg)}
+#ghtm{left:48px;top:15px;transform:translateY(-50%);font-size:26px;font-weight:700;color:#fff}
+#ghhp{position:absolute;left:18px;top:47px;width:22px;height:21px;--hc:#4ddc5a;filter:drop-shadow(0 0 10px var(--hc))}
+#ghhp i{position:absolute;background:var(--hc)}
+#ghhp .hb1{left:0;top:7px;width:22px;height:7px}
+#ghhp .hb2{left:7px;top:0;width:8px;height:21px}
+#ghhp.low{animation:ghp .754s linear infinite}
+@keyframes ghp{0%,100%{filter:drop-shadow(0 0 10px var(--hc))}50%{filter:drop-shadow(0 0 22px var(--hc))}}
+#ghhpn{left:52px;top:53px;transform:translateY(-50%);font-size:40px;font-weight:700;color:#fff}
+#ghhpm{left:120px;top:60px;transform:translateY(-50%);font-size:18px;font-weight:700;color:#e0701a}
+#ghst{position:absolute;left:11px;top:81px;width:38px;height:38px;--lc:#f2c230;filter:drop-shadow(0 0 8px var(--lc))}
+#ghsti{position:absolute;left:0;top:0;width:38px;height:38px;background:var(--lc);
+ clip-path:polygon(19.00px 0.00px,24.29px 11.72px,37.07px 13.13px,27.56px 21.78px,30.17px 34.37px,19.00px 28.00px,7.83px 34.37px,10.44px 21.78px,0.93px 13.13px,13.71px 11.72px)}
+#ghst.up{filter:drop-shadow(0 0 13px var(--lc))}
+#ghstn{position:absolute;left:0;top:0;width:38px;display:block;text-align:center;font:700 14px sans-serif;line-height:38px;color:#1a1208}
+#ghxp{left:52px;top:97px;transform:translateY(-50%);font-size:34px;font-weight:700;color:#fff}
+#ghxpm{left:120px;top:103px;transform:translateY(-50%);font-size:18px;font-weight:700;color:#e0701a}
+#ghxpb{position:absolute;left:18px;top:126px;width:150px;height:4px;background:rgba(0,0,0,.6)}
+#ghxpbi{display:block;width:0;height:4px;background:#f2c230}
+#ghbf{position:absolute;left:18px;top:137px;width:0;height:0}
+#ghbf span{position:absolute;left:0;top:0;display:none;white-space:nowrap;font:700 13px sans-serif;color:#e8c25a}
+#ghcaido{position:absolute;left:50%;top:calc(100% - var(--hh)*110px);font-size:calc(var(--hh)*22px);font-weight:700;color:#f66;white-space:nowrap;transform:translate(-50%,-50%);display:none;text-shadow:0 0 3px #000,0 0 3px #000}
+#gsc{position:absolute;right:calc(var(--hh)*8px);top:calc(var(--hh)*275px);width:204px;height:34px;box-sizing:border-box;
+ transform:scale(calc(var(--hh)*.8));transform-origin:100% 0;border:2px solid #3a3226;border-radius:2px;
+ background:linear-gradient(180deg,rgba(10,10,12,.88),rgba(26,22,18,.85));pointer-events:none}
+#gsc:before{content:'';position:absolute;left:3px;top:0;bottom:0;width:5px;background:#8a6f35}
+#gsch{position:relative;height:24px;margin-left:8px;border-bottom:1px solid #3a3226;background:rgba(138,111,53,.35);
+ text-align:center;font:15px sans-serif;color:#c9a54a;line-height:24px;white-space:nowrap}
+#gscL{position:relative;margin-top:3px}
+#gscL .gr{position:relative;height:34px}
+#gscL .gr.me{background:rgba(232,194,90,.12);box-shadow:inset 2px 0 0 #e8c25a}
+#gscL .gkb{position:absolute;left:28px;top:25px;height:3px;background:rgba(138,111,53,.28)}
+#gscL .gmd{position:absolute;left:6px;top:7px;width:20px;height:20px;box-sizing:border-box;border:2px solid #3a3226;border-radius:50%;
+ background:#0a0a0c;color:#8a8478;font:12px sans-serif;line-height:16px;text-align:center}
+#gscL .gnm{position:absolute;left:32px;top:10px;transform:translateY(-50%);font:700 14px sans-serif;color:#d8d2c0;white-space:nowrap;overflow:hidden;max-width:112px}
+#gscL .gwc{position:absolute;left:32px;top:26px;width:3px;height:3px}
+#gscL .ghb{position:absolute;left:40px;top:25px;width:60px;height:5px;background:#0a0a0c;text-decoration:none}
+#gscL .ghf{position:absolute;left:40px;top:25px;height:5px;width:0}
+#gscL .gkn{position:absolute;right:6px;top:15px;transform:translateY(-50%);font:700 18px sans-serif;font-style:normal;color:#d8d2c0}
+#gbn{position:absolute;left:50%;top:calc(44px*var(--zo,1));transform:translate(-50%,-50%);display:none;white-space:nowrap;
+ font-family:sans-serif;font-size:calc(30px*var(--zo,1));color:#ff4040;pointer-events:none}
+#gbn span{display:inline-block;animation:gbnp .691s ease-in-out infinite}
+@keyframes gbnp{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.mob #gbn{top:calc(26px*var(--zo,1));font-size:calc(18px*var(--zo,1))}
+#glh .gav{position:absolute;left:50%;top:50%;width:calc(44px*var(--zo,1));height:calc(44px*var(--zo,1));
+ margin:calc(-22px*var(--zo,1)) 0 0 calc(-22px*var(--zo,1));clip-path:polygon(100% 50%,25% 93.3%,25% 6.7%);
+ opacity:0;pointer-events:none;will-change:transform}
+#glh .gvl{position:absolute;left:50%;top:50%;font:16px sans-serif;white-space:nowrap;opacity:0;pointer-events:none;will-change:transform}
 
 </style></head><body>
-<canvas id=glc style="position:fixed;left:0;top:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:none"></canvas><canvas id=c></canvas><div id=bn></div><div id=fpsb style="position:fixed;left:50%;top:4px;transform:translateX(-50%);display:none;z-index:6;pointer-events:none;white-space:pre;text-align:center;font:700 14px monospace;color:#9f9;text-shadow:0 0 3px #000,0 0 3px #000"></div><button id=opt class=opt onclick=optOpen()>⚙</button><div id=sk></div><div id=shop style="position:fixed;left:10px;top:120px;background:#0a0a0cf2;border:2px solid #3a3226;border-left:6px solid #8a6f35;border-radius:2px;padding:8px;color:#d8d2c0;display:none"><b id=shT></b><div id=shB></div></div><div id=wb></div>
+<canvas id=glc style="position:fixed;left:0;top:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:none"></canvas><div id=vig></div><canvas id=c></canvas>
+<div id=glh>
+ <div id=gh2>
+  <div id=ghclk></div><i id=ghc1></i><i id=ghc2></i>
+  <div id=ghtm class=hst>0:00</div>
+  <div id=ghhp><i class=hb1></i><i class=hb2></i></div>
+  <div id=ghhpn class=hst>100</div><div id=ghhpm class=hst>/100</div>
+  <div id=ghst><div id=ghsti></div><span id=ghstn>1</span></div>
+  <div id=ghxp class=hst>0</div><div id=ghxpm class=hst>/10</div>
+  <div id=ghxpb><i id=ghxpbi></i></div>
+  <div id=ghbf><span id=ghbf1></span><span id=ghbf2></span><span id=ghbf3></span></div>
+ </div>
+ <div id=ghcaido class=hst>VOCÊ CAIU — um aliado com desfibrilador (⚡) precisa chegar perto e usar o desfibrilador</div>
+ <div id=gsc><div id=gsch>☠ ABATES</div><div id=gscL></div></div>
+ <div id=gbn><span id=gbnT></span></div>
+ <div id=ga1 class=gav></div><div id=gal1 class=gvl></div>
+ <div id=ga2 class=gav></div><div id=gal2 class=gvl></div>
+ <div id=ga3 class=gav></div><div id=gal3 class=gvl></div>
+</div><div id=bn></div><div id=fpsb style="position:fixed;left:50%;top:4px;transform:translateX(-50%);display:none;z-index:6;pointer-events:none;white-space:pre;text-align:center;font:700 14px monospace;color:#9f9;text-shadow:0 0 3px #000,0 0 3px #000"></div><button id=opt class=opt onclick=optOpen()>⚙</button><div id=sk></div><div id=shop style="position:fixed;left:10px;top:120px;background:#0a0a0cf2;border:2px solid #3a3226;border-left:6px solid #8a6f35;border-radius:2px;padding:8px;color:#d8d2c0;display:none"><b id=shT></b><div id=shB></div></div><div id=wb></div>
 <div id=cf class=pn style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);display:none;z-index:7;text-align:center"></div><div id=opp class=pn><b>⚙ Opções</b><div id=ctl2 style="margin:6px 0"></div>🔊 Efeitos <input type=range id=vol3 min=0 max=100 oninput="setVol(this.value)" style="width:60%"><br>🎵 Música <input type=range id=mvol3 min=0 max=100 oninput="setMus(this.value)" style="width:60%"><br><div style="margin:8px 0">🎞 Limite de FPS: <select class=fpsl onchange="setFpsLim(this.value)" style="background:#0a0a0c;color:#ddd;border:1px solid #3a3226;padding:3px"><option value=30>30</option><option value=45>45</option><option value=60>60</option><option value=90>90</option><option value=120>120</option><option value=144>144</option><option value=0>Sem limite</option></select></div><div style="margin:8px 0"><label><input type=checkbox class=fpss onchange="setFpsShow(this.checked)"> 📊 Mostrar FPS</label></div><div style="margin:8px 0">🖼 Qualidade gráfica: <select class=gfx onchange="setGfx(this.value)" style="background:#0a0a0c;color:#ddd;border:1px solid #3a3226;padding:3px"><option value=auto>Auto</option><option value=1>Alta</option><option value=.7>Média</option><option value=.55>Baixa</option></select></div><button class=sb onclick=optOpen()>FECHAR</button><button class=sb style="background:#6a5428" onclick=location.reload()>SAIR PARA O MENU</button></div>
 <div id=menu class=ov>
 <div id=logo><div class=l1>ZomBrize</div></div>
@@ -5323,6 +5400,8 @@ function s2w(sx,sy){
 }
 function glKill(){
  GLBAD=1;glLive=0;try{if(GLCV)GLCV.style.display='none';document.body.style.background=''}catch(e){}
+ // M1: o HUD migrado para DOM (89g-glhud.js) some junto; o canvas 2D volta a desenhar os blocos 12..16
+ try{if(typeof glHudShow==='function')glHudShow(0)}catch(e){}
 }
 function glInit(){
  if(glLive||GLBAD||!glOn||typeof THREE=='undefined')return glLive;
@@ -6230,11 +6309,11 @@ function igModel(k){
 function igScale(idx){return idx<=5?Math.min(60,34/(WDIM[idx]||1)):Math.min(90,32/(WDIM[idx]||1))}
 function igGeo(idx,tint){
  const g=WPG[idx];if(!g||!g.n)return null;
- const n=g.n,cen=WCEN[idx]||[0,0,0],S=igScale(idx);
+ const n=g.n,cen=WCEN[idx]||[0,0,0];
  const P=new Float32Array(n*9),N=new Float32Array(n*9),C=new Float32Array(n*9);
  for(let f=0;f<n;f++){const b=f*9;
   for(let k=0;k<3;k++){const p=b+k*3;
-   P[p]=(g.P[p]-cen[0])*S;P[p+1]=(g.P[p+1]-cen[1])*S/GLSIN;P[p+2]=(g.P[p+2]-cen[2])*S*K2}}
+   P[p]=g.P[p]-cen[0];P[p+1]=g.P[p+1]-cen[1];P[p+2]=g.P[p+2]-cen[2]}} // escala (S, S/GLSIN, S*K2) vai na matriz da instância, DEPOIS do giro (como o 2D: gira e só então aplica K2)
  jgNrm(P,n,N);
  for(let f=0;f<n;f++){const kk=g.K[f],q=f*9,qc=f*3;
   for(let k=0;k<3;k++){const c=kk===-1?34:kk===-2?tint[k]:g.C[qc+k];
@@ -6311,8 +6390,9 @@ function glItemPush(x,y,k,vv,t,bb){
   const rec=igGet(idx,col);
   if(!rec){if(!IG_WARN){IG_WARN=1;console.warn('glitens: modelo',idx,'sem geometria; usando só a esfera')}}
   else if(rec.cnt>=IG_MAX){if(!IG_WARN){IG_WARN=1;console.warn('glitens: mais de',IG_MAX,'itens do modelo',idx,'no quadro; excedente ignorado')}}
-  else{_igQ.setFromAxisAngle(_igY,t/700);_igS.set(1,1,1); // S/K2/GLSIN já embutidos em igGeo
-   _igM.compose(_igP,_igQ,_igS);rec.im.setMatrixAt(rec.cnt++,_igM)}
+  else{const sc_=igScale(idx),e_=_igM.makeRotationY(t/700).elements; // M = T * diag(S, S/GLSIN, S*K2) * R(yaw): gira ANTES de escalar
+   e_[0]*=sc_;e_[4]*=sc_;e_[8]*=sc_;e_[1]*=sc_/GLSIN;e_[5]*=sc_/GLSIN;e_[9]*=sc_/GLSIN;e_[2]*=sc_*K2;e_[6]*=sc_*K2;e_[10]*=sc_*K2;
+   e_[12]=_igP.x;e_[13]=_igP.y;e_[14]=_igP.z;rec.im.setMatrixAt(rec.cnt++,_igM)}
  }
  _igC.copy(igColor(k));
  if(GQ.esfera&&IG_SPH&&IG_SC<IG_MAX){
@@ -6371,6 +6451,160 @@ function igInfo(){
   calls:GLR?GLR.info.render.calls:0,triF:GLR?GLR.info.render.triangles:0,geos:GLR?GLR.info.memory.geometries:0};
 }
 if(typeof window!=='undefined')window.__gli=igInfo;
+
+// ---------- 89g-glhud.js — Migração M1 (F1+F2+F3) do HUD de tela para DOM ----------
+// SÓ com glLive (?gl=1). Sem a flag (ou após glKill()) os elementos ficam display:none e o draw() 2D
+// desenha EXATAMENTE os blocos 12..16 de antes: o caminho do canvas foi só GATEADO por !glLive, não alterado.
+// F1 = vinheta+tint (#vig), F2 = HUD do jogador + aviso/setas do boss (#gh2/#gbn/#ga*), F3 = placar (#gsc).
+// Regras cumpridas: pointer-events:none em tudo; z-order #glc(-1) < #vig(0) < #c(0, depois no DOM) < #glh(5);
+// por quadro só transform/opacity/style.width/textContent QUANDO o valor muda (nenhum layout read no laço);
+// pulso/glow por @keyframes CSS; escala --hh = --hs*--zo (x.6 em .mob) mais o fator .8 do HUD de tela.
+const HG={ok:0,vis:0,zo:-1,ih:-1,tm:'',hp:-9,mx:-9,hc:'',low:-1,lv:-9,lvu:-1,xp:-9,nd:-9,xb:-1,bf:'',cai:-1,cw:-1,ch:-1,bn:-1,bnv:-1,sk:'',sh:-1,me:-1,av:['','','']};
+// medida de texto fora do laço: o mesmo 'bold Npx sans-serif' do canvas (só quando o número muda)
+const HGC=(typeof document!=='undefined'&&document.createElement)?document.createElement('canvas').getContext('2d'):null;
+function ghW(t,sz){if(!HGC)return 0;HGC.font='bold '+sz+'px sans-serif';return HGC.measureText(t).width}
+function ghInit(){
+ if(HG.ok)return 1;
+ const h=$('glh');if(!h)return 0;
+ const q=k=>$(k);
+ HG.el={h:h,vig:$('vig'),tm:q('ghtm'),hp:q('ghhpn'),hpm:q('ghhpm'),hpb:q('ghhp'),st:q('ghst'),stn:q('ghstn'),
+  xp:q('ghxp'),xpm:q('ghxpm'),xpb:q('ghxpbi'),bf:q('ghbf'),b1:q('ghbf1'),b2:q('ghbf2'),b3:q('ghbf3'),
+  cai:q('ghcaido'),bn:q('gbn'),bnt:q('gbnT'),sc:q('gsc'),scl:q('gscL'),h2:q('gh2'),
+  av:[[q('ga1'),q('gal1')],[q('ga2'),q('gal2')],[q('ga3'),q('gal3')]]};
+ HG.ok=1;return 1;
+}
+// esconde/mostra o HUD DOM (menu, glKill, WebGL que falhou) sem escrever quando nada mudou
+function glHudShow(v){
+ if(!ghInit())return;
+ v=v?1:0;if(HG.vis===v)return;
+ HG.vis=v;const E=HG.el,d=v?'block':'none';
+ E.h.style.display=d;E.vig.style.display=d;
+ // ao reabrir, força reescrever tudo (o DOM pode ter ficado velho)
+ HG.tm='';HG.hp=-9;HG.mx=-9;HG.hc='';HG.low=-1;HG.lv=-9;HG.lvu=-1;HG.xp=-9;HG.nd=-9;HG.xb=-1;HG.bf='';
+ HG.cai=-1;HG.cw=-1;HG.ch=-1;HG.bn=-1;HG.bnv=-1;HG.sk='';HG.sh=-1;HG.me=-1;HG.av=['','',''];
+}
+// F1: vinheta/tint iguais ao vigOverlay(): raio interno H*.35 e externo H*.95 (H em px de tela = innerHeight)
+function ghVig(){
+ HG.zo=ZO;HG.ih=innerHeight;
+ const st=document.documentElement.style;if(!st||!st.setProperty)return;
+ st.setProperty('--zo',String(ZO));
+ st.setProperty('--vig','radial-gradient(circle at 50% 50%,rgba(0,0,0,0) '+(HG.ih*.35).toFixed(1)+'px,rgba(0,0,0,.5) '+(HG.ih*.95).toFixed(1)+'px)');
+}
+// F3: placar — só reconstrói quando a chave (nomes|abates|hp|dead|ordem) muda
+function ghScore(L){
+ const E=HG.el,ph=34+L.length*34;
+ if(HG.sh!==ph){HG.sh=ph;E.sc.style.height=ph+'px'}
+ while(E.scl.firstChild)E.scl.removeChild(E.scl.firstChild);
+ const top=Math.max(1,L.length?(L[0][18]|0):1),MD=['#e0b84a','#b8b8c0','#b0703a'];
+ for(let i=0;i<L.length;i++){
+  const p=L[i],mine=p[0]==id,dd=p[7]?1:0,k=p[18]|0,hf=Math.max(0,Math.min(1,(p[5]||0)/(p[6]||1)));
+  const row=document.createElement('div');row.className='gr'+(mine?' me':'');
+  if(dd)row.style.opacity='.45';
+  const kb=document.createElement('i');kb.className='gkb';kb.style.width=Math.max(0,164*k/top)+'px';row.appendChild(kb);
+  const md=document.createElement('b');md.className='gmd';md.textContent=String(i+1);
+  if(i<3){md.style.color=MD[i];md.style.borderColor=MD[i]}
+  row.appendChild(md);
+  const nm=document.createElement('span');nm.className='gnm';
+  nm.textContent=(dd?'☠ ':'')+String(p[1]==null?'':p[1]).replace(/&lt;/g,'<').slice(0,10);
+  if(mine)nm.style.color='#e8c25a';row.appendChild(nm);
+  const wc=document.createElement('i');wc.className='gwc';wc.style.background=WC[p[8]]||'#ddd';row.appendChild(wc);
+  const hb=document.createElement('u');hb.className='ghb';row.appendChild(hb);
+  const hf2=document.createElement('i');hf2.className='ghf';
+  hf2.style.width=(60*(dd?0:hf))+'px';hf2.style.background=hf>.5?'#d83a3a':hf>.25?'#e0701a':'#ff2a2a';
+  row.appendChild(hf2);
+  const kn=document.createElement('em');kn.className='gkn';kn.textContent=String(k);
+  if(mine)kn.style.color='#e8c25a';row.appendChild(kn);
+  E.scl.appendChild(row);
+ }
+}
+// chamado UMA vez por quadro pelo draw() (90-sons.js), só com glLive
+function glHudFrame(s){
+ if(!glLive){glHudShow(0);return}
+ if(!ghInit())return;
+ if(!s||s.ph==0){glHudShow(0);return}
+ // ph==2 (fim de jogo) tem o #end por cima (z auto) — o HUD DOM (z 5) tem de sumir para não vazar
+ if(s.ph!=1){glHudShow(0);return}
+ glHudShow(1);
+ const E=HG.el,t=Date.now();
+ if(HG.zo!==ZO||HG.ih!==innerHeight)ghVig();
+ // ---- F2: HUD do jogador (bloco 16) ----
+ const on=me?1:0;
+ if(HG.me!==on){HG.me=on;E.h2.style.display=on?'block':'none'}
+ if(me){
+  const hp=me[5]|0,mx=me[6]|0,dead=me[7]?1:0,lv=me[9]|0,xp=me[10]|0,nd=me[11]|0,df=me[12]|0,pd=me[21]|0,ar=me[30]|0;
+  if(HLV!=null&&lv>HLV)HLT=t;HLV=lv; // flash de nível (o bloco 2D não roda em glLive)
+  const tm=s.sh?('LOJA '+s.sh[2]+'s'):fmt(s.gt);
+  if(tm!==HG.tm){HG.tm=tm;E.tm.textContent=tm;E.tm.style.color=s.sh?'#fc3':'#fff'}
+  const hf=mx>0?hp/mx:0,low=hf<=.25,hcol=hf>.5?'#4ddc5a':hf>.25?'#e0a01a':'#ff2a2a';
+  if(hcol!==HG.hc||low!==HG.low){
+   HG.hc=hcol;
+   if(low!==HG.low){HG.low=low;E.hpb.classList.toggle('low',!!low);E.hp.style.color=low?'#ffd0d0':'#fff'}
+   E.hpb.style.setProperty('--hc',hcol);
+  }
+  if(hp!==HG.hp||mx!==HG.mx){
+   HG.hp=hp;HG.mx=mx;
+   E.hp.textContent=String(hp);E.hpm.textContent='/'+mx;
+   E.hpm.style.left=(52+ghW(String(hp),40)+6)+'px';
+  }
+  const lvUp=t-HLT<2000;
+  if(lv!==HG.lv||lvUp!==!!HG.lvu){
+   HG.lv=lv;HG.lvu=lvUp;
+   E.stn.textContent=String(lv);
+   E.st.style.setProperty('--lc',lvUp?'#ff6a5a':'#f2c230');
+   E.st.classList.toggle('up',lvUp);
+  }
+  if(xp!==HG.xp||nd!==HG.nd){
+   HG.xp=xp;HG.nd=nd;
+   E.xp.textContent=String(xp);E.xpm.textContent='/'+nd;
+   E.xpm.style.left=(52+ghW(String(xp),34)+6)+'px';
+  }
+  const xb=Math.round(150*Math.min(1,nd>0?xp/nd:0));
+  if(xb!==HG.xb){HG.xb=xb;E.xpb.style.width=xb+'px'}
+  const b1=df?'⚡ x'+df:'',b2=pd>0?'💊 '+pd+'s':'',b3=ar>0?'🎯 '+ar+'s':'',bk=b1+'|'+b2+'|'+b3;
+  if(bk!==HG.bf){
+   HG.bf=bk;let ix=0;
+   const put=(el,tx,col,adv)=>{if(tx){el.textContent=tx;el.style.color=col;el.style.left=ix+'px';el.style.display='block';ix+=adv}else el.style.display='none'};
+   put(E.b1,b1,'#e8c25a',52);put(E.b2,b2,'#e8c25a',62);put(E.b3,b3,'#d8d2c0',62);
+  }
+  // 'VOCÊ CAIU': posição/escala 100% por CSS (#ghcaido: left 50%, top 100%-110*--hh), sem JS por quadro
+  if(dead!==HG.cai){HG.cai=dead;E.cai.style.display=dead?'block':'none'}
+ }
+ // ---- aviso do boss (bloco 14) ----
+ if(s.bp){
+  const tx='⚠ KRAID CHEGANDO EM '+s.bp[2]+'s ⚠';
+  if(tx!==HG.bn){HG.bn=tx;E.bnt.textContent=tx}
+  if(!HG.bnv){HG.bnv=1;E.bn.style.display='block'}
+ }else if(HG.bnv!==0){HG.bnv=0;E.bn.style.display='none'}
+ // ---- setas de borda (bloco 13): só mudam transform/opacity quando o alvo/câmera mudam ----
+ const AR=(tx,ty,i,col,lb)=>{
+  const dx=tx-cx,dy=ty-cy,vis=(Math.abs(dx)>W/2||Math.abs(dy)>H/2);
+  const k=(vis?1:0)+'|'+(tx|0)+'|'+(ty|0)+'|'+(cx|0)+'|'+(cy|0)+'|'+(W|0)+'|'+(H|0)+'|'+(lb||'');
+  if(k===HG.av[i])return;HG.av[i]=k;
+  const A=E.av[i][0],L=E.av[i][1];
+  if(!vis){A.style.opacity='0';L.style.opacity='0';return}
+  const a=Math.atan2(dy,dx),q=(Math.min(W,H)/2-90)*ZO,lq=(Math.min(W,H)/2-122)*ZO;
+  A.style.transform='translate('+(Math.cos(a)*q).toFixed(1)+'px,'+(Math.sin(a)*q).toFixed(1)+'px) rotate('+a.toFixed(3)+'rad)';
+  A.style.background=col;A.style.opacity='1';
+  if(lb){
+   L.textContent=lb;L.style.color=col;
+   L.style.transform='translate('+(Math.cos(a)*lq).toFixed(1)+'px,'+(Math.sin(a)*lq).toFixed(1)+'px) translate(-50%,-50%)';
+   L.style.opacity='1';
+  }else L.style.opacity='0';
+ };
+ let bz=null;
+ for(let i=0;s.Z&&i<s.Z.length;i++)if(s.Z[i][2]==3){bz=s.Z[i];break}
+ if(me&&bz)AR(bz[0],bz[1],0,'#f0f','');
+ if(me&&s.sh)AR(s.sh[0],s.sh[1],1,'#fc3','LOJA');
+ if(me&&s.bp)AR(s.bp[0],s.bp[1],2,'#f33','BOSS');
+ if(!me){for(let i=0;i<3;i++)if(HG.av[i]!=='x'){HG.av[i]='x';E.av[i][0].style.opacity='0';E.av[i][1].style.opacity='0'}}
+ // ---- F3: placar (bloco 15) ----
+ const P=s.P||[];
+ let key='';
+ for(let i=0;i<P.length;i++){const p=P[i];key+=p[0]+'|'+(p[1]||'')+'|'+(p[5]|0)+'/'+(p[6]|0)+'|'+(p[7]?1:0)+'|'+(p[8]|0)+'|'+(p[18]|0)+';'}
+ if(key!==HG.sk){HG.sk=key;ghScore(P.slice().sort((a,b)=>b[18]-a[18]))}
+}
+// diagnóstico (leitura) para o teste de aceitação
+if(typeof window!=='undefined')window.__glhud=()=>({vis:HG.vis,zo:ZO,rows:HG.el&&HG.el.scl?HG.el.scl.children.length:0});
 
 // ---------- SONS (gerados no código, sem arquivos) ----------
 const lv=(k,d)=>{const v=LS.get(k);return v==null?d:+v},AU={c:null,vol:lv('vol2',50)/100,mv:lv('mvol2',80)/100,tense:0,px:0,py:0,sd:0,rl:0,th:0,ng:0,nb2:0,dh:0,rk:{},fv:0,fp:0,hp:null,mo:null,sl:null,lv:null,k:null,last:{}};$('vol').value=AU.vol*100;$('mvol').value=AU.mv*100;function setMus(v){AU.mv=v/100;LS.set('mvol2',v);if(AU.mg)AU.mg.gain.value=AU.mv*1.2}
@@ -6819,7 +7053,7 @@ function draw(){requestAnimationFrame(draw);const _n=performance.now();
  if(FPS_DT){if(_n<FPS_NF-1)return;FPS_NF=_n-FPS_NF>100?_n+FPS_DT:FPS_NF+FPS_DT}
  gfxTick(_n);
  if(FPSSHOW){FPS_C++;if(!FPS_T0)FPS_T0=_n;else if(_n-FPS_T0>=500){const b=$('fpsb');if(b)b.textContent=fpsText(FPS_C*1000/(_n-FPS_T0));FPS_C=0;FPS_T0=_n}}
- const _p0=pfStart();ZBUD=0;const s=snap,t=Date.now(),dtf=Math.min(.1,(t-LT)/1000);LT=t;FR++;DT_=dtf;X.setTransform(ZO*DPR,0,0,ZO*DPR,0,0);if(glLive)X.clearRect(0,0,W,H);else{X.fillStyle='#000';X.fillRect(0,0,W,H)}if(!s||s.ph==0){menuScene(t);{const _d=performance.now()-_n;DRAW_MS=DRAW_MS?DRAW_MS*.9+_d*.1:_d}return}
+ const _p0=pfStart();ZBUD=0;const s=snap,t=Date.now(),dtf=Math.min(.1,(t-LT)/1000);LT=t;FR++;DT_=dtf;X.setTransform(ZO*DPR,0,0,ZO*DPR,0,0);if(glLive)X.clearRect(0,0,W,H);else{X.fillStyle='#000';X.fillRect(0,0,W,H)}if(!s||s.ph==0){if(glLive)glHudShow(0);menuScene(t);{const _d=performance.now()-_n;DRAW_MS=DRAW_MS?DRAW_MS*.9+_d*.1:_d}return}
  if(FR%180==0){for(const k in RP)if(RP[k].u<FR-120)delete RP[k];zsClean()}
  const mr=me?sm('p'+id,me[3],me[4],dtf):null;if(mr){cx=mr.x;cy=mr.y}meB=bAt(cx,cy);audioFrame(s,t,mr);ox=Math.round(W/2-cx);oy=Math.round(H/2-cy);if(glOn)glFrame();const shx=(Math.random()-.5)*QK*14,shy=(Math.random()-.5)*QK*14;QK=Math.max(0,QK-dtf*1.6);X.save();X.translate(ox+shx,oy+shy);
  const v=(x,y,m=90)=>Math.abs(x-cx)<W/2+m&&Math.abs(y-cy)<H/2+m;
@@ -6871,12 +7105,14 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!(glLive&&(o.t==5||o.t==1||o.t==2
  for(const[x,y,pg]of s.K){if(pg<1){X.fillStyle='rgba(255,40,40,'+(.12+pg*.25)+')';X.beginPath();X.arc(x,y,70,0,7);X.fill();X.strokeStyle='#f88';X.lineWidth=3;X.beginPath();X.arc(x,y,70,0,7);X.stroke();X.strokeStyle='#f22';X.beginPath();X.arc(x,y,70*pg,0,7);X.stroke();}
   else{const q=pg-1;X.strokeStyle='rgba(210,185,140,'+(1-q)+')';X.lineWidth=8;X.beginPath();X.arc(x,y,40+q*50,0,7);X.stroke()}}
  X.restore();
- let ph_=pfStart();X.save();X.setTransform(1,0,0,1,0,0);X.drawImage(vigOverlay(),0,0);X.restore();
+ let ph_=pfStart();
+ // M1/F1: com glLive a vinheta/tint é o #vig (CSS) e os blocos 13/14 são DOM (89g-glhud.js)
+ if(!glLive){X.save();X.setTransform(1,0,0,1,0,0);X.drawImage(vigOverlay(),0,0);X.restore();
  const arrow=(tx,ty,col,lb)=>{const dx=tx-cx,dy=ty-cy;if(Math.abs(dx)>W/2||Math.abs(dy)>H/2){const a=Math.atan2(dy,dx),q=Math.min(W,H)/2-90;X.fillStyle=col;poly(W/2+Math.cos(a)*q,H/2+Math.sin(a)*q,22,3,a);if(lb)txt(lb,W/2+Math.cos(a)*(q-32),H/2+Math.sin(a)*(q-32),16,col)}};
  const bz=s.Z.find(z=>z[2]==3);if(bz&&me)arrow(bz[0],bz[1],'#f0f');if(s.sh&&me)arrow(s.sh[0],s.sh[1],'#fc3','LOJA');if(s.bp&&me)arrow(s.bp[0],s.bp[1],'#f33','BOSS');
- if(s.bp){const pu=1+Math.sin(t/110)*.08;txt('⚠ KRAID CHEGANDO EM '+s.bp[2]+'s ⚠',W/2,MOB?26:44,(MOB?18:30)*pu,'#ff4040')}
+ if(s.bp){const pu=1+Math.sin(t/110)*.08;txt('⚠ KRAID CHEGANDO EM '+s.bp[2]+'s ⚠',W/2,MOB?26:44,(MOB?18:30)*pu,'#ff4040')}}
  const hk=hkF(),WW=W/hk,MMW=170,f=MMW/MW,MMH=MH*f,mx0=WW-MMW-10;X.save();X.scale(hk,hk);
- {X.save();X.translate(WW,MMH+20);X.scale(.8,.8);X.translate(-WW,-(MMH+20));const L=s.P.slice().sort((a,b)=>b[18]-a[18]),ry=MMH+20,RH=34,ph=34+L.length*RH,px=WW-214,pw=204,top=Math.max(1,L[0]?L[0][18]:1),MD=['#e0b84a','#b8b8c0','#b0703a'];
+ if(!glLive){X.save();X.translate(WW,MMH+20);X.scale(.8,.8);X.translate(-WW,-(MMH+20));const L=s.P.slice().sort((a,b)=>b[18]-a[18]),ry=MMH+20,RH=34,ph=34+L.length*RH,px=WW-214,pw=204,top=Math.max(1,L[0]?L[0][18]:1),MD=['#e0b84a','#b8b8c0','#b0703a'];
   rr(px,ry,pw,ph,2);const gk_=px+'|'+ry+'|'+ph+'|'+hk;if(SGGK!==gk_){SGG=X.createLinearGradient(px,ry,px,ry+ph);SGG.addColorStop(0,'rgba(10,10,12,.88)');SGG.addColorStop(1,'rgba(26,22,18,.85)');SGGK=gk_}const g_=SGG;X.fillStyle=g_;X.fill();X.strokeStyle='#3a3226';X.lineWidth=2;X.stroke();X.fillStyle='#8a6f35';X.fillRect(px,ry,5,ph);
   X.fillStyle='rgba(138,111,53,.35)';X.fillRect(px+5,ry,pw-5,24);X.fillStyle='#3a3226';X.fillRect(px+5,ry+24,pw-5,1);txt('☠ ABATES',px+pw/2+2,ry+13,15,'#c9a54a');
   L.forEach((p,i)=>{const y=ry+28+i*RH,mine=p[0]==id,dd=p[7],k=p[18],hf=Math.max(0,Math.min(1,p[5]/p[6]));
@@ -6888,7 +7124,7 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!(glLive&&(o.t==5||o.t==1||o.t==2
    X.fillStyle=WC[p[8]]||'#ddd';X.fillRect(px+34,y+RH-8,3,3);
    X.fillStyle='#0a0a0c';X.fillRect(px+42,y+RH-9,60,5);X.fillStyle=hf>.5?'#d83a3a':hf>.25?'#e0701a':'#ff2a2a';X.fillRect(px+42,y+RH-9,60*(dd?0:hf),5);
    X.font='bold 18px sans-serif';X.textAlign='right';X.fillStyle=mine?'#e8c25a':'#d8d2c0';X.fillText(k,px+pw-10,y+RH/2-2);X.globalAlpha=1});X.restore()}
- if(me){const[,,,,,hp,mx,dead,cw,lv,xp,nd,df]=me;if(HLV!=null&&lv>HLV)HLT=t;HLV=lv;X.save();X.scale(.8,.8);
+ if(me&&!glLive){const[,,,,,hp,mx,dead,cw,lv,xp,nd,df]=me;if(HLV!=null&&lv>HLV)HLT=t;HLV=lv;X.save();X.scale(.8,.8);
   const ST=(s_,x,y,font,fill,al)=>{X.font=font;X.textAlign=al||'left';X.textBaseline='middle';X.lineJoin='round';X.lineWidth=5;X.strokeStyle='rgba(0,0,0,.85)';X.strokeText(s_,x,y);X.fillStyle=fill;X.fillText(s_,x,y)};
   const hf=hp/mx,low=hf<=.25,pu=low?.5+.5*Math.sin(t/120):0,hcol=hf>.5?'#4ddc5a':hf>.25?'#e0a01a':'#ff2a2a';
   const lvUp=t-HLT<2000;
@@ -6945,7 +7181,7 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!(glLive&&(o.t==5||o.t==1||o.t==2
   if(mine&&!dd){const pl=1+Math.sin(t/170)*.22;
    X.strokeStyle='rgba(255,255,255,'+(.55+.3*Math.sin(t/170))+')';X.lineWidth=1.4;X.beginPath();X.arc(px,py-2,6.5*pl,0,7);X.stroke();
    const a=(p[17]|0)/10;X.fillStyle='#fff';poly(px+Math.cos(a)*8.5,py-2+Math.sin(a)*8.5,2.8,3,a)}
-  X.globalAlpha=1}X.restore();drawJoy();pfAdd('hud',ph_);pfEnd(_p0);if(glLive)glRenderNow();{const _d=performance.now()-_n;DRAW_MS=DRAW_MS?DRAW_MS*.9+_d*.1:_d}}
+  X.globalAlpha=1}X.restore();if(glLive)glHudFrame(s);drawJoy();pfAdd('hud',ph_);pfEnd(_p0);if(glLive)glRenderNow();{const _d=performance.now()-_n;DRAW_MS=DRAW_MS?DRAW_MS*.9+_d*.1:_d}}
 // DEBUG — remova este arquivo ou rode node build.js --release
 (function(){
  // defesa: fora de dev/local/?debug o arquivo não faz absolutamente nada

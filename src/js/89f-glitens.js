@@ -33,11 +33,11 @@ function igModel(k){
 function igScale(idx){return idx<=5?Math.min(60,34/(WDIM[idx]||1)):Math.min(90,32/(WDIM[idx]||1))}
 function igGeo(idx,tint){
  const g=WPG[idx];if(!g||!g.n)return null;
- const n=g.n,cen=WCEN[idx]||[0,0,0],S=igScale(idx);
+ const n=g.n,cen=WCEN[idx]||[0,0,0];
  const P=new Float32Array(n*9),N=new Float32Array(n*9),C=new Float32Array(n*9);
  for(let f=0;f<n;f++){const b=f*9;
   for(let k=0;k<3;k++){const p=b+k*3;
-   P[p]=(g.P[p]-cen[0])*S;P[p+1]=(g.P[p+1]-cen[1])*S/GLSIN;P[p+2]=(g.P[p+2]-cen[2])*S*K2}}
+   P[p]=g.P[p]-cen[0];P[p+1]=g.P[p+1]-cen[1];P[p+2]=g.P[p+2]-cen[2]}} // escala (S, S/GLSIN, S*K2) vai na matriz da instância, DEPOIS do giro (como o 2D: gira e só então aplica K2)
  jgNrm(P,n,N);
  for(let f=0;f<n;f++){const kk=g.K[f],q=f*9,qc=f*3;
   for(let k=0;k<3;k++){const c=kk===-1?34:kk===-2?tint[k]:g.C[qc+k];
@@ -114,8 +114,9 @@ function glItemPush(x,y,k,vv,t,bb){
   const rec=igGet(idx,col);
   if(!rec){if(!IG_WARN){IG_WARN=1;console.warn('glitens: modelo',idx,'sem geometria; usando só a esfera')}}
   else if(rec.cnt>=IG_MAX){if(!IG_WARN){IG_WARN=1;console.warn('glitens: mais de',IG_MAX,'itens do modelo',idx,'no quadro; excedente ignorado')}}
-  else{_igQ.setFromAxisAngle(_igY,t/700);_igS.set(1,1,1); // S/K2/GLSIN já embutidos em igGeo
-   _igM.compose(_igP,_igQ,_igS);rec.im.setMatrixAt(rec.cnt++,_igM)}
+  else{const sc_=igScale(idx),e_=_igM.makeRotationY(t/700).elements; // M = T * diag(S, S/GLSIN, S*K2) * R(yaw): gira ANTES de escalar
+   e_[0]*=sc_;e_[4]*=sc_;e_[8]*=sc_;e_[1]*=sc_/GLSIN;e_[5]*=sc_/GLSIN;e_[9]*=sc_/GLSIN;e_[2]*=sc_*K2;e_[6]*=sc_*K2;e_[10]*=sc_*K2;
+   e_[12]=_igP.x;e_[13]=_igP.y;e_[14]=_igP.z;rec.im.setMatrixAt(rec.cnt++,_igM)}
  }
  _igC.copy(igColor(k));
  if(GQ.esfera&&IG_SPH&&IG_SC<IG_MAX){

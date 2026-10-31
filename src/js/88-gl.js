@@ -31,6 +31,8 @@ function s2w(sx,sy){
 }
 function glKill(){
  GLBAD=1;glLive=0;try{if(GLCV)GLCV.style.display='none';document.body.style.background=''}catch(e){}
+ // M1: o HUD migrado para DOM (89g-glhud.js) some junto; o canvas 2D volta a desenhar os blocos 12..16
+ try{if(typeof glHudShow==='function')glHudShow(0)}catch(e){}
 }
 function glInit(){
  if(glLive||GLBAD||!glOn||typeof THREE=='undefined')return glLive;
