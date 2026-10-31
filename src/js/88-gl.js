@@ -66,6 +66,7 @@ function glFrame(){
  GLCAM.updateMatrixWorld(true);
  if(typeof glMundoFrame=='function')glMundoFrame(); // 89-glmundo.js: chão/ruas/rio/quarteirões por chunk
  if(typeof glPropsFrame=='function')glPropsFrame(); // 89b-glprops.js: props/árvores/carros/caixas instanciados
+ if(typeof glPrediosFrame=='function')glPrediosFrame(); // 89c-glpredios.js: prédios h/p/m e galpões 'W'
  GLR.render(GLSCN,GLCAM);
 }
 if(glOn)glInit();
