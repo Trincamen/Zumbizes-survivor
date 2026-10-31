@@ -1753,9 +1753,9 @@ function grdChunk(ci,cj){
  if(g){g.translate(-ci*1000,-cj*1000);
   try{cenRuaSpr(g,ci*1000,cj*1000,ci*1000+1000,cj*1000+1000);cenBlocks(g,ci*1000,cj*1000,ci*1000+1000,cj*1000+1000)}catch(e){}}
  GRD.map.set(key,cv);GRD.order.push(key);GRD.made++;
- if(typeof createImageBitmap=='function'){try{createImageBitmap(cv).then(b=>{if(GRD.map.has(key))GRD.bmp.set(key,b);else if(b.close)b.close()}).catch(()=>{})}catch(e){}}
+ if(typeof createImageBitmap=='function'){try{createImageBitmap(cv).then(b=>{if(GRD.map.has(key)){GRD.bmp.set(key,b);cv.width=0;cv.height=0}else if(b.close)b.close()}).catch(()=>{})}catch(e){}}
  pfAdd('chunk',t0);
- while(GRD.order.length>16){const old=GRD.order.shift();if(old!==key){GRD.map.delete(old);grdBmpDrop(old)}}
+ while(GRD.order.length>12){const old=GRD.order.shift();if(old!==key){GRD.map.delete(old);grdBmpDrop(old)}}
  return cv}
 function groundChunks(){
  if(GRD.sd!==sd){GRD.sd=sd;GRD.map.clear();GRD.order.length=0;for(const k of[...GRD.bmp.keys()])grdBmpDrop(k)}
