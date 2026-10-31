@@ -11,7 +11,7 @@ jobs:
         with: { distribution: temurin, java-version: 17 }
       - name: Montar projeto Android
         run: |
-          mkdir -p apk/www && cp game.html apk/www/index.html && cp capacitor.config.json apk/
+          mkdir -p apk/www && cp game.html apk/www/index.html && cp capacitor.config.json apk/ && cp -r music apk/www/music && rm -f "apk/www/music/musica do boss.mp3"
           cd apk && npm install && npx cap add android
           M=android/app/src/main/AndroidManifest.xml
           sed -i 's/<application/<application android:usesCleartextTraffic="true"/' $M

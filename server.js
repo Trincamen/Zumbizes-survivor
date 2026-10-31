@@ -9,6 +9,17 @@ const server=http.createServer((req,res)=>{res.setHeader('Access-Control-Allow-O
  if(req.method=='OPTIONS'){res.setHeader('Access-Control-Allow-Headers','*');res.writeHead(204);return res.end()}
  if(req.url.startsWith('/rooms')){res.setHeader('Content-Type','application/json');return res.end(JSON.stringify(Object.keys(rooms).map(c=>({code:c,name:rooms[c].name,n:rooms[c].clients.size+1,max:8}))))}
  if(req.url.startsWith('/info')){res.setHeader('Content-Type','application/json');return res.end('{"kind":"online"}')}
+ if(req.url.startsWith('/music/')){// musicas do jogo (so .mp3 dentro de ./music, com suporte a Range para o navegador poder pular/pre-carregar)
+  let nm='';try{nm=path.basename(decodeURIComponent(req.url.split('?')[0].slice(7)))}catch(e){}
+  const f=path.join(__dirname,'music',nm);
+  if(!/\.mp3$/i.test(nm)||!fs.existsSync(f)){res.writeHead(404);return res.end()}
+  const size=fs.statSync(f).size,rg=req.headers.range;
+  res.setHeader('Content-Type','audio/mpeg');res.setHeader('Accept-Ranges','bytes');res.setHeader('Cache-Control','public,max-age=86400');
+  if(rg){const m=/bytes=(\d*)-(\d*)/.exec(rg);let a=m&&m[1]?+m[1]:0,b=m&&m[2]?+m[2]:size-1;
+   if(a>b||a>=size){res.writeHead(416,{'Content-Range':'bytes */'+size});return res.end()}
+   b=Math.min(b,size-1);res.writeHead(206,{'Content-Range':'bytes '+a+'-'+b+'/'+size,'Content-Length':b-a+1});
+   return req.method=='HEAD'?res.end():fs.createReadStream(f,{start:a,end:b}).pipe(res)}
+  res.writeHead(200,{'Content-Length':size});return req.method=='HEAD'?res.end():fs.createReadStream(f).pipe(res)}
  fs.readFile(gp,(e,d)=>{if(e){res.writeHead(500);return res.end('game.html nao encontrado')}res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});res.end(d)})});
 server.on('upgrade',(req,socket)=>{const u=new URL(req.url,'http://x'),id=(u.searchParams.get('id')||'').replace(/\W/g,'').slice(0,12),h=u.searchParams.get('h')=='1',code=(u.searchParams.get('room')||'').replace(/\W/g,'').toUpperCase().slice(0,8),key=req.headers['sec-websocket-key'];
  if(!key||!id||!code){socket.destroy();return}

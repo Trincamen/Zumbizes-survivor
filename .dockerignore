@@ -1,0 +1,8 @@
+# a musica do boss original (3,8 MB) nao e usada em jogo; o jogo usa music/boss_cut.mp3
+music/musica do boss.mp3
+.git
+node_modules
+saidas
+src
+tools
+apk
