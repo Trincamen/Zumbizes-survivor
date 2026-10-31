@@ -8,7 +8,7 @@
 // como h*sin(GTLT)*ZO (o 2D usa h*ZO; os 18% de diferença de altura ficam para as sub-etapas 1b/1c).
 const glOn=/[?&]gl=1(?:&|$)/.test(location.search||'')||LS.get('gl')=='1';
 const GTLT=55*Math.PI/180,GLCOS=Math.cos(GTLT),GLSIN=Math.sin(GTLT),GCAMR=30000;
-let GLR=null,GLSCN=null,GLCAM=null,GLW=null,GLCV=null,GLBAD=0,glLive=0;
+let GL_SOFT=0,GL_GPU='',GLR=null,GLSCN=null,GLCAM=null,GLW=null,GLCV=null,GLBAD=0,glLive=0;
 // GQ (declarado em 00-base.js) = interruptores de QUALIDADE: blob = sombra em disco dos zumbis (89e);
 // esfera = esfera translúcida dos itens no chão e halo = brilho aditivo (89f; sem eles o item continua visível);
 // scale = passo de resolução aplicado ao DPR (O1-2).
@@ -36,7 +36,12 @@ function glInit(){
  if(glLive||GLBAD||!glOn||typeof THREE=='undefined')return glLive;
  const cv=$('glc');if(!cv)return 0;
  try{
+  // diagnóstico: WebGL por SOFTWARE (sem GPU) é a causa provável do 'estado lento' que persiste entre recargas normais
+  try{const tc=document.createElement('canvas'),tg=tc.getContext('webgl2',{failIfMajorPerformanceCaveat:true})||tc.getContext('webgl',{failIfMajorPerformanceCaveat:true});
+   GL_SOFT=!tg;if(tg){const le=tg.getExtension('WEBGL_lose_context');if(le)le.loseContext()}}catch(e){GL_SOFT=0}
   GLR=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance',alpha:false,stencil:false});
+  try{const g=GLR.getContext(),di=g.getExtension('WEBGL_debug_renderer_info');GL_GPU=(di?g.getParameter(di.UNMASKED_RENDERER_WEBGL):g.getParameter(g.RENDERER))||'';
+   console.log('GL: '+GL_GPU+(GL_SOFT?' [SOFTWARE]':'')+' | webgl'+(GLR.capabilities.isWebGL2?'2':'1')+' | dpr '+(window.devicePixelRatio||1))}catch(e){}
   GLR.setPixelRatio(Math.min(window.devicePixelRatio||1,2)*GQ.scale);
   GLR.setSize(innerWidth,innerHeight,false);
   GLCV=cv;cv.style.display='block';document.body.style.background='transparent';

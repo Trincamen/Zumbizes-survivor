@@ -10,8 +10,12 @@
 // na tela; em GL a altura h aparece como h·sin(GTLT), então dividimos por GLSIN p/ o item cair no mesmo lugar.
 // RENDER adiado: glItemFrame() no glFrame zera as contagens, o laço de draw() empurra (glItemPush) e glItemEnd()
 // no glRenderNow publica só o trecho usado e esconde o resto. Sem alocação por quadro.
+// Correções da 2b-1: (1) a geometria subtrai WCEN (pivô do giro do drawWeapon3D); (2) a geometria é
+// pré-escalada para a projeção do 2D (x·S, y·S/GLSIN, z·S·K2) para ter o MESMO tamanho na tela;
+// (3) esfera em duas malhas BackSide/FrontSide, redonda na tela (z contra-escalado por GLCOS);
+// (4) igTxtHide() evita o "$" sob telhado; (5) glKill() esconde as malhas.
 const IG_MAX=300,IG_R=new Map(),IG_GH=new Map(),IG_COL={};
-let IG_TOK=0,IG_SPH=null,IG_SC=0,IG_HALO=null,IG_HC=0,IG_IMAT=null,IG_TEX=null,IG_WARN=0;
+let IG_TOK=0,IG_SPH=null,IG_SPF=null,IG_SC=0,IG_HALO=null,IG_HC=0,IG_IMAT=null,IG_TEX=null,IG_WARN=0;
 const _igY=new THREE.Vector3(0,1,0),_igP=new THREE.Vector3(),_igQ=new THREE.Quaternion(),_igS=new THREE.Vector3(),_igM=new THREE.Matrix4(),_igC=new THREE.Color();
 function igMat(){return IG_IMAT||(IG_IMAT=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide}))}
 // modelo do item (mesmo mapa do drawPickup 2D). -1 = sem GLB (só esfera/halo)
@@ -21,9 +25,19 @@ function igModel(k){
  return (wi>=0&&WPG[wi])?wi:-1;
 }
 // geometria do modelo PARA UM TINT (K −1 preto, −2 cor do item, igual ao 2D/pcG)
+// O1: subtrai WCEN (mesma centralização do drawWeapon3D, 85-armas.js:45) para o item girar em torno do
+//     próprio centro e não sair da esfera.
+// O2: a mesma escala S do 2D e a mesma proporção na tela — o 2D projeta (x, y − z·K2)·S e a câmera 3D
+//     projeta (x, GLSIN·y − z), então pré-escalamos a geometria por (S, S/GLSIN, S·K2): a silhueta
+//     vertical sai idêntica à do 2D (no horizontal o termo z do giro ganha K2 em vez de 1: ~10%).
+function igScale(idx){return idx<=5?Math.min(60,34/(WDIM[idx]||1)):Math.min(90,32/(WDIM[idx]||1))}
 function igGeo(idx,tint){
  const g=WPG[idx];if(!g||!g.n)return null;
- const n=g.n,P=new Float32Array(g.P),N=new Float32Array(n*9),C=new Float32Array(n*9);
+ const n=g.n,cen=WCEN[idx]||[0,0,0],S=igScale(idx);
+ const P=new Float32Array(n*9),N=new Float32Array(n*9),C=new Float32Array(n*9);
+ for(let f=0;f<n;f++){const b=f*9;
+  for(let k=0;k<3;k++){const p=b+k*3;
+   P[p]=(g.P[p]-cen[0])*S;P[p+1]=(g.P[p+1]-cen[1])*S/GLSIN;P[p+2]=(g.P[p+2]-cen[2])*S*K2}}
  jgNrm(P,n,N);
  for(let f=0;f<n;f++){const kk=g.K[f],q=f*9,qc=f*3;
   for(let k=0;k<3;k++){const c=kk===-1?34:kk===-2?tint[k]:g.C[qc+k];
@@ -37,9 +51,8 @@ function igBuild(idx,col){
  im.frustumCulled=false;im.count=0;im.visible=false;
  try{im.instanceMatrix.setUsage(THREE.DynamicDrawUsage)}catch(e){}
  GLW.add(im);
- // mesma escala do 2D: armas min(60,34/WDIM) e itens min(90,32/WDIM)
- const S=idx<=5?Math.min(60,34/(WDIM[idx]||1)):Math.min(90,32/(WDIM[idx]||1));
- return {idx,im,geo,S,cnt:0,tri:WPG[idx].n};
+ // S já está embutida na geometria (igGeo) — a instância usa escala 1
+ return {idx,im,geo,cnt:0,tri:WPG[idx].n};
 }
 function igGet(idx,col){
  const key=idx+'|'+col,rec=IG_R.get(key);if(rec!==undefined)return rec;
@@ -53,16 +66,26 @@ function igGround(x,y){
  if(IG_GH.size>2048)IG_GH.clear();
  IG_GH.set(key,v);return v;
 }
-// esfera translúcida (1 InstancedMesh, cor por instância) — desenhada depois dos opacos
+// esfera translúcida em DUAS malhas instanciadas (cor por instância), desenhadas depois dos opacos:
+//  BACK  (opacity .30, BackSide) fica ATRÁS do modelo — o z-buffer a oculta onde o modelo está;
+//  FRONT (opacity .06, FrontSide) só dá o brilho de vidro por cima.
+// O3a: o mundo 3D estica Z por 1/GLCOS, então o Z local vai contra-escalado por GLCOS para a esfera
+//      parecer um CÍRCULO de raio R na tela (silhueta: sqrt((GLSIN·R)² + (R·GLCOS)²) = R).
+let IG_SG=null;
 function igSph(){
  if(IG_SPH)return IG_SPH;
- const ge=new THREE.SphereGeometry(1,12,8);
- IG_SPH=new THREE.InstancedMesh(ge,new THREE.MeshBasicMaterial({transparent:true,opacity:.17,depthWrite:false}),IG_MAX);
- IG_SPH.frustumCulled=false;IG_SPH.count=0;IG_SPH.visible=false;IG_SPH.renderOrder=10;
+ if(!IG_SG)IG_SG=new THREE.SphereGeometry(1,16,12);
+ IG_SPH=new THREE.InstancedMesh(IG_SG,new THREE.MeshBasicMaterial({transparent:true,opacity:.30,depthWrite:false,side:THREE.BackSide}),IG_MAX);
+ IG_SPH.frustumCulled=false;IG_SPH.count=0;IG_SPH.visible=false;IG_SPH.renderOrder=9;
  try{IG_SPH.instanceMatrix.setUsage(THREE.DynamicDrawUsage)}catch(e){}
- GLW.add(IG_SPH);return IG_SPH;
+ IG_SPF=new THREE.InstancedMesh(IG_SG,new THREE.MeshBasicMaterial({transparent:true,opacity:.06,depthWrite:false,side:THREE.FrontSide}),IG_MAX);
+ IG_SPF.frustumCulled=false;IG_SPF.count=0;IG_SPF.visible=false;IG_SPF.renderOrder=10;
+ try{IG_SPF.instanceMatrix.setUsage(THREE.DynamicDrawUsage)}catch(e){}
+ GLW.add(IG_SPH);GLW.add(IG_SPF);return IG_SPH;
 }
 // halo aditivo (billboard quad com gradiente radial), cor por instância
+// O3a: o quad usa a quaternion da câmera, mas dentro do GLW (Z×1/GLCOS) a "altura" dele rende
+// GLSIN²+GLCOS ≈ 1,25× — então o eixo Y local vai dividido por esse fator para o halo ficar redondo.
 function igHalo(){
  if(IG_HALO)return IG_HALO;
  if(!IG_TEX){const cv=document.createElement('canvas');cv.width=cv.height=64;const c2=cv.getContext('2d');
@@ -91,16 +114,18 @@ function glItemPush(x,y,k,vv,t,bb){
   const rec=igGet(idx,col);
   if(!rec){if(!IG_WARN){IG_WARN=1;console.warn('glitens: modelo',idx,'sem geometria; usando só a esfera')}}
   else if(rec.cnt>=IG_MAX){if(!IG_WARN){IG_WARN=1;console.warn('glitens: mais de',IG_MAX,'itens do modelo',idx,'no quadro; excedente ignorado')}}
-  else{_igQ.setFromAxisAngle(_igY,t/700);_igS.set(rec.S,rec.S,rec.S);
+  else{_igQ.setFromAxisAngle(_igY,t/700);_igS.set(1,1,1); // S/K2/GLSIN já embutidos em igGeo
    _igM.compose(_igP,_igQ,_igS);rec.im.setMatrixAt(rec.cnt++,_igM)}
  }
  _igC.copy(igColor(k));
  if(GQ.esfera&&IG_SPH&&IG_SC<IG_MAX){
-  _igQ.identity();_igS.set(R,R,R);_igM.compose(_igP,_igQ,_igS);
-  IG_SPH.setMatrixAt(IG_SC,_igM);IG_SPH.setColorAt(IG_SC,_igC);IG_SC++}
+  _igQ.identity();_igS.set(R,R,R*GLCOS);_igM.compose(_igP,_igQ,_igS);
+  IG_SPH.setMatrixAt(IG_SC,_igM);IG_SPH.setColorAt(IG_SC,_igC);
+  if(IG_SPF){IG_SPF.setMatrixAt(IG_SC,_igM);IG_SPF.setColorAt(IG_SC,_igC)}
+  IG_SC++}
  if(GQ.halo&&IG_HALO&&IG_HC<IG_MAX){
   _igQ.copy(GLCAM?GLCAM.quaternion:_igQ.identity());const hr=R*1.25;
-  _igS.set(hr,hr,hr);_igM.compose(_igP,_igQ,_igS);
+  _igS.set(hr,hr/(GLSIN*GLSIN+GLCOS),hr);_igM.compose(_igP,_igQ,_igS);
   IG_HALO.setMatrixAt(IG_HC,_igM);IG_HALO.setColorAt(IG_HC,_igC);IG_HC++}
  pfAdd('igl',t0);
  return idx>=0?1:0;
@@ -114,9 +139,31 @@ function glItemEnd(){
  if(IG_SPH){IG_SPH.count=IG_SC;IG_SPH.visible=IG_SC>0;
   if(IG_SC){IG_SPH.instanceMatrix.updateRange.offset=0;IG_SPH.instanceMatrix.updateRange.count=IG_SC*16;IG_SPH.instanceMatrix.needsUpdate=true;
    if(IG_SPH.instanceColor)IG_SPH.instanceColor.needsUpdate=true}}
+ if(IG_SPF){IG_SPF.count=IG_SC;IG_SPF.visible=IG_SC>0;
+  if(IG_SC){IG_SPF.instanceMatrix.updateRange.offset=0;IG_SPF.instanceMatrix.updateRange.count=IG_SC*16;IG_SPF.instanceMatrix.needsUpdate=true;
+   if(IG_SPF.instanceColor)IG_SPF.instanceColor.needsUpdate=true}}
  if(IG_HALO){IG_HALO.count=IG_HC;IG_HALO.visible=IG_HC>0;
   if(IG_HC){IG_HALO.instanceMatrix.updateRange.offset=0;IG_HALO.instanceMatrix.updateRange.count=IG_HC*16;IG_HALO.instanceMatrix.needsUpdate=true;
    if(IG_HALO.instanceColor)IG_HALO.instanceColor.needsUpdate=true}}
+}
+// O4: o "$" do dinheiro (txt 2D em 90-sons.js) não deve vazar por cima do telhado 3D. Usa a MESMA caixa
+// de tela que o roof() 2D cobre (60-desenho.js: x−6−H·SHK .. x+w+6−H·SHK, y−H .. y−H+h). Devolve 1 se coberto.
+function igTxtHide(x,y){
+ if(typeof BLD==='undefined'||!BLD||!BLD.length)return 0;
+ const ty=y+22,sk=typeof SHK=='number'?SHK:.3;
+ for(let i=0;i<BLD.length;i++){const b=BLD[i];if(!b||b===meB)continue;
+  const top=b.y-b.H;
+  if(ty>top&&ty<top+b.h&&x>b.x-6-b.H*sk&&x<b.x+b.w+6-b.H*sk)return 1}
+ return 0;
+}
+// O5: glKill() (88-gl.js) desliga o GL, mas as malhas dos itens continuam na cena. Envolve a função
+// original para esconder tudo (inofensivo: nada é renderizado depois do kill, mas fica limpo).
+if(typeof glKill==='function'){
+ const IG_KILL0=glKill;
+ glKill=function(){
+  try{for(const rec of IG_R.values())if(rec)rec.im.visible=false;
+   if(IG_SPH)IG_SPH.visible=false;if(IG_SPF)IG_SPF.visible=false;if(IG_HALO)IG_HALO.visible=false}catch(e){}
+  return IG_KILL0.apply(this,arguments)};
 }
 // diagnóstico (leitura): modelos/malhas/instâncias/triângulos do quadro e stats do renderer
 function igInfo(){
