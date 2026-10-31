@@ -153,7 +153,7 @@ canvas{display:block;width:100%;height:100%}
  <div id=tab-on><div id=onS></div><div class=lst id=onL></div><button class=sb onclick=loadRooms()>🔄 ATUALIZAR</button><span id=ho></span></div>
  <br><button class="sb v" onclick="show('main')">← VOLTAR</button></div></div>
 <div id=s-set class=scr style=display:none><div class=pn>Seu nome:<br><input id=nm onchange="LS.set('name',this.value);nickUp()" oninput="nickUp()"><br><br>🎮 Controle:<div id=ctl1></div><br>🖥 Visão:🔊 Efeitos:<br><input type=range id=vol min=0 max=100 oninput="setVol(this.value)" style="width:100%"><br>🎵 Música:<br><input type=range id=mvol min=0 max=100 oninput="setMus(this.value)" style="width:100%"><div style="margin:8px 0">🎞 Limite de FPS: <select class=fpsl onchange="setFpsLim(this.value)" style="background:#0a0a0c;color:#ddd;border:1px solid #3a3226;padding:3px"><option value=30>30</option><option value=45>45</option><option value=60>60</option><option value=90>90</option><option value=120>120</option><option value=144>144</option><option value=0>Sem limite</option></select></div><div style="margin:8px 0"><label><input type=checkbox class=fpss onchange="setFpsShow(this.checked)"> 📊 Mostrar FPS</label></div><div style="margin:8px 0">🖼 Qualidade gráfica: <select class=gfx onchange="setGfx(this.value)" style="background:#0a0a0c;color:#ddd;border:1px solid #3a3226;padding:3px"><option value=auto>Auto</option><option value=1>Alta</option><option value=.7>Média</option><option value=.55>Baixa</option></select></div><button class="sb v" onclick="show('main')">← VOLTAR</button></div></div>
-<div id=s-how class=scr style=display:none><div class=pn><b>Como jogar</b><br>• Toque no chão para andar e no zumbi para atacar. A arma atira sozinha para onde você olha.<br>• Pegue armas, curas e dinheiro nas casas. Hospital = curas, delegacia = armas.<br>• Arraste um slot para fora da barra para soltar o item.<br>• A cada 5 rounds vem um boss. Depois dele abre a loja por 1 minuto.<br>• Desfibrilador revive um aliado caído.<br><button class="sb v" onclick="show('main')">← VOLTAR</button></div></div>
+<div id=s-how class=scr style=display:none><div class=pn><b>Como jogar</b><br>• Toque no chão para andar e no zumbi para atacar. A arma atira sozinha para onde você olha.<br>• Pegue armas, curas e dinheiro nas casas. Hospital = curas, delegacia = armas.<br>• Arraste um slot para fora da barra para soltar o item.<br>• A cada 5 rounds vem um boss. Depois dele abre a loja por 1 minuto.<br>• Desfibrilador revive um aliado caído.<br><br><b>🎵 Músicas</b><br>Pufino — Metal Is Trash<br>Zambolino — Rotten Bones<br>Nebulite — Iron Pulse<br>Music provided by Free To Use — freetouse.com<br>Música do boss: (autor a informar)<br><button class="sb v" onclick="show('main')">← VOLTAR</button></div></div>
 <div id=s-lobby class=scr style="display:none;left:50%;top:8%;transform:translateX(-50%);text-align:center"><div class=pn><h2 style="margin:4px">SALA</h2><div id=rm style="color:#c9a54a;font-size:22px"></div><div id=pl></div><div id=hc style=display:none>Mínimo para iniciar:<br><button class=sb onclick="minP=Math.max(1,minP-1)">−</button> <b id=mp>1</b> <button class=sb onclick="minP=Math.min(8,minP+1)">+</button><br><button class="mb g" style="margin:10px auto" id=st onclick=start()>INICIAR</button></div><p id=wt>Aguardando o host iniciar...</p></div></div>
 </div>
 <div id=end class=ov style=display:none><h1>☠ FIM DE JOGO</h1><div id=er></div><button class=b id=nb onclick=reset() style=display:none>NOVA PARTIDA</button><button class=b onclick=location.reload()>MENU PRINCIPAL</button></div>
@@ -6607,7 +6607,7 @@ function glHudFrame(s){
 if(typeof window!=='undefined')window.__glhud=()=>({vis:HG.vis,zo:ZO,rows:HG.el&&HG.el.scl?HG.el.scl.children.length:0});
 
 // ---------- SONS (gerados no código, sem arquivos) ----------
-const lv=(k,d)=>{const v=LS.get(k);return v==null?d:+v},AU={c:null,vol:lv('vol2',50)/100,mv:lv('mvol2',80)/100,tense:0,px:0,py:0,sd:0,rl:0,th:0,ng:0,nb2:0,dh:0,rk:{},fv:0,fp:0,hp:null,mo:null,sl:null,lv:null,k:null,last:{}};$('vol').value=AU.vol*100;$('mvol').value=AU.mv*100;function setMus(v){AU.mv=v/100;LS.set('mvol2',v);if(AU.mg)AU.mg.gain.value=AU.mv*1.2}
+const lv=(k,d)=>{const v=LS.get(k);return v==null?d:+v},AU={c:null,vol:lv('vol2',50)/100,mv:lv('mvol2',80)/100,tense:0,px:0,py:0,sd:0,rl:0,th:0,ng:0,nb2:0,dh:0,rk:{},fv:0,fp:0,hp:null,mo:null,sl:null,lv:null,k:null,last:{}};$('vol').value=AU.vol*100;$('mvol').value=AU.mv*100;function setMus(v){AU.mv=v/100;LS.set('mvol2',v);if(AU.mg)AU.mg.gain.value=AU.mv*1.2;if(typeof musFrame=='function')musFrame()}
 function setVol(v){AU.vol=v/100;LS.set('vol2',v);if(AU.m)AU.m.gain.value=AU.vol}
 const lim=(k,ms)=>{const n=performance.now();if(AU.last[k]&&n-AU.last[k]<ms)return 0;AU.last[k]=n;return 1};
 function auInit(){if(AU.c)return;try{const c=new(window.AudioContext||window.webkitAudioContext)();AU.c=c;AU.m=c.createGain();AU.m.gain.value=AU.vol;AU.m.connect(c.destination);const b=c.createBuffer(1,c.sampleRate*4,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;AU.nb=b;
@@ -6653,7 +6653,7 @@ const SND={
  fail(v){tn(150,70,.3,'sawtooth',.3*v,0,0,500)},
  banner(t){if(t==1){tn(420,720,.5,'sawtooth',.22,0,0,1100);setTimeout(()=>tn(420,720,.5,'sawtooth',.22,0,0,1100),600);setTimeout(()=>tn(420,720,.5,'sawtooth',.22,0,0,1100),1200)}else if(t==2){tn(1500,1500,.5,'sine',.3,0);setTimeout(()=>tn(2000,2000,.6,'sine',.25,0),160)}else tn(180,180,.4,'sawtooth',.18,0,0,500)}};
 function fireTick(){if(AU.fv>.08){const n=Math.random()<.25?2:1;for(let i=0;i<n;i++)setTimeout(()=>nz(.025+Math.random()*.05,'bandpass',1800+Math.random()*2600,900,.07*AU.fv*(.5+Math.random()),AU.fp,2),i*55+Math.random()*40)}setTimeout(fireTick,240+Math.random()*900)}
-function musicInit(c){AU.mg=c.createGain();AU.mg.gain.value=AU.mv*1.2;AU.mg.connect(c.destination);
+function musicInit(c){AU.mg=c.createGain();AU.mg.gain.value=AU.mv*1.2;AU.msyn=c.createGain();AU.msyn.gain.value=1;AU.mg.connect(AU.msyn);AU.msyn.connect(c.destination);
  const dl=c.createDelay(1),fb=c.createGain(),lp=c.createBiquadFilter();dl.delayTime.value=.43;fb.gain.value=.5;lp.type='lowpass';lp.frequency.value=1500;AU.rv=c.createGain();AU.rv.gain.value=.7;AU.rv.connect(dl);dl.connect(lp);lp.connect(fb);fb.connect(dl);lp.connect(AU.mg);
  const CH=[[110,130.8,164.8],[87.3,110,130.8,174.6],[73.4,87.3,110,146.8],[82.4,98,123.5],[98,123.5,146.8]],NX=[[1,2,0,3],[2,0,3],[0,3,4],[0,1,2],[0,1]],SCL=[220,261.6,293.7,329.6,392,440,164.8];let ci=0;
  const chord=()=>{if(Math.random()<.15)return;const a=NX[ci];ci=a[Math.random()*a.length|0];const dur=13;for(const f of CH[ci]){const o=c.createOscillator(),o2=c.createOscillator(),fl=c.createBiquadFilter(),g=c.createGain(),t=c.currentTime;o.type='sawtooth';o2.type='triangle';o.frequency.value=f;o2.frequency.value=f*2.003;fl.type='lowpass';fl.frequency.setValueAtTime(300,t);fl.frequency.linearRampToValueAtTime(700,t+6);fl.frequency.linearRampToValueAtTime(300,t+dur);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.06,t+4);g.gain.linearRampToValueAtTime(.05,t+dur-5);g.gain.linearRampToValueAtTime(0,t+dur+2);o.connect(fl);o2.connect(fl);fl.connect(g);g.connect(AU.mg);g.connect(AU.rv);o.start(t);o2.start(t);o.stop(t+dur+3);o2.stop(t+dur+3)}};
@@ -6687,7 +6687,7 @@ function badge(cx0,cy0,r,lv,t,pulse){if(pulse){X.globalAlpha=.35+.3*Math.sin(t/1
  X.textAlign='center';X.textBaseline='middle';X.font='bold 9px sans-serif';X.fillStyle='#d8d2c0';X.fillText('NÍVEL',cx0,cy0-r*.5);
  X.font='bold '+Math.round(r*(lv>=100?.62:lv>=10?.82:1))+'px sans-serif';X.lineWidth=4;X.strokeStyle='#000';X.strokeText(lv,cx0,cy0+r*.14);X.fillStyle='#e8e2d0';X.fillText(lv,cx0,cy0+r*.14)}
 function sfxShot(f){const d=Math.hypot(f[0]-cx,f[1]-cy),v=Math.max(0,1-d/1000);if(v>.05)SND.shot(f[4],v,(f[0]-cx)/600)}
-function audioFrame(s,t,mr){if(!AU.c||AU.c.state!='running')return;
+function audioFrame(s,t,mr){if(typeof musFrame=='function')musFrame();if(!AU.c||AU.c.state!='running')return;
  if(FR%8==0){let md=1e9,fx=0;for(const f of FIRES){if(f[4]&&f[4]===meB)continue;if(f[5]&&DD[f[5].i])continue;const d=Math.hypot(f[0]-cx,f[1]-cy);if(d<md){md=d;fx=f[0]}}AU.fv=Math.max(0,1-md/600);AU.fp=(fx-cx)/500;AU.fg.gain.setTargetAtTime(AU.fv*.09,AU.c.currentTime,.2)}
  if(s.bp&&lim('bpr',900)){const d=Math.hypot(s.bp[0]-cx,s.bp[1]-cy);tn(58,40,.9,'sine',.35*Math.max(.25,1-d/2500),(s.bp[0]-cx)/800)}
  if(me){if(!me[7]&&mr){const d=Math.hypot(mr.x-AU.px,mr.y-AU.py);AU.px=mr.x;AU.py=mr.y;if(d<40){AU.sd+=d;if(AU.sd>(me[21]>0?36:48)){AU.sd=0;SND.step()}}}
@@ -7182,6 +7182,87 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!(glLive&&(o.t==5||o.t==1||o.t==2
    X.strokeStyle='rgba(255,255,255,'+(.55+.3*Math.sin(t/170))+')';X.lineWidth=1.4;X.beginPath();X.arc(px,py-2,6.5*pl,0,7);X.stroke();
    const a=(p[17]|0)/10;X.fillStyle='#fff';poly(px+Math.cos(a)*8.5,py-2+Math.sin(a)*8.5,2.8,3,a)}
   X.globalAlpha=1}X.restore();if(glLive)glHudFrame(s);drawJoy();pfAdd('hud',ph_);pfEnd(_p0);if(glLive)glRenderNow();{const _d=performance.now()-_n;DRAW_MS=DRAW_MS?DRAW_MS*.9+_d*.1:_d}}
+// ---------- MÚSICA: playlist de gameplay (HTMLAudioElement, sem WebAudio por elemento) ----------
+// Tabela de faixas e ganho de normalização (dB, ajustável de ouvido; alvo RMS de fundo ~ -27 dBFS).
+// Os arquivos ficam em music/ ao lado de game.html; nada é baixado antes da partida.
+const MUS_T=[
+ {n:'Pufino — Metal Is Trash',f:'Pufino - Metal Is Trash (freetouse.com).mp3',db:-13.6},
+ {n:'Zambolino — Rotten Bones',f:'Zambolino - Rotten Bones (freetouse.com).mp3',db:-12.2},
+ {n:'Nebulite — Iron Pulse',f:'Nebulite - Iron Pulse (freetouse.com).mp3',db:-16.1}];
+// st: parado | espera | tocando | saindo ; A = faixa atual, B = próxima no crossfade; env 0..1
+const MUS={st:'parado',A:null,B:null,last:-1,order:[],wait:0,out:0,xf:0,xfBad:0,dead:0,duck:0,wantDuck:0};
+const MUS_FADE_IN=3000,MUS_FADE_OUT=1500,MUS_XF=3000,MUS_DELAY=1200;
+// Dois elementos fixos (A/B), criados só quando a partida começa e reaproveitados em todas as faixas
+let MUS_EA=null,MUS_EB=null;
+function musSlot(){
+ const s={a:new Audio(),idx:-1,env:0};
+ s.a.preload='auto';s.a.volume=0;
+ s.a.addEventListener('playing',()=>{if(MUS.st=='tocando'&&(MUS.A===s||MUS.B===s))MUS.wantDuck=1});
+ s.a.addEventListener('ended',()=>{if(MUS.st=='tocando'&&MUS.A===s&&!MUS.B)musNextNow()});
+ s.a.addEventListener('error',()=>{
+  if(MUS.st=='tocando'&&MUS.A===s){MUS.dead=1;musStop();MUS.st='parado'}
+  else if(MUS.B===s){MUS.B=null;MUS.xfBad=1}});
+ s.a.addEventListener('stalled',()=>{});
+ return s;
+}
+function musAssign(s,idx){if(!s)return s;try{s.a.pause()}catch(e){}s.idx=idx;s.env=0;s.a.volume=0;s.a.src='music/'+encodeURIComponent(MUS_T[idx].f);return s}
+function musVolOf(s,m){return Math.min(1,Math.max(0,Math.pow(10,MUS_T[s.idx].db/20)*AU.mv*1.2*s.env*m))}
+function musPlay(s){try{const p=s.a.play();if(p&&p.catch)p.catch(()=>{if(MUS.A===s){MUS.dead=1;musStop();MUS.st='parado'}else if(MUS.B===s){MUS.B=null;MUS.xfBad=1}})}catch(e){}}
+function musPick(){let i;do{i=Math.random()*MUS_T.length|0}while(MUS_T.length>1&&i===MUS.last);
+ MUS.last=i;MUS.order.push(MUS_T[i].n);if(MUS.order.length>64)MUS.order.shift();return i}
+function musStopEl(s){if(!s)return;try{s.a.pause()}catch(e){}}
+function musStop(){musStopEl(MUS.A);musStopEl(MUS.B);MUS.A=MUS.B=null;MUS.xf=0;MUS.xfBad=0;MUS.wantDuck=0}
+function musStart(){if(!MUS_EA){MUS_EA=musSlot();MUS_EB=musSlot()}
+ musStop();MUS.A=musAssign(MUS_EA,musPick());MUS.xf=performance.now();MUS.st='tocando';musPlay(MUS.A)}
+function musNextNow(){const old=MUS.A;MUS.A=musAssign(old===MUS_EA?MUS_EB:MUS_EA,musPick());MUS.xf=performance.now();MUS.xfBad=0;musPlay(MUS.A)}
+function musPromote(){if(!MUS.B)return;musStopEl(MUS.A);MUS.A=MUS.B;MUS.B=null;MUS.A.env=1;MUS.xf=0;MUS.xfBad=0;MUS.wantDuck=1}
+// Sub-barramento da música sintética (AU.msyn): 0 quando a playlist toca de fato, 1 fora da partida
+function musDuckApply(){
+ if(!AU.c||!AU.msyn)return;
+ if(MUS.duck===MUS.wantDuck)return;
+ MUS.duck=MUS.wantDuck;
+ const g=AU.msyn.gain,t=AU.c.currentTime;
+ try{g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);g.linearRampToValueAtTime(MUS.duck?0:1,t+1.5)}catch(e){}
+}
+function musApply(now){
+ const m=MUS.st=='saindo'?Math.max(0,1-(now-MUS.out)/MUS_FADE_OUT):1;
+ if(MUS.A)MUS.A.a.volume=musVolOf(MUS.A,m);
+ if(MUS.B)MUS.B.a.volume=musVolOf(MUS.B,m);
+}
+function musTickPlaying(now){
+ const A=MUS.A;if(!A)return;const a=A.a,d=a.duration;
+ if(!MUS.B&&!MUS.xfBad)A.env=Math.min(1,(now-MUS.xf)/MUS_FADE_IN);
+ if(MUS.B){
+  const u=Math.min(1,(now-MUS.xf)/MUS_XF);A.env=1-u;MUS.B.env=u;
+  if(u>=1)musPromote();
+  return;
+ }
+ if(a.ended)return;
+ if(!MUS.xfBad&&isFinite(d)&&d>0&&a.currentTime>0&&d-a.currentTime<=MUS_XF/1000&&d-a.currentTime>0){
+  MUS.B=musAssign(A===MUS_EA?MUS_EB:MUS_EA,musPick());MUS.xf=now;musPlay(MUS.B);
+ }
+}
+function musFrame(){
+ const now=performance.now();
+ const inMatch=typeof snap!=='undefined'&&snap&&snap.ph==1;
+ if(!inMatch){
+  if(MUS.st=='tocando'||MUS.st=='espera'){MUS.st='saindo';MUS.out=now;MUS.wantDuck=0}
+  if(MUS.st=='saindo'&&now-MUS.out>=MUS_FADE_OUT){musStop();MUS.st='parado'}
+  if(MUS.st!='saindo')MUS.dead=0;
+  musApply(now);musDuckApply();return;
+ }
+ if(MUS.dead){musApply(now);musDuckApply();return}
+ if(MUS.st=='saindo'){musStop();MUS.st='espera';MUS.wait=now+MUS_DELAY}
+ if(MUS.st=='parado'){MUS.st='espera';MUS.wait=now+MUS_DELAY}
+ if(MUS.st=='espera'){if(now>=MUS.wait)musStart();musDuckApply();return}
+ musTickPlaying(now);musApply(now);musDuckApply();
+}
+try{Object.defineProperty(window,'__mus',{configurable:true,get:()=>{
+ const A=MUS.A,a=A&&A.a;
+ return {estado:MUS.st,faixa:A?MUS_T[A.idx].n:null,ordem:MUS.order.slice(),vol:a?a.volume:0,t:a?a.currentTime:0,dur:a&&isFinite(a.duration)?a.duration:0,sinteticaGain:AU.msyn?AU.msyn.gain.value:null};
+}})}catch(e){}
+setInterval(musFrame,120);
+
 // DEBUG — remova este arquivo ou rode node build.js --release
 (function(){
  // defesa: fora de dev/local/?debug o arquivo não faz absolutamente nada

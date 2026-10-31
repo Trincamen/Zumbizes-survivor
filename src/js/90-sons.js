@@ -1,5 +1,5 @@
 // ---------- SONS (gerados no código, sem arquivos) ----------
-const lv=(k,d)=>{const v=LS.get(k);return v==null?d:+v},AU={c:null,vol:lv('vol2',50)/100,mv:lv('mvol2',80)/100,tense:0,px:0,py:0,sd:0,rl:0,th:0,ng:0,nb2:0,dh:0,rk:{},fv:0,fp:0,hp:null,mo:null,sl:null,lv:null,k:null,last:{}};$('vol').value=AU.vol*100;$('mvol').value=AU.mv*100;function setMus(v){AU.mv=v/100;LS.set('mvol2',v);if(AU.mg)AU.mg.gain.value=AU.mv*1.2}
+const lv=(k,d)=>{const v=LS.get(k);return v==null?d:+v},AU={c:null,vol:lv('vol2',50)/100,mv:lv('mvol2',80)/100,tense:0,px:0,py:0,sd:0,rl:0,th:0,ng:0,nb2:0,dh:0,rk:{},fv:0,fp:0,hp:null,mo:null,sl:null,lv:null,k:null,last:{}};$('vol').value=AU.vol*100;$('mvol').value=AU.mv*100;function setMus(v){AU.mv=v/100;LS.set('mvol2',v);if(AU.mg)AU.mg.gain.value=AU.mv*1.2;if(typeof musFrame=='function')musFrame()}
 function setVol(v){AU.vol=v/100;LS.set('vol2',v);if(AU.m)AU.m.gain.value=AU.vol}
 const lim=(k,ms)=>{const n=performance.now();if(AU.last[k]&&n-AU.last[k]<ms)return 0;AU.last[k]=n;return 1};
 function auInit(){if(AU.c)return;try{const c=new(window.AudioContext||window.webkitAudioContext)();AU.c=c;AU.m=c.createGain();AU.m.gain.value=AU.vol;AU.m.connect(c.destination);const b=c.createBuffer(1,c.sampleRate*4,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;AU.nb=b;
@@ -45,7 +45,7 @@ const SND={
  fail(v){tn(150,70,.3,'sawtooth',.3*v,0,0,500)},
  banner(t){if(t==1){tn(420,720,.5,'sawtooth',.22,0,0,1100);setTimeout(()=>tn(420,720,.5,'sawtooth',.22,0,0,1100),600);setTimeout(()=>tn(420,720,.5,'sawtooth',.22,0,0,1100),1200)}else if(t==2){tn(1500,1500,.5,'sine',.3,0);setTimeout(()=>tn(2000,2000,.6,'sine',.25,0),160)}else tn(180,180,.4,'sawtooth',.18,0,0,500)}};
 function fireTick(){if(AU.fv>.08){const n=Math.random()<.25?2:1;for(let i=0;i<n;i++)setTimeout(()=>nz(.025+Math.random()*.05,'bandpass',1800+Math.random()*2600,900,.07*AU.fv*(.5+Math.random()),AU.fp,2),i*55+Math.random()*40)}setTimeout(fireTick,240+Math.random()*900)}
-function musicInit(c){AU.mg=c.createGain();AU.mg.gain.value=AU.mv*1.2;AU.mg.connect(c.destination);
+function musicInit(c){AU.mg=c.createGain();AU.mg.gain.value=AU.mv*1.2;AU.msyn=c.createGain();AU.msyn.gain.value=1;AU.mg.connect(AU.msyn);AU.msyn.connect(c.destination);
  const dl=c.createDelay(1),fb=c.createGain(),lp=c.createBiquadFilter();dl.delayTime.value=.43;fb.gain.value=.5;lp.type='lowpass';lp.frequency.value=1500;AU.rv=c.createGain();AU.rv.gain.value=.7;AU.rv.connect(dl);dl.connect(lp);lp.connect(fb);fb.connect(dl);lp.connect(AU.mg);
  const CH=[[110,130.8,164.8],[87.3,110,130.8,174.6],[73.4,87.3,110,146.8],[82.4,98,123.5],[98,123.5,146.8]],NX=[[1,2,0,3],[2,0,3],[0,3,4],[0,1,2],[0,1]],SCL=[220,261.6,293.7,329.6,392,440,164.8];let ci=0;
  const chord=()=>{if(Math.random()<.15)return;const a=NX[ci];ci=a[Math.random()*a.length|0];const dur=13;for(const f of CH[ci]){const o=c.createOscillator(),o2=c.createOscillator(),fl=c.createBiquadFilter(),g=c.createGain(),t=c.currentTime;o.type='sawtooth';o2.type='triangle';o.frequency.value=f;o2.frequency.value=f*2.003;fl.type='lowpass';fl.frequency.setValueAtTime(300,t);fl.frequency.linearRampToValueAtTime(700,t+6);fl.frequency.linearRampToValueAtTime(300,t+dur);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.06,t+4);g.gain.linearRampToValueAtTime(.05,t+dur-5);g.gain.linearRampToValueAtTime(0,t+dur+2);o.connect(fl);o2.connect(fl);fl.connect(g);g.connect(AU.mg);g.connect(AU.rv);o.start(t);o2.start(t);o.stop(t+dur+3);o2.stop(t+dur+3)}};
@@ -79,7 +79,7 @@ function badge(cx0,cy0,r,lv,t,pulse){if(pulse){X.globalAlpha=.35+.3*Math.sin(t/1
  X.textAlign='center';X.textBaseline='middle';X.font='bold 9px sans-serif';X.fillStyle='#d8d2c0';X.fillText('NÍVEL',cx0,cy0-r*.5);
  X.font='bold '+Math.round(r*(lv>=100?.62:lv>=10?.82:1))+'px sans-serif';X.lineWidth=4;X.strokeStyle='#000';X.strokeText(lv,cx0,cy0+r*.14);X.fillStyle='#e8e2d0';X.fillText(lv,cx0,cy0+r*.14)}
 function sfxShot(f){const d=Math.hypot(f[0]-cx,f[1]-cy),v=Math.max(0,1-d/1000);if(v>.05)SND.shot(f[4],v,(f[0]-cx)/600)}
-function audioFrame(s,t,mr){if(!AU.c||AU.c.state!='running')return;
+function audioFrame(s,t,mr){if(typeof musFrame=='function')musFrame();if(!AU.c||AU.c.state!='running')return;
  if(FR%8==0){let md=1e9,fx=0;for(const f of FIRES){if(f[4]&&f[4]===meB)continue;if(f[5]&&DD[f[5].i])continue;const d=Math.hypot(f[0]-cx,f[1]-cy);if(d<md){md=d;fx=f[0]}}AU.fv=Math.max(0,1-md/600);AU.fp=(fx-cx)/500;AU.fg.gain.setTargetAtTime(AU.fv*.09,AU.c.currentTime,.2)}
  if(s.bp&&lim('bpr',900)){const d=Math.hypot(s.bp[0]-cx,s.bp[1]-cy);tn(58,40,.9,'sine',.35*Math.max(.25,1-d/2500),(s.bp[0]-cx)/800)}
  if(me){if(!me[7]&&mr){const d=Math.hypot(mr.x-AU.px,mr.y-AU.py);AU.px=mr.x;AU.py=mr.y;if(d<40){AU.sd+=d;if(AU.sd>(me[21]>0?36:48)){AU.sd=0;SND.step()}}}
