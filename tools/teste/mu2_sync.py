@@ -27,6 +27,9 @@ META_DROP = 0.100
 REC_START = r"""(function(){
  window.__mu2={t0:performance.now(),spawn:0,ev7:0,drop:0,pos:null,corr:[],st:'',fail:0};
  BM.ev7Perf=0;BM.dropPerf=0;BM.posEv7=-1;BM.correcoes.length=0;
+ if(window.__mu2g)clearInterval(window.__mu2g);
+ // guardiao: mantem o jogador vivo e em partida durante a contagem (senao ph=2 para o step e o boss nao nasce)
+ window.__mu2g=setInterval(function(){try{Object.values(PL).forEach(function(p){p.dead=0;p.hp=p.mx});if(ph!=1)ph=1}catch(e){}},100);
  startBoss();
  (function loop(){
   var b=window.__mu2;
@@ -95,6 +98,11 @@ def medir(url, runs, rotulo):
                     break
                 time.sleep(.12)
             d = t.ev('window.__mu2')
+            t.ev('(function(){if(window.__mu2g){clearInterval(window.__mu2g);window.__mu2g=0}return 1})()')
+            if not d['ev7']:
+                print('  rep %d SEM ev7: st=%s ph=%s bp=%s boss=%s' % (
+                    i + 1, t.ev('BM.st'), t.ev('snap.ph'), t.ev('snap.bp?1:0'),
+                    t.ev('snap.Z.some(function(z){return z[2]==3})?1:0')), flush=True)
             out.append(dict(rotulo=rotulo, i=i + 1,
                             pos=(d['pos'] - BM_DROP) if d['pos'] is not None and d['pos'] >= 0 else None,
                             drop_ms=((d['drop'] - d['ev7']) if d['drop'] and d['ev7'] else None),
@@ -137,6 +145,7 @@ def main():
     ap.add_argument('--runs', type=int, default=5)
     ap.add_argument('--ahead', type=float, default=None, help='?bmahead= (padrao do codigo se omitido)')
     ap.add_argument('--sweep', type=int, default=0, help='varre 0,05/0,10/0,15/0,20 com N repeticoes cada')
+    ap.add_argument('--failtest', action='store_true', help='B6c: src do boss quebrado -> fail=1, playlist volta, drop so do ev7')
     a = ap.parse_args()
     srv = subprocess.Popen(['node', 'server.js'], cwd=ROOT, env=dict(os.environ, PORT=str(PORT)),
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -145,6 +154,34 @@ def main():
             print('FALHOU: servidor nao subiu na porta %d' % PORT)
             return 2
         base = 'http://127.0.0.1:%d/?gl=1' % PORT
+        if a.failtest:
+            with Teste(base, display=DISPLAY) as t:
+                t.solo()
+                for _ in range(100):
+                    if t.ev('(typeof snap!=="undefined"&&snap&&snap.ph==1)?1:0'):
+                        break
+                    time.sleep(.2)
+                t.espera(2)
+                print('antes: fail=%s dm=%s' % (t.ev('BM.fail'), t.ev('MUS.dm')))
+                t.ev("BM.EA.src='music/__nao_existe__.mp3';BM.EB.src='music/__nao_existe__.mp3';1")
+                t.espera(.6)
+                t.ev("startBoss();1")
+                t.espera(2)
+                fail, dm, st = t.ev('BM.fail'), t.ev('MUS.dm'), t.ev('BM.st')
+                print('depois do 404: fail=%s st=%s MUS.dm=%s (1 = playlist de volta)' % (fail, st, dm))
+                # espera o evento 7 e confere o tremor (drop so do ev7) e o estado de teste
+                t0 = time.time(); qk = 0
+                while time.time() - t0 < 12:
+                    if t.ev('BM.ev7Perf?1:0'):
+                        qk = max(qk, t.ev('QK'))
+                        break
+                    time.sleep(.1)
+                qk = max(qk, t.ev('QK'))
+                print('ev7=%s  QK no ev7=%.2f  __mus.boss.fail=%s' % (
+                    t.ev('BM.ev7Perf?1:0'), qk, t.ev('__mus.boss.fail')))
+                ok = fail == 1 and dm > 0.9 and qk > 0.5
+                print('\nVEREDITO B6c: %s' % ('PASSOU' if ok else 'FALHOU'))
+                return 0 if ok else 1
         if a.sweep:
             print('== varredura de BM_AHEAD (%d repeticoes cada) ==' % a.sweep)
             for v in (0.05, 0.10, 0.15, 0.20):

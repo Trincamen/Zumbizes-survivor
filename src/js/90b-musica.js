@@ -100,7 +100,7 @@ const BM_START=1.03632,BM_DROP=11.1739,BM_LOOP_A=11.1767,BM_LOOP_B=131.1383,BM_B
 // st: bi(ocioso) -> lead(contagem) -> loop(luta) -> saida(espera o compasso) -> outro -> bi
 const BM={st:'bi',EA:null,EB:null,A:null,B:null,envA:0,envB:0,eA0:0,eB0:0,eA1:0,eB1:0,et0:0,ed:0,swapP:0,
  rem:0,remAt:0,started:0,played:0,corr:0,dropDone:0,dropPerf:0,ev7Perf:0,posEv7:-1,seen:0,fail:0,
- out0:0,outStarted:0,backAt:0,ci:0,vies:.03,correcoes:[],seekPend:0,seekSet:0};
+ out0:0,outStarted:0,backAt:0,ci:0,vies:.03,correcoes:[],seekPend:0,seekSet:0,gWait:0,gT:0};
 function bmBoss(){return !!(typeof snap!=='undefined'&&snap&&snap.Z&&snap.Z.some(z=>z[2]==3))}
 function bmInit(){
  if(BM.EA)return 1;
@@ -109,7 +109,7 @@ function bmInit(){
    a.addEventListener('playing',()=>{if(a===BM.A)BM.played=1});
    // B6c: qualquer erro do elemento do boss desliga a musica do boss e DEVOLVE a playlist (nao deixa abafada)
    a.addEventListener('error',()=>{bmFail()});
-   a.addEventListener('seeked',()=>{if(a===BM.A&&BM.seekPend){const v=BM.seekSet-a.currentTime;BM.vies=Math.max(-.2,Math.min(.2,v));BM.seekPend=0}});
+   a.addEventListener('seeked',()=>{if(a===BM.A)BM.seekPend=0});
    a.addEventListener('stalled',()=>{});
    return a};
   BM.EA=mk();BM.EB=mk();
@@ -138,7 +138,7 @@ function bmApply(now){
 }
 function bmLead(now){
  BM.st='lead';BM.seen=0;BM.played=0;BM.started=0;BM.corr=0;BM.dropDone=0;BM.swapP=0;BM.backAt=0;
- BM.ci=0;BM.vies=.03;BM.correcoes=[];BM.seekPend=0;BM.seekSet=0;
+ BM.ci=0;BM.vies=.03;BM.correcoes=[];BM.seekPend=0;BM.seekSet=0;BM.gWait=0;BM.gT=0;
  BM.rem=+snap.bp[3]||0;BM.remAt=now;
  BM.A=BM.EA;BM.B=BM.EB;BM.envA=BM.envB=0;BM.ed=0;
  bmSeek(BM.A,BM_START);
@@ -182,17 +182,25 @@ function bmFrame(){
   else if(bmBoss())bmLoop(now,1000); // entrou no meio da luta: direto no loop, sem drop
  }
  if(BM.st=='lead'){
+  // reancora o restante no snapshot mais fresco a cada quadro: sem isso o bp[3] usado na partida pode estar
+  // 2-3 ticks (33-100 ms) velho e o drop cai cedo (pos_no_ev7 negativo) sem que nenhuma correcao veja o erro
+  if(snap.bp&&snap.bp[3]!=null&&+snap.bp[3]>0){BM.rem=+snap.bp[3];BM.remAt=now}
   const r=BM.rem-(now-BM.remAt)/1000,a=BM.A,tg=()=>BM_DROP-r+BM_AHEAD;
   if(a&&!BM.fail){
    if(!BM.started&&a.readyState>=1){bmSeek(a,Math.max(BM_START,Math.min(BM_LOOP_B-.5,tg())));bmPlay(a);BM.started=1;bmEnv(1,0,40,now)}
    else if(BM.started&&!BM.played&&a.readyState>=1&&a.paused)bmPlay(a);
-   // MU2b-2: recorrecao em r~6/3,5/1,8 s (nunca com r<1,2 s). vies = latencia de seek aprendida (posicao pedida - real)
+   // MU2b-2: recorrecao em r~6/3,5/1,8 s (nunca com r<1,2 s).
+   // d e medido contra o ALVO REAL (BM_DROP-r): o BM_AHEAD so enviesa a posicao de PARTIDA (compensa a
+   // latencia de inicio). Cada seek mira BM_DROP-r+BM.vies, onde BM.vies e a folga medida DEPOIS do seeked
+   // (o elemento perde ~0,1 s para voltar a tocar); assim o seek cai no alvo real.
    if(BM.played&&!BM.dropDone&&r>1.2&&BM.ci<BM_CHK.length&&r<=BM_CHK[BM.ci]){
-    const P=tg(),d=a.currentTime-P;
+    const P=BM_DROP-r,d=a.currentTime-P;
     BM.correcoes.push({r:+r.toFixed(3),d:+d.toFixed(3),vies:+BM.vies.toFixed(3)});
-    if(Math.abs(d)>0.04){const set=Math.max(BM_START,Math.min(BM_LOOP_B-.5,P+BM.vies));BM.seekPend=1;BM.seekSet=set;bmSeek(a,set)}
+    if(Math.abs(d)>0.04){const set=Math.max(BM_START,Math.min(BM_LOOP_B-.5,P+BM.vies));BM.seekPend=1;BM.seekSet=set;BM.gT=now;BM.gWait=1;bmSeek(a,set)}
     do{BM.ci++}while(BM.ci<BM_CHK.length&&r<=BM_CHK[BM.ci]);
    }
+   // aprende a folga pos-seek: 300 ms depois de pedir o seek, quanto a posicao ficou atras do esperado
+   if(BM.gWait&&now-BM.gT>=300){const g=(BM.seekSet+(now-BM.gT)/1000)-a.currentTime;BM.vies=Math.max(0,Math.min(.3,g));BM.gWait=0}
    if(BM.played&&!BM.corr){const dr=a.currentTime-tg();if(Math.abs(dr)>0.05&&r>1.5){bmSeek(a,a.currentTime-dr);BM.corr=1}else if(r<=1.5)BM.corr=1}
    if(BM.played&&!BM.dropDone&&a.currentTime>=BM_DROP+BM_LAT)musDrop();
   }
