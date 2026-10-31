@@ -411,7 +411,9 @@ function glowSpr(key,gs,col,blur,x0,y0,w,h,fn){const k=key+'|'+col+'|'+blur+'|'+
  if(Object.keys(GLC).length>16)GLC={};
  return GLC[k]={c:cv,m:m,gs:gs}}
 function glowPut(sp,x0,y0){X.drawImage(sp.c,x0-sp.m/sp.gs,y0-sp.m/sp.gs,sp.c.width/sp.gs,sp.c.height/sp.gs)}
-function draw(){requestAnimationFrame(draw);const _p0=pfStart();ZBUD=0;const s=snap,t=Date.now(),dtf=Math.min(.1,(t-LT)/1000);LT=t;FR++;DT_=dtf;X.setTransform(ZO*DPR,0,0,ZO*DPR,0,0);if(glLive)X.clearRect(0,0,W,H);else{X.fillStyle='#000';X.fillRect(0,0,W,H)}if(!s||s.ph==0){menuScene(t);return}
+// limite de 60 Hz no desenho (acumulador: em monitor de 144 Hz alterna 2/3 refreshes e a média fica em 60; em 60 Hz passa todos)
+let FPS_NF=0;const FPS_DT=1000/60;
+function draw(){requestAnimationFrame(draw);{const _n=performance.now();if(_n<FPS_NF-1)return;FPS_NF=_n-FPS_NF>100?_n+FPS_DT:FPS_NF+FPS_DT}const _p0=pfStart();ZBUD=0;const s=snap,t=Date.now(),dtf=Math.min(.1,(t-LT)/1000);LT=t;FR++;DT_=dtf;X.setTransform(ZO*DPR,0,0,ZO*DPR,0,0);if(glLive)X.clearRect(0,0,W,H);else{X.fillStyle='#000';X.fillRect(0,0,W,H)}if(!s||s.ph==0){menuScene(t);return}
  if(FR%180==0){for(const k in RP)if(RP[k].u<FR-120)delete RP[k];zsClean()}
  const mr=me?sm('p'+id,me[3],me[4],dtf):null;if(mr){cx=mr.x;cy=mr.y}meB=bAt(cx,cy);audioFrame(s,t,mr);ox=Math.round(W/2-cx);oy=Math.round(H/2-cy);if(glOn)glFrame();const shx=(Math.random()-.5)*QK*14,shy=(Math.random()-.5)*QK*14;QK=Math.max(0,QK-dtf*1.6);X.save();X.translate(ox+shx,oy+shy);
  const v=(x,y,m=90)=>Math.abs(x-cx)<W/2+m&&Math.abs(y-cy)<H/2+m;
