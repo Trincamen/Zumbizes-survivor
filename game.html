@@ -59,8 +59,8 @@ canvas{display:block;width:100%;height:100%}
 .mob #wb button{width:62px;height:48px}.mob .wi{width:92%;max-height:55%}.mob .wn{left:3px;font:700 7px 'Arial Black',sans-serif}.mob .ws{font-size:7px}.mob .ci{font-size:18px;line-height:18px}.mob .cn{font-size:6px}.mob #wb button.wl{padding:0;font-size:7px;line-height:7px}
 
 </style></head><body>
-<canvas id=glc style="position:fixed;left:0;top:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:none"></canvas><canvas id=c></canvas><div id=bn></div><button id=opt class=opt onclick=optOpen()>⚙</button><div id=sk></div><div id=shop style="position:fixed;left:10px;top:120px;background:#0a0a0cf2;border:2px solid #3a3226;border-left:6px solid #8a6f35;border-radius:2px;padding:8px;color:#d8d2c0;display:none"><b id=shT></b><div id=shB></div></div><div id=wb></div>
-<div id=cf class=pn style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);display:none;z-index:7;text-align:center"></div><div id=opp class=pn><b>⚙ Opções</b><div id=ctl2 style="margin:6px 0"></div>🔊 Efeitos <input type=range id=vol3 min=0 max=100 oninput="setVol(this.value)" style="width:60%"><br>🎵 Música <input type=range id=mvol3 min=0 max=100 oninput="setMus(this.value)" style="width:60%"><br><button class=sb onclick=optOpen()>FECHAR</button><button class=sb style="background:#6a5428" onclick=location.reload()>SAIR PARA O MENU</button></div>
+<canvas id=glc style="position:fixed;left:0;top:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:none"></canvas><canvas id=c></canvas><div id=bn></div><div id=fpsb style="position:fixed;left:50%;top:4px;transform:translateX(-50%);display:none;z-index:6;pointer-events:none;font:700 14px monospace;color:#9f9;text-shadow:0 0 3px #000,0 0 3px #000"></div><button id=opt class=opt onclick=optOpen()>⚙</button><div id=sk></div><div id=shop style="position:fixed;left:10px;top:120px;background:#0a0a0cf2;border:2px solid #3a3226;border-left:6px solid #8a6f35;border-radius:2px;padding:8px;color:#d8d2c0;display:none"><b id=shT></b><div id=shB></div></div><div id=wb></div>
+<div id=cf class=pn style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);display:none;z-index:7;text-align:center"></div><div id=opp class=pn><b>⚙ Opções</b><div id=ctl2 style="margin:6px 0"></div>🔊 Efeitos <input type=range id=vol3 min=0 max=100 oninput="setVol(this.value)" style="width:60%"><br>🎵 Música <input type=range id=mvol3 min=0 max=100 oninput="setMus(this.value)" style="width:60%"><br>🎞 Limite de FPS: <select class=fpsl onchange="setFpsLim(this.value)" style="background:#0a0a0c;color:#ddd;border:1px solid #3a3226;padding:3px"><option value=30>30</option><option value=45>45</option><option value=60>60</option><option value=90>90</option><option value=120>120</option><option value=144>144</option><option value=0>Sem limite</option></select> <label style="white-space:nowrap"><input type=checkbox class=fpss onchange="setFpsShow(this.checked)"> Mostrar FPS</label><br><button class=sb onclick=optOpen()>FECHAR</button><button class=sb style="background:#6a5428" onclick=location.reload()>SAIR PARA O MENU</button></div>
 <div id=menu class=ov>
 <div id=logo><div class=l1>ZomBrize</div></div>
 <div id=nick></div>
@@ -75,7 +75,7 @@ canvas{display:block;width:100%;height:100%}
 <div id=s-multi class=scr style=display:none><div class=pn>
  <div id=tab-on><div id=onS></div><div class=lst id=onL></div><button class=sb onclick=loadRooms()>🔄 ATUALIZAR</button><span id=ho></span></div>
  <br><button class="sb v" onclick="show('main')">← VOLTAR</button></div></div>
-<div id=s-set class=scr style=display:none><div class=pn>Seu nome:<br><input id=nm onchange="LS.set('name',this.value);nickUp()" oninput="nickUp()"><br><br>🎮 Controle:<div id=ctl1></div><br>🖥 Visão:🔊 Efeitos:<br><input type=range id=vol min=0 max=100 oninput="setVol(this.value)" style="width:100%"><br>🎵 Música:<br><input type=range id=mvol min=0 max=100 oninput="setMus(this.value)" style="width:100%"><button class="sb v" onclick="show('main')">← VOLTAR</button></div></div>
+<div id=s-set class=scr style=display:none><div class=pn>Seu nome:<br><input id=nm onchange="LS.set('name',this.value);nickUp()" oninput="nickUp()"><br><br>🎮 Controle:<div id=ctl1></div><br>🖥 Visão:🔊 Efeitos:<br><input type=range id=vol min=0 max=100 oninput="setVol(this.value)" style="width:100%"><br>🎵 Música:<br><input type=range id=mvol min=0 max=100 oninput="setMus(this.value)" style="width:100%">🎞 Limite de FPS: <select class=fpsl onchange="setFpsLim(this.value)" style="background:#0a0a0c;color:#ddd;border:1px solid #3a3226;padding:3px"><option value=30>30</option><option value=45>45</option><option value=60>60</option><option value=90>90</option><option value=120>120</option><option value=144>144</option><option value=0>Sem limite</option></select> <label style="white-space:nowrap"><input type=checkbox class=fpss onchange="setFpsShow(this.checked)"> Mostrar FPS</label><br><button class="sb v" onclick="show('main')">← VOLTAR</button></div></div>
 <div id=s-how class=scr style=display:none><div class=pn><b>Como jogar</b><br>• Toque no chão para andar e no zumbi para atacar. A arma atira sozinha para onde você olha.<br>• Pegue armas, curas e dinheiro nas casas. Hospital = curas, delegacia = armas.<br>• Arraste um slot para fora da barra para soltar o item.<br>• A cada 5 rounds vem um boss. Depois dele abre a loja por 1 minuto.<br>• Desfibrilador revive um aliado caído.<br><button class="sb v" onclick="show('main')">← VOLTAR</button></div></div>
 <div id=s-lobby class=scr style="display:none;left:50%;top:8%;transform:translateX(-50%);text-align:center"><div class=pn><h2 style="margin:4px">SALA</h2><div id=rm style="color:#c9a54a;font-size:22px"></div><div id=pl></div><div id=hc style=display:none>Mínimo para iniciar:<br><button class=sb onclick="minP=Math.max(1,minP-1)">−</button> <b id=mp>1</b> <button class=sb onclick="minP=Math.min(8,minP+1)">+</button><br><button class="mb g" style="margin:10px auto" id=st onclick=start()>INICIAR</button></div><p id=wt>Aguardando o host iniciar...</p></div></div>
 </div>
@@ -5292,8 +5292,9 @@ function zumbiSpr(ctx,x,y,k,v,fa,id,t,s){
 const glOn=/[?&]gl=1(?:&|$)/.test(location.search||'')||LS.get('gl')=='1';
 const GTLT=55*Math.PI/180,GLCOS=Math.cos(GTLT),GLSIN=Math.sin(GTLT),GCAMR=30000;
 let GLR=null,GLSCN=null,GLCAM=null,GLW=null,GLCV=null,GLBAD=0,glLive=0;
-// GQ = interruptores de QUALIDADE (preparação do modo celular): blob = sombra em disco dos zumbis (89e)
-const GQ={blob:1};
+// GQ = interruptores de QUALIDADE (preparação do modo celular): blob = sombra em disco dos zumbis (89e);
+// esfera = esfera translúcida dos itens no chão e halo = brilho aditivo (89f; sem eles o item continua visível)
+const GQ={blob:1,esfera:1,halo:1};
 const _gv=new THREE.Vector3(),_gp=new THREE.Vector3(),_gq=new THREE.Vector3();
 // mundo -> tela CSS (px). Em 2D: idêntico a (x+ox, y+oy)*ZO.
 function w2s(x,y,h){
@@ -5355,6 +5356,7 @@ function glFrame(){
  if(typeof glPrediosFrame=='function')glPrediosFrame(); // 89c-glpredios.js: prédios h/p/m e galpões 'W'
  if(typeof glJogFrame=='function')glJogFrame(); // 89d-gljogador.js: novo token; esconde quem nao for desenhado
  if(typeof glZumbiFrame=='function')glZumbiFrame(); // 89e-glzumbis.js: zera as instancias do quadro
+ if(typeof glItemFrame=='function')glItemFrame(); // 89f-glitens.js: zera as instancias dos itens do quadro
 }
 // 1c: o render do quadro e ADIADO para o fim de draw() (90-sons.js) porque o jogador 3D so recebe a pose
 // DEPOIS de glFrame (drawPlayerGL roda na lista D do 2D). Assim pose, camera e chao sao do mesmo quadro.
@@ -5362,6 +5364,7 @@ function glRenderNow(){
  if(!glLive)return;
  if(typeof glJogEnd=='function')glJogEnd(); // esconde os jogadores nao desenhados neste quadro
  if(typeof glZumbiEnd=='function')glZumbiEnd(); // 89e-glzumbis.js: publica as instancias do quadro
+ if(typeof glItemEnd=='function')glItemEnd(); // 89f-glitens.js: publica as instancias dos itens do quadro
  GLR.render(GLSCN,GLCAM);
 }
 if(glOn)glInit();
@@ -6178,6 +6181,136 @@ function zgInfo(){
 }
 if(typeof window!=='undefined')window.__glz=zgInfo;
 
+// ---------- 89f-glitens.js — itens no chão em 3D (modelo + esfera translúcida + halo) ----------
+// SÓ com glLive. Sem a flag (e depois de glKill()) o 2D de 85-armas.js (drawPickup/drawWeapon3D/weaponIcon)
+// continua sendo o único usado e NÃO é tocado aqui.
+// Mesmos dados/lógica do drawPickup: IL=[x,y,k,v] já filtrada por v()/bAt() no laço de draw (90-sons.js);
+// mapa k->modelo idêntico (armas WPG[k-1]/0/5, itens IT3); giro yaw=t/700; flutuação bb=sin(t/250+x)*3;
+// raio R=24+sin(t/300+x); cor SÓ por itCol(k) (decisão tomada). Geometria de WPG[i] convertida UMA vez por
+// modelo em BufferGeometry com cores por vértice nos 3 canais (jgNrm/jgGeo de 89d-gljogador.js).
+// Eixos iguais aos do jogador/zumbis (89d/89e): mundo (x, altura, y), yaw em torno de Y no MESMO sentido do 2D.
+// Altura: gpH(x,y) (superfície de 89b-glprops.js) + (26+bb)/GLSIN — o 2D desenha o item 26+bb px ACIMA do chão
+// na tela; em GL a altura h aparece como h·sin(GTLT), então dividimos por GLSIN p/ o item cair no mesmo lugar.
+// RENDER adiado: glItemFrame() no glFrame zera as contagens, o laço de draw() empurra (glItemPush) e glItemEnd()
+// no glRenderNow publica só o trecho usado e esconde o resto. Sem alocação por quadro.
+const IG_MAX=300,IG_R=new Map(),IG_GH=new Map(),IG_COL={};
+let IG_TOK=0,IG_SPH=null,IG_SC=0,IG_HALO=null,IG_HC=0,IG_IMAT=null,IG_TEX=null,IG_WARN=0;
+const _igY=new THREE.Vector3(0,1,0),_igP=new THREE.Vector3(),_igQ=new THREE.Quaternion(),_igS=new THREE.Vector3(),_igM=new THREE.Matrix4(),_igC=new THREE.Color();
+function igMat(){return IG_IMAT||(IG_IMAT=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide}))}
+// modelo do item (mesmo mapa do drawPickup 2D). -1 = sem GLB (só esfera/halo)
+function igModel(k){
+ const wl=k==2||k==3||k==4||k==5||k==7||k==11;
+ const wi=wl?(k==7?0:k==11?5:k-1):(IT3[k]!=null?IT3[k]:-1);
+ return (wi>=0&&WPG[wi])?wi:-1;
+}
+// geometria do modelo PARA UM TINT (K −1 preto, −2 cor do item, igual ao 2D/pcG)
+function igGeo(idx,tint){
+ const g=WPG[idx];if(!g||!g.n)return null;
+ const n=g.n,P=new Float32Array(g.P),N=new Float32Array(n*9),C=new Float32Array(n*9);
+ jgNrm(P,n,N);
+ for(let f=0;f<n;f++){const kk=g.K[f],q=f*9,qc=f*3;
+  for(let k=0;k<3;k++){const c=kk===-1?34:kk===-2?tint[k]:g.C[qc+k];
+   for(let v=0;v<3;v++)C[q+v*3+k]=c/255}}
+ return jgGeo(P,N,C);
+}
+function igBuild(idx,col){
+ const tint=rgbOf(col),geo=igGeo(idx,tint);
+ if(!geo)return null;
+ const im=new THREE.InstancedMesh(geo,igMat(),IG_MAX);
+ im.frustumCulled=false;im.count=0;im.visible=false;
+ try{im.instanceMatrix.setUsage(THREE.DynamicDrawUsage)}catch(e){}
+ GLW.add(im);
+ // mesma escala do 2D: armas min(60,34/WDIM) e itens min(90,32/WDIM)
+ const S=idx<=5?Math.min(60,34/(WDIM[idx]||1)):Math.min(90,32/(WDIM[idx]||1));
+ return {idx,im,geo,S,cnt:0,tri:WPG[idx].n};
+}
+function igGet(idx,col){
+ const key=idx+'|'+col,rec=IG_R.get(key);if(rec!==undefined)return rec;
+ const r=igBuild(idx,col);IG_R.set(key,r);return r;
+}
+function igColor(k){return IG_COL[k]||(IG_COL[k]=new THREE.Color(itCol(k)))}
+// altura do chão cacheada por pixel inteiro (gpH é estática e cara: varre ROWS×8 por chamada)
+function igGround(x,y){
+ const key=(x|0)+'|'+(y|0),h=IG_GH.get(key);if(h!==undefined)return h;
+ let v=0;if(typeof gpH==='function'){try{v=gpH(x,y)||0}catch(e){v=0}}
+ if(IG_GH.size>2048)IG_GH.clear();
+ IG_GH.set(key,v);return v;
+}
+// esfera translúcida (1 InstancedMesh, cor por instância) — desenhada depois dos opacos
+function igSph(){
+ if(IG_SPH)return IG_SPH;
+ const ge=new THREE.SphereGeometry(1,12,8);
+ IG_SPH=new THREE.InstancedMesh(ge,new THREE.MeshBasicMaterial({transparent:true,opacity:.17,depthWrite:false}),IG_MAX);
+ IG_SPH.frustumCulled=false;IG_SPH.count=0;IG_SPH.visible=false;IG_SPH.renderOrder=10;
+ try{IG_SPH.instanceMatrix.setUsage(THREE.DynamicDrawUsage)}catch(e){}
+ GLW.add(IG_SPH);return IG_SPH;
+}
+// halo aditivo (billboard quad com gradiente radial), cor por instância
+function igHalo(){
+ if(IG_HALO)return IG_HALO;
+ if(!IG_TEX){const cv=document.createElement('canvas');cv.width=cv.height=64;const c2=cv.getContext('2d');
+  if(c2){const g2=c2.createRadialGradient(32,32,0,32,32,32);g2.addColorStop(0,'rgba(255,255,255,.55)');g2.addColorStop(.5,'rgba(255,255,255,.18)');g2.addColorStop(1,'rgba(255,255,255,0)');c2.fillStyle=g2;c2.fillRect(0,0,64,64);IG_TEX=new THREE.CanvasTexture(cv)}}
+ const ge=new THREE.PlaneGeometry(2,2);
+ IG_HALO=new THREE.InstancedMesh(ge,new THREE.MeshBasicMaterial({map:IG_TEX,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}),IG_MAX);
+ IG_HALO.frustumCulled=false;IG_HALO.count=0;IG_HALO.visible=false;IG_HALO.renderOrder=11;
+ try{IG_HALO.instanceMatrix.setUsage(THREE.DynamicDrawUsage)}catch(e){}
+ GLW.add(IG_HALO);return IG_HALO;
+}
+// por quadro (chamado no glFrame): novo token e zera as contagens
+function glItemFrame(){
+ IG_TOK++;IG_SC=0;IG_HC=0;
+ for(const rec of IG_R.values())if(rec)rec.cnt=0;
+ if(GQ.esfera)igSph();
+ if(GQ.halo)igHalo();
+}
+// empurra UM item (mesma animação/posição do drawPickup 2D). Sem alocação por quadro.
+function glItemPush(x,y,k,vv,t,bb){
+ if(!glLive||!GLW)return 0;
+ const t0=pfStart();
+ const idx=igModel(k),col=itCol(k),R=24+Math.sin(t/300+x);
+ const h=igGround(x,y)+(26+bb)/GLSIN;
+ _igP.set(x,h,y);
+ if(idx>=0){
+  const rec=igGet(idx,col);
+  if(!rec){if(!IG_WARN){IG_WARN=1;console.warn('glitens: modelo',idx,'sem geometria; usando só a esfera')}}
+  else if(rec.cnt>=IG_MAX){if(!IG_WARN){IG_WARN=1;console.warn('glitens: mais de',IG_MAX,'itens do modelo',idx,'no quadro; excedente ignorado')}}
+  else{_igQ.setFromAxisAngle(_igY,t/700);_igS.set(rec.S,rec.S,rec.S);
+   _igM.compose(_igP,_igQ,_igS);rec.im.setMatrixAt(rec.cnt++,_igM)}
+ }
+ _igC.copy(igColor(k));
+ if(GQ.esfera&&IG_SPH&&IG_SC<IG_MAX){
+  _igQ.identity();_igS.set(R,R,R);_igM.compose(_igP,_igQ,_igS);
+  IG_SPH.setMatrixAt(IG_SC,_igM);IG_SPH.setColorAt(IG_SC,_igC);IG_SC++}
+ if(GQ.halo&&IG_HALO&&IG_HC<IG_MAX){
+  _igQ.copy(GLCAM?GLCAM.quaternion:_igQ.identity());const hr=R*1.25;
+  _igS.set(hr,hr,hr);_igM.compose(_igP,_igQ,_igS);
+  IG_HALO.setMatrixAt(IG_HC,_igM);IG_HALO.setColorAt(IG_HC,_igC);IG_HC++}
+ pfAdd('igl',t0);
+ return idx>=0?1:0;
+}
+// fim do quadro (glRenderNow): publica count/needsUpdate só do trecho usado e esconde o que não foi desenhado
+function glItemEnd(){
+ if(!glLive)return;
+ for(const rec of IG_R.values()){if(!rec)continue;
+  const n=rec.cnt,im=rec.im;im.count=n;im.visible=n>0;
+  if(n){im.instanceMatrix.updateRange.offset=0;im.instanceMatrix.updateRange.count=n*16;im.instanceMatrix.needsUpdate=true}}
+ if(IG_SPH){IG_SPH.count=IG_SC;IG_SPH.visible=IG_SC>0;
+  if(IG_SC){IG_SPH.instanceMatrix.updateRange.offset=0;IG_SPH.instanceMatrix.updateRange.count=IG_SC*16;IG_SPH.instanceMatrix.needsUpdate=true;
+   if(IG_SPH.instanceColor)IG_SPH.instanceColor.needsUpdate=true}}
+ if(IG_HALO){IG_HALO.count=IG_HC;IG_HALO.visible=IG_HC>0;
+  if(IG_HC){IG_HALO.instanceMatrix.updateRange.offset=0;IG_HALO.instanceMatrix.updateRange.count=IG_HC*16;IG_HALO.instanceMatrix.needsUpdate=true;
+   if(IG_HALO.instanceColor)IG_HALO.instanceColor.needsUpdate=true}}
+}
+// diagnóstico (leitura): modelos/malhas/instâncias/triângulos do quadro e stats do renderer
+function igInfo(){
+ let malhas=0,inst=0,tri=0;
+ for(const rec of IG_R.values()){if(!rec||!rec.im.visible)continue;
+  malhas++;inst+=rec.im.count;tri+=rec.im.count*rec.tri}
+ return {modelos:IG_R.size,malhas,inst,tri,esfera:GQ.esfera?IG_SC:0,halo:GQ.halo?IG_HC:0,
+  calls:GLR?GLR.info.render.calls:0,triF:GLR?GLR.info.render.triangles:0,geos:GLR?GLR.info.memory.geometries:0};
+}
+if(typeof window!=='undefined')window.__gli=igInfo;
+
 // ---------- SONS (gerados no código, sem arquivos) ----------
 const lv=(k,d)=>{const v=LS.get(k);return v==null?d:+v},AU={c:null,vol:lv('vol2',50)/100,mv:lv('mvol2',80)/100,tense:0,px:0,py:0,sd:0,rl:0,th:0,ng:0,nb2:0,dh:0,rk:{},fv:0,fp:0,hp:null,mo:null,sl:null,lv:null,k:null,last:{}};$('vol').value=AU.vol*100;$('mvol').value=AU.mv*100;function setMus(v){AU.mv=v/100;LS.set('mvol2',v);if(AU.mg)AU.mg.gain.value=AU.mv*1.2}
 function setVol(v){AU.vol=v/100;LS.set('vol2',v);if(AU.m)AU.m.gain.value=AU.vol}
@@ -6592,8 +6725,18 @@ function glowSpr(key,gs,col,blur,x0,y0,w,h,fn){const k=key+'|'+col+'|'+blur+'|'+
  return GLC[k]={c:cv,m:m,gs:gs}}
 function glowPut(sp,x0,y0){X.drawImage(sp.c,x0-sp.m/sp.gs,y0-sp.m/sp.gs,sp.c.width/sp.gs,sp.c.height/sp.gs)}
 // limite de 60 Hz no desenho (acumulador: em monitor de 144 Hz alterna 2/3 refreshes e a média fica em 60; em 60 Hz passa todos)
-let FPS_NF=0;const FPS_DT=1000/60;
-function draw(){requestAnimationFrame(draw);{const _n=performance.now();if(_n<FPS_NF-1)return;FPS_NF=_n-FPS_NF>100?_n+FPS_DT:FPS_NF+FPS_DT}const _p0=pfStart();ZBUD=0;const s=snap,t=Date.now(),dtf=Math.min(.1,(t-LT)/1000);LT=t;FR++;DT_=dtf;X.setTransform(ZO*DPR,0,0,ZO*DPR,0,0);if(glLive)X.clearRect(0,0,W,H);else{X.fillStyle='#000';X.fillRect(0,0,W,H)}if(!s||s.ph==0){menuScene(t);return}
+// opção do jogador (só desenho; a simulação do host roda a 30 Hz independente): limite de FPS (0 = sem limite) e contador na tela
+let FPSL=+(LS.get('fpslim')||60);if(!(FPSL>=0&&FPSL<=360))FPSL=60;
+let FPS_NF=0,FPS_DT=FPSL?1000/FPSL:0,FPSSHOW=LS.get('fpsshow')=='1',FPS_C=0,FPS_T0=0;
+function fpsUi(){for(const e of document.querySelectorAll('.fpsl'))e.value=String(FPSL);for(const e of document.querySelectorAll('.fpss'))e.checked=FPSSHOW;const b=$('fpsb');if(b)b.style.display=FPSSHOW?'block':'none'}
+function setFpsLim(v){FPSL=+v||0;FPS_DT=FPSL?1000/FPSL:0;FPS_NF=0;LS.set('fpslim',String(FPSL));fpsUi()}
+function setFpsShow(c){FPSSHOW=!!c;FPS_C=0;FPS_T0=0;LS.set('fpsshow',c?'1':'0');fpsUi()}
+fpsUi();
+function draw(){requestAnimationFrame(draw);const _n=performance.now();
+ // limitador por acumulador (em 144 Hz alterna 2/3 refreshes e a média fica no alvo; em taxa <= alvo passa todos)
+ if(FPS_DT){if(_n<FPS_NF-1)return;FPS_NF=_n-FPS_NF>100?_n+FPS_DT:FPS_NF+FPS_DT}
+ if(FPSSHOW){FPS_C++;if(!FPS_T0)FPS_T0=_n;else if(_n-FPS_T0>=500){const b=$('fpsb');if(b)b.textContent=Math.round(FPS_C*1000/(_n-FPS_T0))+' FPS';FPS_C=0;FPS_T0=_n}}
+ const _p0=pfStart();ZBUD=0;const s=snap,t=Date.now(),dtf=Math.min(.1,(t-LT)/1000);LT=t;FR++;DT_=dtf;X.setTransform(ZO*DPR,0,0,ZO*DPR,0,0);if(glLive)X.clearRect(0,0,W,H);else{X.fillStyle='#000';X.fillRect(0,0,W,H)}if(!s||s.ph==0){menuScene(t);return}
  if(FR%180==0){for(const k in RP)if(RP[k].u<FR-120)delete RP[k];zsClean()}
  const mr=me?sm('p'+id,me[3],me[4],dtf):null;if(mr){cx=mr.x;cy=mr.y}meB=bAt(cx,cy);audioFrame(s,t,mr);ox=Math.round(W/2-cx);oy=Math.round(H/2-cy);if(glOn)glFrame();const shx=(Math.random()-.5)*QK*14,shy=(Math.random()-.5)*QK*14;QK=Math.max(0,QK-dtf*1.6);X.save();X.translate(ox+shx,oy+shy);
  const v=(x,y,m=90)=>Math.abs(x-cx)<W/2+m&&Math.abs(y-cy)<H/2+m;
@@ -6611,7 +6754,8 @@ function draw(){requestAnimationFrame(draw);{const _n=performance.now();if(_n<FP
  pfAdd('predios',pb);
  if(s.bp&&v(s.bp[0],s.bp[1],150)){const bx=s.bp[0],by=s.bp[1],pl=(t%1000)/1000;X.strokeStyle='rgba(255,50,50,'+(1-pl)+')';X.lineWidth=4;X.beginPath();X.arc(bx,by,30+pl*70,0,7);X.stroke();X.fillStyle='rgba(255,40,40,.2)';X.beginPath();X.arc(bx,by,60,0,7);X.fill();txt('!',bx,by-30-Math.abs(Math.sin(t/150))*10,44,'#f33');if(FR%6==0)pts(2,bx+(Math.random()-.5)*90,by+(Math.random()-.5)*40,'#3f8a35',140,220,6,1)}
  for(const[x,y,an,len,tt]of s.Dh||[]){X.save();X.translate(x,y);X.rotate(an/100);const fl=tt<1;X.fillStyle=fl?'rgba(255,40,40,'+(.12+tt*.25)+')':'rgba(255,90,40,.35)';X.fillRect(0,-50,len,100);X.strokeStyle='#f44';X.lineWidth=3;X.strokeRect(0,-50,len,100);if(fl){X.fillStyle='#f66';for(let u=60;u<len;u+=90){X.beginPath();X.moveTo(u,-14);X.lineTo(u+28,0);X.lineTo(u,14);X.closePath();X.fill()}}X.restore()}
- for(const[x,y,k,vv]of IL){if(!v(x,y))continue;const ib=bAt(x,y);if(ib&&ib!==meB)continue;const bb=Math.sin(t/250+x)*3;drawPickup(x,y,k,vv,t,bb)}
+ for(const[x,y,k,vv]of IL){if(!v(x,y))continue;const ib=bAt(x,y);if(ib&&ib!==meB)continue;const bb=Math.sin(t/250+x)*3;
+  if(glLive){glItemPush(x,y,k,vv,t,bb);if(k==8)txt(vv,x,y+22,12,'#fe8')}else drawPickup(x,y,k,vv,t,bb)}
 let pl=pfStart();
 const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!(glLive&&(o.t==5||o.t==1||o.t==2||o.t==3))&&!DD[o.i]&&v(o.x+o.w/2,o.y+o.h/2,o.w+80))D.push([o.y+o.h,0,o]);
  for(const b of BLD)if(!glLive&&b!==meB&&v(b.x+b.w/2,b.y+b.h/2,b.w))D.push([b.y+b.h+1,3,b]);for(const f of FIRES)if(v(f[0],f[1],120)&&!(f[4]&&f[4]===meB)&&!(f[5]&&DD[f[5].i]))D.push([f[3],5,f]);

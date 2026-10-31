@@ -412,8 +412,18 @@ function glowSpr(key,gs,col,blur,x0,y0,w,h,fn){const k=key+'|'+col+'|'+blur+'|'+
  return GLC[k]={c:cv,m:m,gs:gs}}
 function glowPut(sp,x0,y0){X.drawImage(sp.c,x0-sp.m/sp.gs,y0-sp.m/sp.gs,sp.c.width/sp.gs,sp.c.height/sp.gs)}
 // limite de 60 Hz no desenho (acumulador: em monitor de 144 Hz alterna 2/3 refreshes e a média fica em 60; em 60 Hz passa todos)
-let FPS_NF=0;const FPS_DT=1000/60;
-function draw(){requestAnimationFrame(draw);{const _n=performance.now();if(_n<FPS_NF-1)return;FPS_NF=_n-FPS_NF>100?_n+FPS_DT:FPS_NF+FPS_DT}const _p0=pfStart();ZBUD=0;const s=snap,t=Date.now(),dtf=Math.min(.1,(t-LT)/1000);LT=t;FR++;DT_=dtf;X.setTransform(ZO*DPR,0,0,ZO*DPR,0,0);if(glLive)X.clearRect(0,0,W,H);else{X.fillStyle='#000';X.fillRect(0,0,W,H)}if(!s||s.ph==0){menuScene(t);return}
+// opção do jogador (só desenho; a simulação do host roda a 30 Hz independente): limite de FPS (0 = sem limite) e contador na tela
+let FPSL=+(LS.get('fpslim')||60);if(!(FPSL>=0&&FPSL<=360))FPSL=60;
+let FPS_NF=0,FPS_DT=FPSL?1000/FPSL:0,FPSSHOW=LS.get('fpsshow')=='1',FPS_C=0,FPS_T0=0;
+function fpsUi(){for(const e of document.querySelectorAll('.fpsl'))e.value=String(FPSL);for(const e of document.querySelectorAll('.fpss'))e.checked=FPSSHOW;const b=$('fpsb');if(b)b.style.display=FPSSHOW?'block':'none'}
+function setFpsLim(v){FPSL=+v||0;FPS_DT=FPSL?1000/FPSL:0;FPS_NF=0;LS.set('fpslim',String(FPSL));fpsUi()}
+function setFpsShow(c){FPSSHOW=!!c;FPS_C=0;FPS_T0=0;LS.set('fpsshow',c?'1':'0');fpsUi()}
+fpsUi();
+function draw(){requestAnimationFrame(draw);const _n=performance.now();
+ // limitador por acumulador (em 144 Hz alterna 2/3 refreshes e a média fica no alvo; em taxa <= alvo passa todos)
+ if(FPS_DT){if(_n<FPS_NF-1)return;FPS_NF=_n-FPS_NF>100?_n+FPS_DT:FPS_NF+FPS_DT}
+ if(FPSSHOW){FPS_C++;if(!FPS_T0)FPS_T0=_n;else if(_n-FPS_T0>=500){const b=$('fpsb');if(b)b.textContent=Math.round(FPS_C*1000/(_n-FPS_T0))+' FPS';FPS_C=0;FPS_T0=_n}}
+ const _p0=pfStart();ZBUD=0;const s=snap,t=Date.now(),dtf=Math.min(.1,(t-LT)/1000);LT=t;FR++;DT_=dtf;X.setTransform(ZO*DPR,0,0,ZO*DPR,0,0);if(glLive)X.clearRect(0,0,W,H);else{X.fillStyle='#000';X.fillRect(0,0,W,H)}if(!s||s.ph==0){menuScene(t);return}
  if(FR%180==0){for(const k in RP)if(RP[k].u<FR-120)delete RP[k];zsClean()}
  const mr=me?sm('p'+id,me[3],me[4],dtf):null;if(mr){cx=mr.x;cy=mr.y}meB=bAt(cx,cy);audioFrame(s,t,mr);ox=Math.round(W/2-cx);oy=Math.round(H/2-cy);if(glOn)glFrame();const shx=(Math.random()-.5)*QK*14,shy=(Math.random()-.5)*QK*14;QK=Math.max(0,QK-dtf*1.6);X.save();X.translate(ox+shx,oy+shy);
  const v=(x,y,m=90)=>Math.abs(x-cx)<W/2+m&&Math.abs(y-cy)<H/2+m;
@@ -431,7 +441,8 @@ function draw(){requestAnimationFrame(draw);{const _n=performance.now();if(_n<FP
  pfAdd('predios',pb);
  if(s.bp&&v(s.bp[0],s.bp[1],150)){const bx=s.bp[0],by=s.bp[1],pl=(t%1000)/1000;X.strokeStyle='rgba(255,50,50,'+(1-pl)+')';X.lineWidth=4;X.beginPath();X.arc(bx,by,30+pl*70,0,7);X.stroke();X.fillStyle='rgba(255,40,40,.2)';X.beginPath();X.arc(bx,by,60,0,7);X.fill();txt('!',bx,by-30-Math.abs(Math.sin(t/150))*10,44,'#f33');if(FR%6==0)pts(2,bx+(Math.random()-.5)*90,by+(Math.random()-.5)*40,'#3f8a35',140,220,6,1)}
  for(const[x,y,an,len,tt]of s.Dh||[]){X.save();X.translate(x,y);X.rotate(an/100);const fl=tt<1;X.fillStyle=fl?'rgba(255,40,40,'+(.12+tt*.25)+')':'rgba(255,90,40,.35)';X.fillRect(0,-50,len,100);X.strokeStyle='#f44';X.lineWidth=3;X.strokeRect(0,-50,len,100);if(fl){X.fillStyle='#f66';for(let u=60;u<len;u+=90){X.beginPath();X.moveTo(u,-14);X.lineTo(u+28,0);X.lineTo(u,14);X.closePath();X.fill()}}X.restore()}
- for(const[x,y,k,vv]of IL){if(!v(x,y))continue;const ib=bAt(x,y);if(ib&&ib!==meB)continue;const bb=Math.sin(t/250+x)*3;drawPickup(x,y,k,vv,t,bb)}
+ for(const[x,y,k,vv]of IL){if(!v(x,y))continue;const ib=bAt(x,y);if(ib&&ib!==meB)continue;const bb=Math.sin(t/250+x)*3;
+  if(glLive){glItemPush(x,y,k,vv,t,bb);if(k==8)txt(vv,x,y+22,12,'#fe8')}else drawPickup(x,y,k,vv,t,bb)}
 let pl=pfStart();
 const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!(glLive&&(o.t==5||o.t==1||o.t==2||o.t==3))&&!DD[o.i]&&v(o.x+o.w/2,o.y+o.h/2,o.w+80))D.push([o.y+o.h,0,o]);
  for(const b of BLD)if(!glLive&&b!==meB&&v(b.x+b.w/2,b.y+b.h/2,b.w))D.push([b.y+b.h+1,3,b]);for(const f of FIRES)if(v(f[0],f[1],120)&&!(f[4]&&f[4]===meB)&&!(f[5]&&DD[f[5].i]))D.push([f[3],5,f]);
