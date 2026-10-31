@@ -87,27 +87,46 @@ function musFrame(){
 // BM_DROP = degrau do drop (batida 256), BM_LOOP_A..BM_LOOP_B = corpo do loop (71 compassos, emenda de -39 dB),
 // BM_BAR = 1,6896 s (compasso a 142 BPM). O audio e posicionado para a primeira batida do drop cair na chegada
 // do boss (ev 7); o relogio de AUDIO e o mestre do disparo, com BM_LAT de compensacao da saida.
-const BM_START=1.03632,BM_DROP=11.1739,BM_LOOP_A=11.1767,BM_LOOP_B=131.1383,BM_BAR=1.6896,BM_LAT=.03,BM_BOSS_DB=-3.3,BM_END=140;
+// MU2b: BM_AHEAD compensa a latencia de partida do elemento (play/seek chega 80-300 ms depois); BM_LAT, a
+// latencia de saida do audio. Ajustaveis de ouvido por LS 'bmahead'/'bmlat' ou ?bmahead=..&bmlat=.. na URL.
+function bmCfg(k,def){
+ try{const q=new URLSearchParams(location.search).get(k);if(q!=null&&q!==''&&isFinite(+q))return +q}catch(e){}
+ const v=LS.get(k);return v==null||v===''||!isFinite(+v)?def:+v;
+}
+const BM_START=1.03632,BM_DROP=11.1739,BM_LOOP_A=11.1767,BM_LOOP_B=131.1383,BM_BAR=1.6896,BM_BOSS_DB=-3.3,BM_END=140,
+ BM_AHEAD=bmCfg('bmahead',.10),BM_LAT=bmCfg('bmlat',.03),
+ // MU2b-2: recorrecoes durante o lead-in (restante em s). Nunca seek com r<1,2 s.
+ BM_CHK=[6,3.5,1.8];
 // st: bi(ocioso) -> lead(contagem) -> loop(luta) -> saida(espera o compasso) -> outro -> bi
 const BM={st:'bi',EA:null,EB:null,A:null,B:null,envA:0,envB:0,eA0:0,eB0:0,eA1:0,eB1:0,et0:0,ed:0,swapP:0,
  rem:0,remAt:0,started:0,played:0,corr:0,dropDone:0,dropPerf:0,ev7Perf:0,posEv7:-1,seen:0,fail:0,
- out0:0,outStarted:0,backAt:0};
+ out0:0,outStarted:0,backAt:0,ci:0,vies:.03,correcoes:[],seekPend:0,seekSet:0};
 function bmBoss(){return !!(typeof snap!=='undefined'&&snap&&snap.Z&&snap.Z.some(z=>z[2]==3))}
 function bmInit(){
  if(BM.EA)return 1;
  try{
   const mk=()=>{const a=new Audio();a.preload='auto';a.volume=0;a.src='music/boss_cut.mp3';
    a.addEventListener('playing',()=>{if(a===BM.A)BM.played=1});
-   a.addEventListener('error',()=>{if(a===BM.A)BM.fail=1});
+   // B6c: qualquer erro do elemento do boss desliga a musica do boss e DEVOLVE a playlist (nao deixa abafada)
+   a.addEventListener('error',()=>{bmFail()});
+   a.addEventListener('seeked',()=>{if(a===BM.A&&BM.seekPend){const v=BM.seekSet-a.currentTime;BM.vies=Math.max(-.2,Math.min(.2,v));BM.seekPend=0}});
    a.addEventListener('stalled',()=>{});
    return a};
   BM.EA=mk();BM.EB=mk();
- }catch(e){BM.fail=1;return 0}
+ }catch(e){bmFail();return 0}
  return 1;
 }
 function bmVol(e){return Math.min(1,Math.max(0,Math.pow(10,BM_BOSS_DB/20)*AU.mv*1.2*(e._env||0)))}
-function bmPlay(e){if(!e)return;try{const p=e.play();if(p&&p.catch)p.catch(()=>{if(e===BM.A)BM.fail=1})}catch(x){if(e===BM.A)BM.fail=1}}
+function bmPlay(e){if(!e)return;try{const p=e.play();if(p&&p.catch)p.catch(()=>{if(e===BM.A)bmFail()})}catch(x){if(e===BM.A)bmFail()}}
 function bmSeek(e,t){try{if(e&&e.readyState>=1)e.currentTime=Math.max(0,t)}catch(x){}}
+// B6c: falha do audio do boss em QUALQUER estado (404, play() rejeitado): marca fail, para o boss e devolve a
+// playlist (fade-in). O tremor do drop passa a vir so do evento 7 (handleEv), como antes da MU2.
+function bmFail(){
+ if(BM.fail)return;BM.fail=1;
+ for(const e of[BM.EA,BM.EB])if(e){try{e.pause()}catch(x){}e._env=0}
+ BM.A=BM.B=null;BM.envA=BM.envB=0;BM.ed=0;BM.swapP=0;BM.played=0;BM.started=0;BM.outStarted=0;BM.backAt=0;BM.st='bi';
+ musDuckPlaylist(1,1500);
+}
 function bmEnv(a,b,ms,now){BM.eA0=BM.envA;BM.eB0=BM.envB;BM.eA1=a;BM.eB1=b;BM.et0=now;BM.ed=Math.max(1,ms|0)}
 function bmSwap(){const e=BM.A;BM.A=BM.B;BM.B=e;const v=BM.envA;BM.envA=BM.envB;BM.envB=v;if(BM.B){try{BM.B.pause()}catch(x){}BM.B._env=0}}
 function bmHalt(){for(const e of[BM.EA,BM.EB])if(e){try{e.pause()}catch(x){}e._env=0}
@@ -119,6 +138,7 @@ function bmApply(now){
 }
 function bmLead(now){
  BM.st='lead';BM.seen=0;BM.played=0;BM.started=0;BM.corr=0;BM.dropDone=0;BM.swapP=0;BM.backAt=0;
+ BM.ci=0;BM.vies=.03;BM.correcoes=[];BM.seekPend=0;BM.seekSet=0;
  BM.rem=+snap.bp[3]||0;BM.remAt=now;
  BM.A=BM.EA;BM.B=BM.EB;BM.envA=BM.envB=0;BM.ed=0;
  bmSeek(BM.A,BM_START);
@@ -130,8 +150,17 @@ function bmLoop(now,fade){
  bmSeek(BM.A,BM_LOOP_A);bmPlay(BM.A);bmEnv(1,0,fade||1000,now);
  musDuckPlaylist(0,800);
 }
-function musDrop(){if(BM.dropDone)return;BM.dropDone=1;BM.dropPerf=performance.now();BM.st='loop';BM.seen=1;QK=Math.max(QK,1.6)}
-function bmEv7(){BM.ev7Perf=performance.now();BM.posEv7=BM.A?BM.A.currentTime:-1}
+function musDrop(){
+ if(BM.dropDone)return;BM.dropDone=1;BM.dropPerf=performance.now();BM.st='loop';BM.seen=1;QK=Math.max(QK,1.6);
+ const a=BM.A;
+ // veio do evento 7 com o audio ainda parado (falha/latencia de partida): comeca o loop agora, sem drop audivel
+ if(a&&!BM.fail&&!BM.played){BM.swapP=0;bmSeek(a,BM_LOOP_A);bmPlay(a);bmEnv(1,0,600,BM.dropPerf)}
+}
+function bmEv7(){
+ BM.ev7Perf=performance.now();BM.posEv7=BM.A?BM.A.currentTime:-1;
+ // MU2b-3: o drop tambem dispara pelo evento 7 (fonte de verdade do nascimento do boss); o audio so antecipa
+ if(!BM.fail&&BM.st=='lead'&&!BM.dropDone)musDrop();
+}
 function bmFrame(){
  const now=performance.now();
  const inM=typeof snap!=='undefined'&&snap&&snap.ph==1;
@@ -147,17 +176,24 @@ function bmFrame(){
  }
  BM.out0=0;
  if(!BM.EA&&!bmInit())return;
- if(BM.fail){if(BM.st!='bi'){bmHalt();BM.st='bi';musDuckPlaylist(1,1500)}bmApply(now);return}
+ if(BM.fail){if(BM.st!='bi'||MUS.dm<1)bmFail();bmApply(now);return}
  if(BM.st=='bi'){
   if(snap.bp)bmLead(now);
   else if(bmBoss())bmLoop(now,1000); // entrou no meio da luta: direto no loop, sem drop
  }
  if(BM.st=='lead'){
-  const r=BM.rem-(now-BM.remAt)/1000,a=BM.A;
-  if(a){const pos=Math.min(BM_LOOP_B-.5,Math.max(BM_START,BM_DROP-r));
-   if(!BM.started&&!BM.fail&&a.readyState>=1){a.currentTime=pos;bmPlay(a);BM.started=1;bmEnv(1,0,40,now)}
-   else if(BM.started&&!BM.played&&!BM.fail&&a.readyState>=1&&a.paused)bmPlay(a);
-   if(BM.played&&!BM.corr){const dr=a.currentTime-(BM_DROP-r);if(Math.abs(dr)>0.05&&r>1.5){bmSeek(a,a.currentTime-dr);BM.corr=1}else if(r<=1.5)BM.corr=1}
+  const r=BM.rem-(now-BM.remAt)/1000,a=BM.A,tg=()=>BM_DROP-r+BM_AHEAD;
+  if(a&&!BM.fail){
+   if(!BM.started&&a.readyState>=1){bmSeek(a,Math.max(BM_START,Math.min(BM_LOOP_B-.5,tg())));bmPlay(a);BM.started=1;bmEnv(1,0,40,now)}
+   else if(BM.started&&!BM.played&&a.readyState>=1&&a.paused)bmPlay(a);
+   // MU2b-2: recorrecao em r~6/3,5/1,8 s (nunca com r<1,2 s). vies = latencia de seek aprendida (posicao pedida - real)
+   if(BM.played&&!BM.dropDone&&r>1.2&&BM.ci<BM_CHK.length&&r<=BM_CHK[BM.ci]){
+    const P=tg(),d=a.currentTime-P;
+    BM.correcoes.push({r:+r.toFixed(3),d:+d.toFixed(3),vies:+BM.vies.toFixed(3)});
+    if(Math.abs(d)>0.04){const set=Math.max(BM_START,Math.min(BM_LOOP_B-.5,P+BM.vies));BM.seekPend=1;BM.seekSet=set;bmSeek(a,set)}
+    do{BM.ci++}while(BM.ci<BM_CHK.length&&r<=BM_CHK[BM.ci]);
+   }
+   if(BM.played&&!BM.corr){const dr=a.currentTime-tg();if(Math.abs(dr)>0.05&&r>1.5){bmSeek(a,a.currentTime-dr);BM.corr=1}else if(r<=1.5)BM.corr=1}
    if(BM.played&&!BM.dropDone&&a.currentTime>=BM_DROP+BM_LAT)musDrop();
   }
  }
@@ -188,6 +224,7 @@ function bmFrame(){
 try{Object.defineProperty(window,'__mus',{configurable:true,get:()=>{
  const A=MUS.A,a=A&&A.a;
  return {estado:MUS.st,faixa:A?MUS_T[A.idx].n:null,ordem:MUS.order.slice(),vol:a?a.volume:0,t:a?a.currentTime:0,dur:a&&isFinite(a.duration)?a.duration:0,sinteticaGain:AU.msyn?AU.msyn.gain.value:null,
-  boss:{estado:BM.st,t:BM.A?BM.A.currentTime:0,drop_disparado_perf:BM.dropPerf||null,ev7_perf:BM.ev7Perf||null,pos_no_ev7:BM.posEv7,rem:BM.st=='lead'?Math.max(0,BM.rem-(performance.now()-BM.remAt)/1000):0}};
+  boss:{estado:BM.st,t:BM.A?BM.A.currentTime:0,drop_disparado_perf:BM.dropPerf||null,ev7_perf:BM.ev7Perf||null,pos_no_ev7:BM.posEv7,rem:BM.st=='lead'?Math.max(0,BM.rem-(performance.now()-BM.remAt)/1000):0,
+   ahead:BM_AHEAD,lat:BM_LAT,fail:BM.fail,vies:+BM.vies.toFixed(3),correcoes:BM.correcoes.slice()}};
 }})}catch(e){}
 setInterval(musFrame,120);
