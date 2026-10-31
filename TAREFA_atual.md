@@ -1,20 +1,49 @@
-# TAREFA_atual.md — Otimização, pacote B (menos custo de tela cheia / HUD)
+# TAREFA_atual.md — 3D real (WebGL), ETAPA 1: infraestrutura + chão/ruas/prédios/props + jogador
 
-> Agente: OpenCode `rapido` (via `escritor`). Se falhar, parar e escrever bloqueio em `saidas/relatorio.txt` (≤15 linhas).
+> STATUS: SPEC PARA APROVAÇÃO DO USUÁRIO. Não delegar antes do "ok". Fazer commit antes de delegar.
+> Fluxo: (0) `analista` Claude responde as perguntas da Etapa 0 → (1) `escritor`/OpenCode `rapido` implementa por sub-etapas (1a, 1b, 1c), UMA por vez, commit entre elas → (2) Claude revisa `git diff` e `general-purpose` mede no Firefox COM janela (ABAB contra o modo 2D).
 > **Edite `src/`, NUNCA `game.html`. No fim rode `node build.js` e `node build.js --check`.** Achar código: `grep -n 'texto' src/js/*.js`; ler com `sed -n 'A,Bp' arquivo | cut -c1-400`.
-> NÃO mexer em: `server.js`, Dockerfile, workflows, `package*.json`, `capacitor.config.json`, snapshot/rede, `genMap`, `98-debug.js`, `menuScene`/`ms*`. **Nenhuma mudança visual perceptível**: o jogo deve ficar com a mesma aparência; só muda o custo por quadro.
+> NÃO mexer em: `server.js`, Dockerfile, workflows, `package*.json`, `capacitor.config.json`, snapshot/rede, `genMap`, simulação do host (`40-host.js`), `98-debug.js`.
 
 ## Objetivo
-Medição (Firefox, GPU real): no "regime lento" os passes de tela cheia (`chao`, `hud`) custam ~5 ms por megapixel. Reduzir o número de operações de tela cheia e de `shadowBlur` por quadro.
+Hoje: canvas 2D, câmera fixa, projeção oblíqua (tela = (X − 0,3·h, Y − h)); GLBs viram sprites rasterizados por software (CPU) com cache. Meta: renderizar o MUNDO em WebGL (three.js) com a mesma vista de cima e a mesma jogabilidade, para a GPU fazer o trabalho e o FPS parar de cair ao andar. A lógica (x,y do mundo, colisão, rede, host) NÃO muda.
 
-## Mudanças
-1. **Tint + vinheta num bitmap só** — `src/js/90-sons.js` ~linhas 453–456 (`X.fillStyle='rgba(20,10,50,.2)';X.fillRect(0,0,W,H)` seguido do gradiente radial `VIG`). Hoje são 2 fillRect de tela cheia por quadro. Trocar por: um canvas offscreen do tamanho de `C.width × C.height` (pixels reais), desenhado UMA vez com a mesma geometria (aplicar `setTransform(ZO*DPR,0,0,ZO*DPR,0,0)` nele, pintar o tint `rgba(20,10,50,.2)` e depois o gradiente radial com os mesmos parâmetros e cores atuais), refeito só quando mudar `C.width`, `C.height` ou `ZO` (chave string/número simples). Por quadro: `X.save();X.setTransform(1,0,0,1,0,0);X.drawImage(off,0,0);X.restore()`. Preferir `ImageBitmap` via `createImageBitmap` se já houver padrão no projeto (como `sp.bm`); senão manter o canvas (não bloquear). Aparência idêntica.
-2. **Canvas opaco** — `src/js/00-base.js:1`: `C.getContext('2d')` → `C.getContext('2d',{alpha:false})`. Antes, confirmar em `draw()` (`90-sons.js:402`) que o quadro começa com `fillRect` de cor sólida cobrindo tudo; se não cobrir, NÃO aplicar e anotar no relatório. Não usar `desynchronized`.
-3. **Brilho do HUD sem `shadowBlur`** — `90-sons.js:478` (cruz de vida, `shadowBlur=10+10*pu`, cor `hcol`) e `:480` (estrela de nível, `shadowBlur` 16 se `lvUp` senão 10; cores `#ff6a5a` / `#f2c230`). Pré-renderizar o brilho de cada um em canvas offscreen pequeno (cache por cor/estado, criado sob demanda com `shadowBlur` fixo) e, por quadro, desenhar o brilho com `drawImage` e `globalAlpha` (a pulsação `pu` e o `lvUp` modulam o alpha em vez do raio do blur), depois desenhar a forma nítida SEM `shadowColor/shadowBlur`. Posição e tamanho do brilho devem coincidir com o atual; margem do offscreen suficiente para o blur não cortar.
-4. **Gradiente do placar em cache** — `90-sons.js:~461` (`createLinearGradient(px,ry,px,ry+ph)` por quadro): guardar o gradiente em variável de módulo com chave `px|ry|ph` e recriar só se a chave mudar. Mesma aparência.
-5. Fora de escopo neste lote (não fazer): redesenhar o HUD estático a 10 Hz, cache de jogador/itens, resolução dinâmica.
+## Regras de segurança (valem para todas as sub-etapas)
+- **Modo 3D atrás de flag**: `?gl=1` na URL (ou `LS 'gl'`). Sem a flag o jogo roda EXATAMENTE como hoje (2D). O código 2D só é removido numa etapa futura, depois de aprovado.
+- Se WebGL falhar (`getContext` nulo, erro de shader, `webglcontextlost`) → cair automaticamente no 2D sem travar.
+- O HUD, o minimapa, o placar e o menu continuam em canvas 2D (o canvas 2D atual fica POR CIMA, transparente, só com HUD/textos/nomes/barras). O canvas WebGL fica atrás, mesmo tamanho (CSS) e DPR limitado a 2.
+- Zumbis, boss, itens no chão, veículos e armas continuam 2D (sprites atuais) na Etapa 1, desenhados no canvas de cima. **Imperfeição aceita nesta etapa**: sem oclusão correta entre eles e prédios/árvores 3D. Eles passam a 3D na Etapa 2.
+- Nenhuma dependência nova no `package.json`. Arquivos de terceiros ficam em `src/vendor/` e entram no `game.html` via `build.js`.
 
-## Critério de pronto
-- `node build.js` e `node build.js --check` ok; `node --check` em cada arquivo alterado de `src/js/`.
-- `grep -n "shadowBlur" src/js/90-sons.js` não mostra mais `shadowBlur` nos dois trechos do HUD por quadro (pode restar dentro do código que PRÉ-RENDERIZA o brilho, fora do caminho por quadro).
-- Só os arquivos acima alterados. Relatório em `saidas/relatorio.txt` (≤10 linhas): arquivos e linhas alteradas, e o que NÃO foi aplicado e por quê (ex.: item 2).
+## Etapa 0 — análise (analista Claude, somente leitura, resposta ≤30 linhas, não escreve código)
+1. Onde estão TODAS as conversões tela↔mundo (cliques/toque para mover/atacar, mira, joystick, minimapa, arco de itens, nomes, barras de vida)? Listar arquivo:linha. Essas têm de passar a usar UMA função `w2s(x,y,h)` / `s2w(sx,sy)` que existe nos dois modos.
+2. Estrutura do laço `draw()` (`90-sons.js:414`): ordem das camadas, lista `D` por y, onde entram `groundChunks`, `cenDraw`, `obst`, `roof`, `drawPlayer`.
+3. Como `cenLoad` (`86-cenario.js`) e `80-jogador.js` leem GLB (parser próprio?). Dá para reaproveitar as malhas/materiais/esqueleto para three.js ou é melhor `GLTFLoader` a partir do mesmo base64?
+4. Onde ficam as animações do jogador (clipes idle/walk/run/aim/shoot/die, IK da mão esquerda, `mz` da boca do cano): como são aplicadas hoje.
+5. Lista dos GLBs do mundo (`CENGLB`, ruas, prédios h/p/m, casas) com contagem aproximada de nós/triângulos.
+
+## Sub-etapa 1a — infraestrutura WebGL (sem mudar visual)
+- Obter three.js **r147** (`build/three.min.js`, global `THREE`) e `examples/js/loaders/GLTFLoader.js` (r147 é a última versão com build global; confirmar na hora). Salvar em `src/vendor/`. `build.js`: incluir `src/vendor/*.js` ANTES de `src/js/*.js` (ordem alfabética, vendor primeiro); o `--release` também. Conferir que o tamanho do `game.html` e a ordem não quebram o `node build.js --check`.
+- Novo arquivo `src/js/88-gl.js` (NÃO colocar WebGL dentro de `90-sons.js`): cria o renderer (`antialias:true`, `powerPreference:'high-performance'`, DPR ≤2), cena, `OrthographicCamera` com inclinação fixa que reproduza a projeção atual (eixo de cisalhamento `(0,3, 1, 1)` ou inclinação de ~55–60° equivalente; escolher a que mantém ruas e prédios com o mesmo aspecto dos sprites de hoje; documentar a escolha em comentário curto), zoom = `CAM*ZO` atual, segue `cx,cy`.
+- Funções `w2s`, `s2w` (raycast no plano y=0) e substituição das conversões listadas na Etapa 0 por elas. **No modo 2D devem devolver exatamente os mesmos valores de hoje.**
+- Luz: 1 `DirectionalLight` + `HemisphereLight` com cor/intensidade aproximando o tom atual (noite fria, tint `rgba(20,10,50,.2)`); sombra do jogador/props só se custar <1 ms (senão, sem sombra por enquanto).
+- Critério de pronto: com `?gl=1` abre o jogo, a tela mostra um chão liso na cor da grama e o HUD 2D por cima; sem a flag nada mudou; console limpo; `node build.js --check` ok.
+
+## Sub-etapa 1b — mundo estático em 3D
+- Chão (grama, asfalto, ruas T/curva/cruzamento/reta, calçadas, rio e pontes) e prédios (h/p/m e casas) a partir dos MESMOS GLBs e da mesma lógica de `genMap`/`cenario` (posição, giro, ruas escolhidas pelos braços reais). Props de decoração (`DECOR`, ~275) via `InstancedMesh` por modelo (um draw call por tipo), com os mesmos yaws/flip. Árvores, cercas, carros (`VGLB`, modelo por `(o.i*7+3)%5`).
+- Só construir objetos em volta da câmera (raio ~2 chunks de 1000 px); descartar/pooling ao sair. Nada de gerar tudo no boot nem a cada quadro. Sem alocação por quadro no laço.
+- Telhado transparente/oculto quando o jogador está dentro (comportamento atual de `roof`/interior); manter a marca `ENTRADA`.
+- Critério de pronto: andar pela cidade inteira em `?gl=1` com ruas e prédios no lugar certo e igual ao 2D (comparar print ao lado), sem buracos nem Z-fighting; console limpo.
+
+## Sub-etapa 1c — jogador em 3D
+- Jogador local e aliados (cores de camisa por jogador, nome/barra de vida em 2D por cima via `w2s`) como modelo animado no WebGL (`AnimationMixer` ou o esqueleto atual, conforme Etapa 0): idle/walk/run/aim/shoot/die, trote com cadência pela velocidade, corrida com boost, IK da mão esquerda, arma 3D na mão com `mz` (boca do cano) para o tiro sair do cano certo (tiro/clarão/rastro continuam 2D por cima, posicionados via `w2s(mz)`).
+- Critério de pronto: jogar solo em `?gl=1`: andar, mirar, atirar, trocar armas, morrer e reviver com o desfibrilador funcionam como no 2D; mira/clique batem exatamente com o ponto do chão (testar clicando num poste/porta).
+
+## Medição obrigatória (agente `general-purpose`, Firefox COM janela, geckodriver, ABAB: 2D, GL, 2D, GL)
+Mesma rota automática de ~60 s pela cidade usada em `saidas/perf/perf_ab_chunks.md`. Reportar: FPS parado, FPS durante/depois da caminhada, FPS ao voltar ao spawn, ms de `draw`, memória aproximada, tempo de boot, tamanho do `game.html`. Meta: ≥60 FPS estáveis ao andar, sem a queda persistente <30 FPS. Se `?gl=1` não vencer o 2D, PARAR e avisar; não seguir para a Etapa 2.
+
+## Fora do escopo desta etapa (fica para a Etapa 2/3)
+Zumbis e boss em `InstancedMesh` animado, itens/armas no chão, veículos animados, fogo/fumaça/partículas em WebGL, sombras avançadas, rotação de câmera, remover o código 2D, minificação, APK.
+
+## Riscos a registrar no relatório
+Peso do `game.html` (three ≈ +600 KB); WebGL em celular fraco/WebView do APK; perda de contexto WebGL; determinismo do mapa entre clientes (não alterar `genMap`/`decorObs`); itens e zumbis 2D sem oclusão na Etapa 1.
