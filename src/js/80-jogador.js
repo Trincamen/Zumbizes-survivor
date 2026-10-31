@@ -44,7 +44,11 @@ try{PG=(()=>{
  TOT+=600; // folga para a arma real (GLB) no weapon_socket
  return {NN,PAR,RT,RR,ORD,GEO,CLP,TOT,WS:ws,WRT:new Float32Array(NN*9),WT:new Float32Array(NN*3),PGT:new Float32Array(NN*3),PGR:new Float32Array(NN*4),TMT:new Float32Array(NN*3),TMR:new Float32Array(NN*4),XY:new Float32Array(TOT*6),CL:new Uint8Array(TOT*3),DP:new Float32Array(TOT),OR:new Int32Array(TOT)}
 })()}catch(e){PG=null}
-const pgHex=h=>h.length==4?'#'+h[1]+h[1]+h[2]+h[2]+h[3]+h[3]:h;
+// cor do jogador vem do host como hsl(H,S%,L%) (40-host.js:4); rgbOf/pgHex só entendiam #hex (NaN -> camisa preta)
+const pgHex=h=>{if(h&&h.charCodeAt(0)===104){const m=/hsl\(\s*([\d.]+)\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%/.exec(h);
+  if(m){const H=(+m[1]%360+360)%360,S=+m[2]/100,L=+m[3]/100,A=S*Math.min(L,1-L),f=n=>{const k=(n+H/30)%12,v=L-A*Math.max(-1,Math.min(k-3,9-k,1));return Math.round(v*255)},x=v=>(v<16?'0':'')+v.toString(16);
+   return '#'+x(f(0))+x(f(8))+x(f(4))}}
+  return h.length==4?'#'+h[1]+h[1]+h[2]+h[2]+h[3]+h[3]:h};
 function pgSample(ch,time,out,off){const ts=ch.t,v=ch.v,n=ts.length,nc=ch.nc;if(!n)return;
  let a,bb,f;
  if(time<=ts[0]){a=bb=0;f=0}else if(time>=ts[n-1]){a=bb=n-1;f=0}
@@ -68,8 +72,10 @@ function pgLoco(ph,b){const w=PG.CLP.walk_aim,r=PG.CLP.run_aim,TM=PG.TMT,TR=PG.T
   if(x0*x1+y0*y1+z0*z1+w0*w1<0){x1=-x1;y1=-y1;z1=-z1;w1=-w1}
   const nx=x0+(x1-x0)*b,ny=y0+(y1-y0)*b,nz=z0+(z1-z0)*b,nw=w0+(w1-w0)*b,l=Math.hypot(nx,ny,nz,nw)||1;
   R[i4]=nx/l;R[i4+1]=ny/l;R[i4+2]=nz/l;R[i4+3]=nw/l}}
-function drawPlayer(x,y,o){const t=o.t||Date.now(),s=o.s||1;
- if(!PG){person(x,y,{s,fa:o.fa,ph:t/150,sh:o.c,pn:'#223',sk:'#e8bb98',hr:'#321',ey:'#111',gun:o.gun,ring:o.ring,aim:o.aim,rec:o.shot?Math.max(0,1-(t-o.shot)/130):0});return}
+// POSE (tudo menos a rasterização): atualiza PGS[o.k], a amostragem de clipes (PG.PGT/PGR), o IK da mão esquerda,
+// o yaw suavizado e as matrizes por nó PG.WRT (3x3) / PG.WT (translação) e a boca do cano. drawPlayer (2D) e
+// drawPlayerGL (89d-gljogador.js, 3D) chamam ESTA função, então as duas vistas têm a mesma pose.
+function pgSolve(x,y,o){const t=o.t||Date.now(),s=o.s||1;
  const NN=PG.NN,clamp=(v,a,b)=>v<a?a:v>b?b:v,st=PGS[o.k]||(PGS[o.k]={yaw:null,sp:0,px:x,py:y,ph:0,it:0,b:0,f:2,clip:'',blend:0,dt:0,lt:new Float32Array(NN*3),lr:new Float32Array(NN*4),paT:null,paR:null});
  const dd=Math.hypot(x-st.px,y-st.py);st.px=x;st.py=y;
  const iv=dd/Math.max(.001,DT_);st.sp+=(iv-st.sp)*Math.min(1,DT_*8);
@@ -119,10 +125,17 @@ function drawPlayer(x,y,o){const t=o.t||Date.now(),s=o.s||1;
     R[57]=m10*r0+m11*r3+m12*r6;R[58]=m10*r1+m11*r4+m12*r7;R[59]=m10*r2+m11*r5+m12*r8;
     R[60]=m20*r0+m21*r3+m22*r6;R[61]=m20*r1+m21*r4+m22*r7;R[62]=m20*r2+m21*r5+m22*r8}}
  }
- const S=27*s,cy_=Math.cos(st.yaw),sy_=Math.sin(st.yaw),XY=PG.XY,CL=PG.CL,DP=PG.DP,OR=PG.OR,TOT=PG.TOT;
+ const S=27*s,cy_=Math.cos(st.yaw),sy_=Math.sin(st.yaw);
  if(!o.dead&&typeof WPG!=='undefined'&&WPG[o.w]){const wp=WPG[o.w],md=wp.mz||[0,.1,.5],ws=PG.WS*9,mt0=Wt[PG.WS*3],mt1=Wt[PG.WS*3+1],mt2=Wt[PG.WS*3+2],
   mw0=R[ws]*md[0]+R[ws+1]*md[1]+R[ws+2]*md[2]+mt0,mw1=R[ws+3]*md[0]+R[ws+4]*md[1]+R[ws+5]*md[2]+mt1,mw2=R[ws+6]*md[0]+R[ws+7]*md[1]+R[ws+8]*md[2]+mt2,
-  mrx=mw0*cy_+mw2*sy_,mry=mw1,mrz=-mw0*sy_+mw2*cy_;st.mz=[x+mrx*S,y-(mry-mrz*K2)*S];st.mzt=t}
+  mrx=mw0*cy_+mw2*sy_,mry=mw1,mrz=-mw0*sy_+mw2*cy_;st.mz=[x+mrx*S,y-(mry-mrz*K2)*S];
+  st.mzW=[x+mrx*S,y+mrz*S,mry*S]; // mundo (x,y) + ALTURA em px (para o w2s do 3D): o 2D usa st.mz, o 3D projeta mzW
+  st.mzt=t}
+ return st}
+function drawPlayer(x,y,o){
+ if(!PG){const t=o.t||Date.now(),s=o.s||1;person(x,y,{s,fa:o.fa,ph:t/150,sh:o.c,pn:'#223',sk:'#e8bb98',hr:'#321',ey:'#111',gun:o.gun,ring:o.ring,aim:o.aim,rec:o.shot?Math.max(0,1-(t-o.shot)/130):0});return}
+ const s=o.s||1,st=pgSolve(x,y,o),NN=PG.NN,R=PG.WRT,Wt=PG.WT,
+  S=27*s,cy_=Math.cos(st.yaw),sy_=Math.sin(st.yaw),XY=PG.XY,CL=PG.CL,DP=PG.DP,OR=PG.OR,TOT=PG.TOT;
  let fc=0;
  const pcC=rgbOf(pgHex(o.c||'#3a5a8a')),pcG=rgbOf(pgHex(o.gun||'#333'));
  for(let ni=0;ni<NN;ni++){const g=(ni===PG.WS&&typeof WPG!=='undefined'&&WPG[o.w])||PG.GEO[ni];if(!g)continue;

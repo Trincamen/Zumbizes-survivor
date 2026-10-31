@@ -41,6 +41,7 @@ function glInit(){
   GLCAM=new THREE.OrthographicCamera(-W/2,W/2,H/2,-H/2,1,GCAMR*3);
   GLCAM.up.set(0,GLSIN,-GLCOS);
   GLW=new THREE.Group();GLW.scale.set(1,1,1/GLCOS);GLSCN.add(GLW);
+  GLW.updateMatrixWorld(true); // w2s() usa GLW.matrixWorld antes do 1º render (o render é adiado p/ o fim do quadro)
   const gr=new THREE.Mesh(new THREE.PlaneGeometry(30000,30000),new THREE.MeshLambertMaterial({color:0x1b2e16}));
   gr.rotation.x=-Math.PI/2;gr.position.set(MW/2,0,MH/2);GLW.add(gr);
   // 1b-i (correção 5): luz NEUTRA para o chão 3D bater com o 2D — fator ≈1,0 em faces para cima
@@ -67,6 +68,13 @@ function glFrame(){
  if(typeof glMundoFrame=='function')glMundoFrame(); // 89-glmundo.js: chão/ruas/rio/quarteirões por chunk
  if(typeof glPropsFrame=='function')glPropsFrame(); // 89b-glprops.js: props/árvores/carros/caixas instanciados
  if(typeof glPrediosFrame=='function')glPrediosFrame(); // 89c-glpredios.js: prédios h/p/m e galpões 'W'
+ if(typeof glJogFrame=='function')glJogFrame(); // 89d-gljogador.js: novo token; esconde quem nao for desenhado
+}
+// 1c: o render do quadro e ADIADO para o fim de draw() (90-sons.js) porque o jogador 3D so recebe a pose
+// DEPOIS de glFrame (drawPlayerGL roda na lista D do 2D). Assim pose, camera e chao sao do mesmo quadro.
+function glRenderNow(){
+ if(!glLive)return;
+ if(typeof glJogEnd=='function')glJogEnd(); // esconde os jogadores nao desenhados neste quadro
  GLR.render(GLSCN,GLCAM);
 }
 if(glOn)glInit();
