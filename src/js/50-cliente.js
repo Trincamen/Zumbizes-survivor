@@ -34,14 +34,14 @@ function pushMove(){if(!snap||snap.ph!=1)return;let x=0,y=0;
  const now=Date.now(),ch=Math.abs(x-mvLast[0])>.06||Math.abs(y-mvLast[1])>.06;
  if(ch||((x||y)&&now-mvT0>200)){mvLast=[x,y];mvT0=now;send({t:'m',id,x:+x.toFixed(2),y:+y.toFixed(2)})}}
 C.onpointerdown=e=>{if(!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});
- if(!snap||snap.ph!=1)return;const wx=e.clientX/ZO-ox,wy=e.clientY/ZO-oy;
+ if(!snap||snap.ph!=1)return;const[_wx,_wy]=s2w(e.clientX,e.clientY),wx=_wx,wy=_wy;
  if(PILL&&Date.now()-PILL.t<250&&wx>PILL.x-16&&wx<PILL.x+PILL.w+16&&wy>PILL.y-26&&wy<PILL.y+PILL.h+26){send({t:'r',id});return}
  if(ctl=='tap'){send({t:'i',id,x:wx,y:wy});return}
  if(wantJoy(e)&&e.clientY>innerHeight*.5&&!joy){joy={id:e.pointerId,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,t0:Date.now(),mx:0};try{C.setPointerCapture(e.pointerId)}catch(_){}pushMove();return}
  send({t:'i',id,x:wx,y:wy,f:1})};
-C.onpointermove=e=>{if(ctl=='tap'){if(e.buttons||e.pressure>0){const n=Date.now();if(n-lastTap>80){lastTap=n;if(snap&&snap.ph==1)send({t:'i',id,x:e.clientX/ZO-ox,y:e.clientY/ZO-oy})}}return}
+C.onpointermove=e=>{if(ctl=='tap'){if(e.buttons||e.pressure>0){const n=Date.now();if(n-lastTap>80){lastTap=n;if(snap&&snap.ph==1){const[_tx,_ty]=s2w(e.clientX,e.clientY);send({t:'i',id,x:_tx,y:_ty})}}}return}
  if(joy&&e.pointerId==joy.id){joy.x=e.clientX;joy.y=e.clientY;joy.mx=Math.max(joy.mx,Math.hypot(joy.x-joy.x0,joy.y-joy.y0));pushMove()}};
-C.onpointerup=C.onpointercancel=e=>{if(joy&&e.pointerId==joy.id){const j=joy;joy=null;pushMove();if(e.type=='pointerup'&&Date.now()-j.t0<260&&j.mx<12)send({t:'i',id,x:j.x0/ZO-ox,y:j.y0/ZO-oy,f:1})}};
+C.onpointerup=C.onpointercancel=e=>{if(joy&&e.pointerId==joy.id){const j=joy;joy=null;pushMove();if(e.type=='pointerup'&&Date.now()-j.t0<260&&j.mx<12){const[_jx,_jy]=s2w(j.x0,j.y0);send({t:'i',id,x:_jx,y:_jy,f:1})}}};
 const MK=['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'];
 addEventListener('keydown',e=>{if(e.target.tagName=='INPUT'||!snap||snap.ph!=1)return;if(e.key=='Escape'){optOpen();return}
  if(me&&me[23]&&(e.code=='Enter'||e.code=='NumpadEnter')){e.preventDefault();ofr(1);return}
