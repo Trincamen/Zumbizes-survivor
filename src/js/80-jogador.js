@@ -124,6 +124,7 @@ function drawPlayer(x,y,o){const t=o.t||Date.now(),s=o.s||1;
   mw0=R[ws]*md[0]+R[ws+1]*md[1]+R[ws+2]*md[2]+mt0,mw1=R[ws+3]*md[0]+R[ws+4]*md[1]+R[ws+5]*md[2]+mt1,mw2=R[ws+6]*md[0]+R[ws+7]*md[1]+R[ws+8]*md[2]+mt2,
   mrx=mw0*cy_+mw2*sy_,mry=mw1,mrz=-mw0*sy_+mw2*cy_;st.mz=[x+mrx*S,y-(mry-mrz*K2)*S];st.mzt=t}
  let fc=0;
+ const pcC=rgbOf(pgHex(o.c||'#3a5a8a')),pcG=rgbOf(pgHex(o.gun||'#333'));
  for(let ni=0;ni<NN;ni++){const g=(ni===PG.WS&&typeof WPG!=='undefined'&&WPG[o.w])||PG.GEO[ni];if(!g)continue;
   const o9=ni*9,m0=R[o9],m1=R[o9+1],m2=R[o9+2],m3=R[o9+3],m4=R[o9+4],m5=R[o9+5],m6=R[o9+6],m7=R[o9+7],m8=R[o9+8],tx=Wt[ni*3],ty=Wt[ni*3+1],tz=Wt[ni*3+2],P=g.P;
   for(let f=0;f<g.n&&fc<TOT;f++){const b=f*9;
@@ -136,9 +137,9 @@ function drawPlayer(x,y,o){const t=o.t||Date.now(),s=o.s||1;
    let nx=uy*wz2-uz*wy2,ny=uz*wx2-ux*wz2,nz=ux*wy2-uy*wx2;const ln=Math.hypot(nx,ny,nz)||1;nx/=ln;ny/=ln;nz/=ln;
    if(ny*SE+nz*CE<=.02)continue;
    const kk=g.K[f];let cr,cg,cb;
-   if(kk>0){const cc=rgbOf(pgHex(o.c||'#3a5a8a'));cr=cc[0]*kk;cg=cc[1]*kk;cb=cc[2]*kk}
+   if(kk>0){const cc=pcC;cr=cc[0]*kk;cg=cc[1]*kk;cb=cc[2]*kk}
    else if(kk===-1){cr=34;cg=34;cb=34}
-   else if(kk===-2){const gc=rgbOf(pgHex(o.gun||'#333'));cr=gc[0];cg=gc[1];cb=gc[2]}
+   else if(kk===-2){const gc=pcG;cr=gc[0];cg=gc[1];cb=gc[2]}
    else{cr=g.C[f*3];cg=g.C[f*3+1];cb=g.C[f*3+2]}
    const li=.38+.78*Math.max(0,nx*LV[0]+ny*LV[1]+nz*LV[2]);
    CL[fc*3]=Math.min(255,cr*li)|0;CL[fc*3+1]=Math.min(255,cg*li)|0;CL[fc*3+2]=Math.min(255,cb*li)|0;
@@ -182,7 +183,7 @@ function drawLvl(){const now=Date.now();LUE=LUE.filter(e=>now-e.t<1700);
   const labs=[['+ AGILIDADE','#ffe066'],['+ VIDA MÁX','#6bf06b'],['+ PRECISÃO','#7fe3ff']],al=u<.12?u/.12:Math.max(0,1-(u-.55)/.45);
   X.textAlign='left';X.textBaseline='middle';X.font='bold 12px sans-serif';X.lineWidth=3;X.strokeStyle='rgba(0,0,0,.8)';X.globalAlpha=al;
   labs.forEach((l,i)=>{const ly=y-52-i*15-u*26;X.strokeText(l[0],x+30,ly);X.fillStyle=l[1];X.fillText(l[0],x+30,ly)});X.globalAlpha=1}}
-function drawMark(s,t){if(!me||!me[26])return;const z=s.Z.find(q=>q[6]==me[26]);if(!z)return;const r=RP['z'+z[6]];if(!r)return;const k=z[2],R_=k==3?52:k==2?26:18,cy_=r.y-(k==3?60:k==2?22:18),p=1+Math.sin(t/110)*.08;
+function drawMark(s,t){if(!me||!me[26])return;const z=s.Z.find(q=>q[6]==me[26]);if(!z)return;const r=ZSS.get(z[6]);if(!r)return;const k=z[2],R_=k==3?52:k==2?26:18,cy_=r.y-(k==3?60:k==2?22:18),p=1+Math.sin(t/110)*.08;
  X.save();X.translate(r.x,cy_);X.rotate(t/900);X.strokeStyle='#ff3b3b';X.lineWidth=2.5;X.beginPath();X.arc(0,0,R_*p,0,7);X.stroke();X.beginPath();for(let i=0;i<4;i++){const a=i*1.5708;X.moveTo(Math.cos(a)*(R_*p-6),Math.sin(a)*(R_*p-6));X.lineTo(Math.cos(a)*(R_*p+8),Math.sin(a)*(R_*p+8))}X.stroke();X.restore();
  X.fillStyle='#ff3b3b';X.beginPath();X.arc(r.x,cy_,2.5,0,7);X.fill()}
 function drawProj(s,dt){drawLvl();drawFT();for(const[k,c,x,y,h,r]of s.Pj||[]){ell(x,y,20,7,'rgba(0,0,0,.35)');X.save();X.translate(x,y-h);X.rotate(r/100);objShape(k,c);X.restore()}

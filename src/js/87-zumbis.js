@@ -1,8 +1,11 @@
 // ---------- ZUMBIS 3D (GLB) com cache de sprites ----------
 // 0 padrao, 1 policial, 2 bombeiro, 3 sem_braco, 4 corredor, 5 gordao (boss nao usa este arquivo)
 const ZGLB=['@@GLB:assets/zumbis/zumbi_padrao.glb@@','@@GLB:assets/zumbis/zumbi_policial.glb@@','@@GLB:assets/zumbis/zumbi_bombeiro.glb@@','@@GLB:assets/zumbis/zumbi_sem_braco.glb@@','@@GLB:assets/zumbis/zumbi_corredor.glb@@','@@GLB:assets/zumbis/zumbi_gordao.glb@@'];
-const ZM=[],ZSPR=new Map(),ZST={},ZH=46,ZTAU=Math.PI*2,ZMAX=300;
+const ZM=[],ZSPR=new Map(),ZST=new Map(),ZSS=new Map(),ZH=46,ZTAU=Math.PI*2,ZMAX=700;
 let ZBUD=0;
+// suavizacao de posicao dos zumbis (chave numerica, sem string por quadro)
+function zSmooth(i,x,y,dt){let r=ZSS.get(i);if(!r||Math.abs(r.x-x)>300||Math.abs(r.y-y)>300){r={x,y};ZSS.set(i,r)}else{const f=1-Math.exp(-dt*16);r.x+=(x-r.x)*f;r.y+=(y-r.y)*f}r.u=FR;return r}
+function zsClean(){for(const[k,r]of ZSS)if(r.u<FR-120)ZSS.delete(k)}
 // GLB -> modelo por nó (hierarquia preservada: pose por clipe + matrizes mundo)
 function zParse(b64){
  const {j,acc}=pgParseGlb(b64);
@@ -117,8 +120,8 @@ function zDraw(ctx,sp,x,y,s,wf){if(!sp||!sp.cv)return 0;
 function zumbiSpr(ctx,x,y,k,v,fa,id,t,s){
  const t0=pfStart();
  const mi=k==1?4:k==2?5:(v>0&&v<4)?v|0:0;
- const st=ZST['z'+id]||(ZST['z'+id]={yaw:null,px:x,py:y});
- st.u=FR;if(FR%240===0)for(const kk in ZST)if(ZST[kk].u<FR-240)delete ZST[kk];
+ let st=ZST.get(id);if(!st){st={yaw:null,px:x,py:y};ZST.set(id,st)}
+ st.u=FR;if(FR%240===0)for(const[kk,sv]of ZST)if(sv.u<FR-240)ZST.delete(kk);
  const psi=Math.PI/2-fa;
  if(st.yaw==null)st.yaw=psi;st.yaw+=ad(psi,st.yaw)*Math.min(1,DT_*10);
  const dd=Math.hypot(x-st.px,y-st.py);st.px=x;st.py=y;

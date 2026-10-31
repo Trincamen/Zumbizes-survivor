@@ -400,7 +400,7 @@ function groundChunks(){
   if((dx||dy)&&!(tx<0||ty<0||tx*1000>=MW||ty*1000>=MH)&&!GRD.map.has(tx+','+ty))grdChunk(tx,ty)}
 }
 function draw(){requestAnimationFrame(draw);const _p0=pfStart();ZBUD=0;const s=snap,t=Date.now(),dtf=Math.min(.1,(t-LT)/1000);LT=t;FR++;DT_=dtf;X.setTransform(ZO*DPR,0,0,ZO*DPR,0,0);X.fillStyle='#000';X.fillRect(0,0,W,H);if(!s||s.ph==0){menuScene(t);return}
- if(FR%180==0)for(const k in RP)if(RP[k].u<FR-120)delete RP[k];
+ if(FR%180==0){for(const k in RP)if(RP[k].u<FR-120)delete RP[k];zsClean()}
  const mr=me?sm('p'+id,me[3],me[4],dtf):null;if(mr){cx=mr.x;cy=mr.y}meB=bAt(cx,cy);audioFrame(s,t,mr);ox=Math.round(W/2-cx);oy=Math.round(H/2-cy);const shx=(Math.random()-.5)*QK*14,shy=(Math.random()-.5)*QK*14;QK=Math.max(0,QK-dtf*1.6);X.save();X.translate(ox+shx,oy+shy);
  const v=(x,y,m=90)=>Math.abs(x-cx)<W/2+m&&Math.abs(y-cy)<H/2+m;
  X.fillStyle='#1b2e16';X.fillRect(cx-W/2-60,cy-H/2-60,W+120,H+120);
@@ -423,7 +423,7 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!DD[o.i]&&v(o.x+o.w/2,o.y+o.h/2,o
  for(const b of BLD)if(b!==meB&&v(b.x+b.w/2,b.y+b.h/2,b.w))D.push([b.y+b.h+1,3,b]);for(const f of FIRES)if(v(f[0],f[1],120)&&!(f[4]&&f[4]===meB)&&!(f[5]&&DD[f[5].i]))D.push([f[3],5,f]);
  if(s.sh)D.push([s.sh[1]+14,4,s.sh]);
  for(const b of BLD)if(v(b.x+b.w/2,b.y+b.h/2,b.w))D.push([b.y+b.h+.5,6,b]);for(const bx of[1000,3000])for(const yy of[2850,3150])for(const sd of[-1,1])if(v(bx,yy,300))D.push([yy,7,[bx+sd*88,yy,sd]]);
- for(const z of s.Z){const r=sm('z'+z[6],z[0],z[1],dtf);if(v(r.x,r.y))D.push([r.y,1,z,r])}
+ for(const z of s.Z){const r=zSmooth(z[6],z[0],z[1],dtf);if(v(r.x,r.y))D.push([r.y,1,z,r])}
  for(const q of DECOR)if(v(q.x,q.y,110))D.push([q.y,8,q]);
  for(const p of s.P){const r=p[0]==id?mr:sm('p'+p[0],p[3],p[4],dtf);D.push([r.y,2,p,r])}
  pfAdd('lista',pl);
