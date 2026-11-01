@@ -57,7 +57,7 @@ function ghScore(L){
   if(i<3){md.style.color=MD[i];md.style.borderColor=MD[i]}
   row.appendChild(md);
   const nm=document.createElement('span');nm.className='gnm';
-  nm.textContent=(dd?'☠ ':'')+String(p[1]==null?'':p[1]).replace(/&lt;/g,'<').slice(0,10);
+  nm.textContent=(dd?'':'')+String(p[1]==null?'':p[1]).replace(/&lt;/g,'<').slice(0,10);
   if(mine)nm.style.color='#e8c25a';row.appendChild(nm);
   const wc=document.createElement('i');wc.className='gwc';wc.style.background=WC[p[8]]||'#ddd';row.appendChild(wc);
   const hb=document.createElement('u');hb.className='ghb';row.appendChild(hb);
@@ -149,7 +149,7 @@ function ghMini(s){
   g.beginPath();g.moveTo(px-1.8,py+1.2);g.lineTo(px-1.6,py-2);g.arc(px,py-2,1.6,3.14159,0);g.lineTo(px+1.8,py+1.2);g.closePath();
   g.fillStyle=p[2];g.fill();g.strokeStyle='rgba(0,0,0,.7)';g.lineWidth=.7;g.stroke();
   g.fillStyle='#f2ddc0';g.beginPath();g.arc(px,py-4.4,1.6,0,7);g.fill();g.strokeStyle='rgba(0,0,0,.55)';g.lineWidth=.6;g.stroke();
-  if(dd)mt('☠',px,py-6.5,8,'#ddd');
+  if(dd)mt('x',px,py-6.5,8,'#ddd');
   if(mine&&!dd){const pl=1+Math.sin(t/170)*.22;
    g.strokeStyle='rgba(255,255,255,'+(.55+.3*Math.sin(t/170))+')';g.lineWidth=1.4;g.beginPath();g.arc(px,py-2,6.5*pl,0,7);g.stroke();
    const a=(p[17]|0)/10,ax=px+Math.cos(a)*8.5,ay=py-2+Math.sin(a)*8.5;
@@ -243,7 +243,7 @@ function glHudFrame(s){
   }
   const xb=Math.round(150*Math.min(1,nd>0?xp/nd:0));
   if(xb!==HG.xb){HG.xb=xb;E.xpb.style.width=xb+'px'}
-  const b1=df?'⚡ x'+df:'',b2=pd>0?'💊 '+pd+'s':'',b3='',bi=[me[33]|0,me[34]|0,me[35]|0],bk=b1+'|'+b2+'|'+b3+'|'+bi.join(',');
+  const b1=df?'x'+df:'',b2=pd>0?''+pd+'s':'',b3='',bi=[me[33]|0,me[34]|0,me[35]|0],bk=b1+'|'+b2+'|'+b3+'|'+bi.join(',');
   if(bk!==HG.bf){
    HG.bf=bk;let ix=0;
    const put=(el,tx,col,adv)=>{if(tx){el.textContent=tx;el.style.color=col;el.style.left=ix+'px';el.style.display='block';ix+=adv}else el.style.display='none'};
@@ -258,7 +258,7 @@ function glHudFrame(s){
  }
  // ---- aviso do boss (bloco 14) ----
  if(s.bp){
-  const tx='⚠ KRAID CHEGANDO EM '+s.bp[2]+'s ⚠';
+  const tx='KRAID CHEGANDO EM '+s.bp[2]+'s ';
   if(tx!==HG.bn){HG.bn=tx;E.bnt.textContent=tx}
   if(!HG.bnv){HG.bnv=1;E.bn.style.display='block'}
  }else if(HG.bnv!==0){HG.bnv=0;E.bn.style.display='none'}

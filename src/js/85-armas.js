@@ -84,7 +84,7 @@ function drawPickup(x,y,k,vv,t,bb){
  else if(IT3[k]!=null&&WPG[IT3[k]])drawWeapon3D(X,x,cy,IT3[k],t/700,Math.min(90,32/WDIM[IT3[k]]));
  else{X.save();X.translate(x,0);X.scale(Math.max(.25,Math.abs(Math.cos(t/500))),1);X.translate(-x,0);
   if(k==0){X.fillStyle='#fff';X.fillRect(x-11,cy-11,22,22);X.fillStyle='#e22';X.fillRect(x-3,cy-8,6,16);X.fillRect(x-8,cy-3,16,6)}
-  else if(k==1)txt('⚡',x,cy,30,'#4df');else if(k==6)txt('★',x,cy,32,'#fc0');else if(k==9)txt('🩹',x,cy,26,'#fff');else if(k==10)txt('💊',x,cy,26,'#fff');
+  else if(k==1)txt('+',x,cy,30,'#4df');else if(k==6)txt('★',x,cy,32,'#fc0');else if(k==9)txt('+',x,cy,26,'#fff');else if(k==10)txt('+',x,cy,26,'#fff');
   X.restore()}
  if(k==8)txt(vv,x,y+22,12,'#fe8')
  X.strokeStyle=cc(.7);X.lineWidth=1.5;X.beginPath();X.arc(x,cy,R,0,7);X.stroke();

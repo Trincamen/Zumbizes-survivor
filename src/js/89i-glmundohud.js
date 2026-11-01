@@ -36,7 +36,7 @@ function gwPut(o,x,y){
  if(k!==o.k){o.k=k;o.g.style.transform='translate3d('+p[0].toFixed(1)+'px,'+p[1].toFixed(1)+'px,0)'}
  gwDisp(o.g,1);o.u=GWU.stamp;
 }
-// ---------- jogadores: nome, barra de vida, ▼ do local, ✖/caído, anel de buff e anel de recarga ----------
+// ---------- jogadores: nome, barra de vida, ▼ do local, /caído, anel de buff e anel de recarga ----------
 function gwPl(pid){
  let o=GWU.pl[pid];if(o)return o;
  o=gwNew();if(!o)return null;
@@ -51,7 +51,7 @@ function gwPl(pid){
  o.bf=gwD(o.bb,'gwBf',0,0,36,6);o.bf.style.background='#3e3';
  o.nm=gwT(o.i,14,0,-66*GWSIN);
  o.dv=gwT(o.i,14,0,-80*GWSIN);o.dv.textContent='▼';o.dv.style.color='#ff0';
- o.xm=gwT(o.i,24,0,-26*GWSIN);o.xm.textContent='✖';o.xm.style.color='#ddd';
+ o.xm=gwT(o.i,24,0,-26*GWSIN);o.xm.textContent='X';o.xm.style.color='#ddd';
  o.cn=gwT(o.i,14,0,-48*GWSIN);o.cn.style.color='#bbb';
  return o;
 }
@@ -164,7 +164,7 @@ function gwBoss(x,y,o,t){
  }else if(B.buo!==0){B.buo=0;for(const b of B.bu)gwDisp(b,0)}
  pfAdd('gwm',t0);
 }
-// ---------- loja: vendedor (mesa + figura + $) e a marca "🛒 LOJA" sobre o prédio ----------
+// ---------- loja: vendedor (mesa + figura + $) e a marca "LOJA" sobre o prédio ----------
 function gwSeller(x,y){
  if(!glLive)return;
  let o=GWU.sel;
@@ -183,7 +183,7 @@ function gwSeller(x,y){
 function gwShop(b,t){
  if(!glLive)return;
  let o=GWU.shop;
- if(!o){o=GWU.shop=gwNew();if(!o)return;o.t=gwT(o.i,26,0,0);o.t.textContent='🛒 LOJA';o.t.style.color='#fc3';o.tp=''}
+ if(!o){o=GWU.shop=gwNew();if(!o)return;o.t=gwT(o.i,26,0,0);o.t.textContent='LOJA';o.t.style.color='#fc3';o.tp=''}
  gwPut(o,b.x+b.w/2,b.y+b.h/2);
  const v=(-(b.H+22)*GWSIN+Math.sin(t/200)*4*GWSIN);
  const vq=v.toFixed(1);
@@ -215,7 +215,7 @@ function gwArc(x,y,a,bd,k){
 // ---------- pílula de recarga: só DESENHA (o clique segue por PILL em coords de mundo, #inp) ----------
 function gwPillNew(){
  const o=gwNew();if(!o)return null;
- const sc=MOB?1.3:1,w=124*sc,h=20*sc;
+ const sc=(MOB?1.1:1)*1.5,w=124*sc,h=20*sc; // 1,5x maior que antes (pedido do usuário: mais visível)
  o.sc=sc;o.w=w;o.h=h;
  // projeção do CHÃO do retângulo de MUNDO (x-w/2, y-H): é o que o PILL usa no hit-test, então o clique
  // no que está desenhado cai dentro dele (no 2D desenho e retângulo eram o mesmo espaço).
@@ -225,9 +225,9 @@ function gwPillNew(){
  o.zf=gwD(o.zn,'gwPzf',0,0,0,0);          // chamas da zona (só ao acertar)
  o.cu=gwD(o.box,'gwPc',0,-1,3,h+2);
  o.cf=gwD(o.box,'gwPcf',0,0,16*sc,26*sc); // chama que SEGUE o cursor
- o.tx=gwT(o.box,10*sc,w/2,h/2);
+ o.box.style.background='linear-gradient(180deg,#ffe27a,#c98a10)';
+ o.tx=gwT(o.box,12*sc,w/2,h/2);
  o.hn=gwT(o.i,11,w+6,h/2);o.hn.textContent='[ R ]';o.hn.style.color='#cfe6ff';
- o.tr=gwD(o.i,'gwPt',0,0,8,5);
  o.k='';
  return o;
 }
@@ -246,34 +246,36 @@ function gwPill(x,y,rlf,t,zs,ze,fail,own,pid,rltMs){
  let p,S=RLS[pid];
  if(hit){if(!S)return;zs=S.zs;ze=S.ze;p=(zs+ze)/200;fail=0}
  else{p=rlSmooth(pid,rlf,rltMs);S=RLS[pid];S.zs=zs;S.ze=ze}
- const py=y-(114+(P.sc-1)*12);
+ const py=y-(114+(P.sc-1)*20);
  gwPut(P,x,py);
  const inZ=!fail&&p*100>=zs&&p*100<=ze;
  if(own&&!hit){RLV.f=p;RLV.t=performance.now()}
  const fl=Math.floor(t/90)%2,k=(p*500|0)+'|'+zs+'|'+ze+'|'+fail+'|'+inZ+'|'+own+'|'+hit+'|'+fl;
  if(k!==P.k){P.k=k;
-  P.fl.style.width=(P.w*p).toFixed(1)+'px';
-  P.fl.style.background=fail?'linear-gradient(180deg,#8a2a2a,#4a1010)':'linear-gradient(180deg,#ffe27a,#b8780c)';
-  P.fl.style.opacity='.55';
+  // AMARELO = ainda não queimado; o fogo avança na ponta (laranja→branco) e deixa CINZA atrás; ao acertar, tudo cinza e evapora
+  P.fl.style.background=fail?'linear-gradient(180deg,#8a2a2a,#4a1010)':hit?'linear-gradient(180deg,#9a9a9a,#5a5a5a)':'linear-gradient(90deg,#5a5a5a,#8c8c8c calc(100% - '+(30*P.sc).toFixed(0)+'px),#ff8a1a calc(100% - '+(10*P.sc).toFixed(0)+'px),#fff2a0)';
+  P.fl.style.opacity='1';
+  P.fl.style.width=(P.w*(hit?1:p)).toFixed(1)+'px';
+  P.box.style.background=hit?'linear-gradient(180deg,#9a9a9a,#5a5a5a)':fail?'linear-gradient(180deg,#5a1a1a,#2a0808)':'linear-gradient(180deg,#ffe27a,#c98a10)';
+  P.box.classList.toggle('gwEv',hit);
   P.zn.style.display=fail?'none':'';
   P.zn.style.left=(P.w*zs/100).toFixed(1)+'px';P.zn.style.width=(P.w*(ze-zs)/100).toFixed(1)+'px';
   // zona VERMELHA (antes azul); no momento do acerto vira brasa/fogo
-  P.zn.style.background=hit?'linear-gradient(180deg,#fff2a0,#ff9a1a 45%,#e02010)':inZ?'linear-gradient(180deg,#ff8a7a,#e0201a)':'linear-gradient(180deg,#ff5a4a,#b30f0f)';
-  P.zn.style.boxShadow=hit?'0 0 12px 3px #ff7a1a':'inset 0 '+(P.h*.4).toFixed(1)+'px rgba(255,255,255,.3)';
+  P.zn.style.background=hit?'linear-gradient(180deg,#b0b0b0,#6a6a6a)':inZ?'linear-gradient(180deg,#ff8a7a,#e0201a)':'linear-gradient(180deg,#ff5a4a,#b30f0f)';
+  P.zn.style.boxShadow=hit?'none':'inset 0 '+(P.h*.4).toFixed(1)+'px rgba(255,255,255,.3)';
   P.zn.style.borderLeft='2px solid '+(inZ||hit?'#fff':'#ffb0a0');
   P.zn.style.borderRight='2px solid '+(inZ||hit?'#fff':'#ffb0a0');
-  P.zf.style.display=hit?'block':'none';
+  P.zf.style.display='none';
   P.cu.style.left=(P.w*p-1.5).toFixed(1)+'px';
   P.cu.style.background=hit?'#ffd070':'#fff';
   // chama no cursor: acompanha a seta enquanto recarrega
-  P.cf.style.display=fail?'none':'block';
+  P.cf.style.display=fail||hit?'none':'block';
   P.cf.style.left=(P.w*p-8*P.sc).toFixed(1)+'px';P.cf.style.top=(-24*P.sc).toFixed(1)+'px';
   P.cf.style.transform=fl?'scale(1,1)':'scale(.82,1.12)';
   P.cf.style.filter=inZ?'brightness(1.5) saturate(1.4)':'none';
-  P.box.style.borderColor=hit?'#ff9a1a':inZ?'#fff':fail?'#ff6a6a':'#ffe27a';
-  P.box.style.borderWidth=(inZ||hit?2.5:1.5)+'px';
-  P.tr.style.left=(P.w*p-4).toFixed(1)+'px';
-  P.tr.style.top='-6px';P.tr.style.display=hit?'none':'';
+  P.box.style.borderColor=hit?'#bbb':inZ?'#fff':fail?'#ff6a6a':'#fff0a0';
+  P.box.style.borderWidth=(inZ||hit?3:2.5)+'px';
+  P.box.style.boxShadow='0 0 0 2px rgba(0,0,0,.9),0 3px 10px rgba(0,0,0,.8)';
   const tx=hit?'PERFEITO!':fail?'FALHOU':inZ&&MOB?'TOQUE!':'RECARREGANDO';
   if(P.tx.textContent!==tx)P.tx.textContent=tx;
   gwDisp(P.hn,own&&!fail&&!hit);

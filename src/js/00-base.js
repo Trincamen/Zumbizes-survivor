@@ -15,8 +15,8 @@ const WN=['Pistola','Escopeta','Rifle','Metralhad.','Lança-chamas','Sniper'],WC
 const WS_=[[220,12,.7],[130,48,1.5],[420,32,1],[260,4,.1],[110,4,.12],[700,120,1.8]],AM=[7,7,45,30,50,5],RT=[1.2,2.2,2.2,2,3,2.6],SPD=[2200,1600,3200,2600,1,4800];
 const WA=[.8,.74,.86,.62,1,.92],rgOf=(c,l)=>WS_[c][0]*(1+.06*l),dmOf=(c,l)=>WS_[c][1]*(1+.25*l),cdOf=(c,l)=>WS_[c][2]/(1+.08*l),rtOf=(c,l)=>Math.max(.5,RT[c]*(1-.07*l)),magOf=(c,l)=>Math.ceil(AM[c]*(1+.1*l)),fmt=t=>(t/60|0)+':'+String(t%60).padStart(2,'0');
 const SK=['Dano +2%','Velocidade +5%','Vida máx +25%','Cadência +2%','Alcance +5%','Regeneração'];
-const CL={10:['✚','Curar'],11:['⚡','Desfib.'],12:['🩹','Bandagem'],13:['💊','Analgés.']};
-const SH=[['🩹 Bandagem',15,9],['💊 Analgésico',60,10],['✚ Kit de cura',60,0],['⚡ Desfibrilador',400,1],['Escopeta',300,2],['Rifle',440,3],['Metralhadora',600,4],['Lança-chamas',520,5],['Sniper',900,11],['★ Melhoria da arma',100,6]];
+const CL={10:['+','Curar'],11:['+','Desfib.'],12:['+','Bandagem'],13:['+','Analgés.']};
+const SH=[['Bandagem',15,9],['Analgésico',60,10],['Kit de cura',60,0],['Desfibrilador',400,1],['Escopeta',300,2],['Rifle',440,3],['Metralhadora',600,4],['Lança-chamas',520,5],['Sniper',900,11],['Melhoria da arma',100,6]];
 const id=Math.random().toString(36).slice(2,8);let host=0,ws,snap=null,me=null,lastBn=null,skKey='',shKey='',ofKey='',LSH={},LVP={},LUE=[],FT=[],PILL=null,wbKey='',O=[],curSd=0,BLD=[],meB=null,IL=[],ZMM=[],FIRES=[],DD={},POP={},FL2=[],PT=[],QK=0,lastEv=0,FXL=[],lastF=0,RP={},FR=0,LT=Date.now();
 const LS={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}},esc=x=>String(x).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 let originKind='?',onRooms=[],scanning=0,tab='on',rc='';

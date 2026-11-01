@@ -15,7 +15,7 @@ function reset(){const o=Object.values(PL);PL={};o.forEach(p=>addP(p.id,p.n));ph
 const dl=()=>1+Math.floor(gt/60);
 // MU2: lead-in da musica do boss (10,14 s = 6 compassos de 1,6896 s a 142 BPM; ver saidas/boss_cut_medidas.md)
 const BOSS_LEAD=10.14;
-function startBoss(){bossN++;const e=bossEdge();bossPend={t:BOSS_LEAD,t0:performance.now(),x:e[0],y:e[1]};bn=[Date.now(),'⚠ BOSS KRAID CHEGANDO ⚠',1]}
+function startBoss(){bossN++;const e=bossEdge();bossPend={t:BOSS_LEAD,t0:performance.now(),x:e[0],y:e[1]};bn=[Date.now(),'BOSS KRAID CHEGANDO ',1]}
 function minuteTick(m){const ba=bossPend||Z.some(z=>z.k==3&&z.hp>0);if(m%6==0)spawnLoot();let boss=0;
  if(!ba&&!shopOn&&gt>=bossHold){bossP+=10;if(Math.random()*100<bossP){bossP=0;boss=1;startBoss()}}
  if(!boss&&!ba&&!shopOn&&m>=6){shopP+=10;if(Math.random()*100<shopP){shopP=0;openShop();bossHold=gt+120;bossP=0}}}
@@ -39,7 +39,7 @@ function give(p,it){const cu=p.sl[p.cs];
  if(it.k==6){if(cu.l>=6)return 0;cu.l++;cu.a=magOf(cu.c,cu.l)}else if(it.k==8)p.money+=it.v;
  else if(it.k<2||it.k==9||it.k==10){if(p.sl.length>=6)return 0;p.sl.push({c:it.k==0?10:it.k==1?11:it.k==9?12:13,l:0})}
  else{const wi=it.k==7?0:it.k==11?5:it.k-1,e=p.sl.find(q=>q.c==wi);if(e){e.l=Math.min(6,e.l+1);e.a=magOf(wi,e.l)}else{const n={c:wi,l:it.l||0,a:it.a==null?magOf(wi,it.l||0):it.a};if(p.sl.length<6){p.sl.push(n);p.cs=p.sl.length-1}else{const o=p.sl[p.cs];IT.push({x:p.x,y:p.y+22,k:kOf(o.c),l:o.l,a:o.a,nt:Date.now()+2500});p.sl[p.cs]=n}p.rl=0}p.cw=p.sl[p.cs].c}return 1}
-function openShop(){shopOn=1;shopT=60;const bs=BLD.filter(b=>b.T=='x'),b=bs[Math.random()*bs.length|0];shopX=b.x+b.w/2;shopY=b.y+46;bn=[Date.now(),'🛒 LOJA ABERTA — 1 MINUTO',2]}
+function openShop(){shopOn=1;shopT=60;const bs=BLD.filter(b=>b.T=='x'),b=bs[Math.random()*bs.length|0];shopX=b.x+b.w/2;shopY=b.y+46;bn=[Date.now(),'LOJA ABERTA — 1 MINUTO',2]}
 function kill(z,p){p.k++;cash(z);
  if(z.k==3){for(const i in z.h)giveXp(PL[i],z.xp);for(let i=0;i<7;i++){let x=z.x+R(-70,70),y=z.y+R(-70,70);if(blk(x,y,20)){x=z.x;y=z.y}IT.push({x,y,k:[0,9,9,6,6,2,3,4,5,11,10][Math.random()*11|0]})}}
  else{giveXp(p,z.xp);if(Math.random()<.01)IT.push({x:z.x,y:z.y,k:9})}}

@@ -5,11 +5,11 @@ const myName=()=>($('nm').value||'Jogador').slice(0,12),canHost=()=>!MOB&&(origi
 function nickUp(){const e=$('nick'),v=(($('nm')&&$('nm').value)||'').trim();if(e)e.textContent=v?'NICKNAME: '+v.toUpperCase():''}
 function nickOk(){const v=$('nk').value.trim().slice(0,12);if(!v){$('nk').focus();return}LS.set('name',v);$('nm').value=v;nickUp();show('main')}
 function show(n){for(const e of document.querySelectorAll('.scr'))e.style.display='none';$('s-'+n).style.display='block';$('logo').style.display=n=='lobby'?'none':'block';const nk=$('nick');if(nk)nk.style.display=n=='lobby'?'none':'block';if(n=='main')nickUp();if(n=='multi')tabSel(tab);rl()}
-function tabSel(t){tab='on';$('tab-on').style.display='block';loadRooms()}
+function tabSel(t){tab='on';$('tab-on').style.display='flex';loadRooms()}
 function rl(){
- $('onL').innerHTML=onRooms.map(r=>`<div class=it onclick="joinRoom('${esc(r.code)}')"><b>🌐 ${esc(r.name)}</b><span>${r.n}/8 • ${esc(r.code)}</span></div>`).join('');
- $('ho').innerHTML=relayBase()?'<button class=sb onclick=hostOnline()>➕ CRIAR SALA ONLINE</button>':'';
- $('net').innerHTML='🌐 Online: <b>'+onRooms.length+'</b> sala(s)'}
+ $('onL').innerHTML=onRooms.map(r=>`<div class=it onclick="joinRoom('${esc(r.code)}')"><b>${esc(r.name)}</b><span>${r.n}/8 • ${esc(r.code)}</span></div>`).join('');
+ $('ho').innerHTML=relayBase()?'<button class=sb onclick=hostOnline()>CRIAR SALA ONLINE</button>':'';
+ $('net').innerHTML='Online: <b>'+onRooms.length+'</b> sala(s)'}
 async function loadRooms(){const b=relayBase();$('onS').textContent='Carregando...';
  try{onRooms=await(await fetch(b+'/rooms')).json();$('onS').textContent=onRooms.length?'':'Nenhuma sala aberta agora. Crie a sua!'}catch(e){onRooms=[];$('onS').textContent='Não foi possível falar com o servidor online.'}rl()}
 const relayWs=()=>relayBase().replace(/^http/,'ws');
