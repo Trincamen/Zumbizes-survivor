@@ -11,7 +11,7 @@
 // props, 89b-glprops.js), cacheada por posição inteira para não custar por quadro.
 // O RENDER segue adiado: glZumbiFrame() (no glFrame) zera as contagens, o laço de draw() empurra as instâncias da
 // lista D já cortada por v(), e glZumbiEnd() (no glRenderNow) sobe só o trecho usado e esconde o resto.
-const ZG_NPH=16,ZG_CL=['idle','walk','run','attack'],ZG_CLI={idle:0,walk:1,run:2,attack:3};
+const ZG_NPH=16,ZG_CL=['idle','walk','run','attack','explode','spawn','bubble','climb','jump','roar'],ZG_CLI={idle:0,walk:1,run:2,attack:3,explode:4,spawn:5,bubble:6,climb:7,jump:8,roar:9};
 const ZG_R=new Map(); // mi -> registro do modelo (geometrias, meshes, tabela de poses)
 let ZG_MAT=null,ZG_BLOB=null,ZG_BC=0,ZG_TOK=0,ZG_WARN=0;
 const _zgB=new THREE.Matrix4(),_zgM=new THREE.Matrix4(),_zgP=new THREE.Vector3(),_zgS=new THREE.Vector3(),_zgQ=new THREE.Quaternion(),_zgY=new THREE.Vector3(0,1,0);
@@ -36,10 +36,13 @@ function zgBuild(mi){
   rec.node[ni]=ge;if(ge)tri+=M.GEO[ni].n}
  if(!tri)return null; // sem malha: o chamador cai no desenho 2D
  rec.tri=tri;
- for(let ci=0;ci<4;ci++){
-  const clip=zClip(M,ZG_CL[ci]),phs=[];
-  for(let q=0;q<ZG_NPH;q++){
-   zPose(M,clip,q/ZG_NPH);zWorld(M);
+ rec.np=[];
+ for(let ci=0;ci<ZG_CL.length;ci++){
+  if(ci>=4&&!M.CLP[ZG_CL[ci]]){rec.pm[ci]=null;continue} // clipes extras só se o modelo os tem
+  const clip=zClip(M,ZG_CL[ci]),phs=[];let NP=ci>=4?32:ZG_NPH;for(const ch of clip.ch)if(ch.t.length>NP)NP=ch.t.length; // fases >= quadros do clipe (gordão v2: 30 fps)
+  NP=Math.min(NP,96);rec.np[ci]=NP;
+  for(let q=0;q<NP;q++){
+   zPose(M,clip,q/NP);zWorld(M);
    const arr=new Array(M.NN).fill(null),R=M.WRT,Wt=M.WT;
    for(let ni=0;ni<M.NN;ni++){if(!rec.node[ni])continue;const o=ni*9;
     const m=new THREE.Matrix4();
@@ -87,11 +90,13 @@ function glZumbiPush(x,y,k,v,fa,id,t,s){
  if(st.yaw==null)st.yaw=psi;st.yaw+=ad(psi,st.yaw)*Math.min(1,DT_*10);
  const dd=Math.hypot(x-st.px,y-st.py);st.px=x;st.py=y;
  const rad=k==2?18:k==1?10:12;
- let cn=dd>.3?(k==1?'run':'walk'):'idle';
+ // velocidade em px/s (não por quadro: a 144 FPS o gordão, 34 px/s, move só 0,24 px/quadro) com média móvel p/ não piscar entre walk e idle
+ st.sp=(st.sp||0)*.85+(dd/Math.max(.004,DT_))*.15;
+ let cn=st.sp>9?(k==1?'run':'walk'):'idle';
  for(const p of s.P||[]){if(p[7])continue;if(Math.hypot(p[3]-x,p[4]-y)<=rad+16){cn='attack';break}}
- let ph=(t/(k==1?500:800)+id*.137)%1;if(ph<0)ph+=1;
- const phq=(ph*ZG_NPH|0)%ZG_NPH;
- const scl=k==2?1.5:k==1?.9:1,wf=k==2?1.4:1,S=rec.SC*scl;
+ let ph=(t/(k==1?500:k==2?(cn=='idle'?2830:cn=='attack'?1270:1500):800)+id*.137)%1;if(ph<0)ph+=1; // gordão: período = duração do clipe do GLB
+ const tab_=rec.pm[ZG_CLI[cn]],NPH=tab_.length,phq=(ph*NPH|0)%NPH;
+ const scl=k==2?1.3:k==1?.9:1,wf=k==2?1:1,S=rec.SC*scl;
  // altura do chão (gpH) só quando o zumbi muda de pixel inteiro
  let gy=0;
  if(typeof gpH==='function'){const ix=x|0,iy=y|0;
@@ -99,7 +104,7 @@ function glZumbiPush(x,y,k,v,fa,id,t,s){
   gy=st.gh||0}
  _zgP.set(x,gy,y);_zgQ.setFromAxisAngle(_zgY,st.yaw);_zgS.set(S*wf,S,S*wf);
  _zgB.compose(_zgP,_zgQ,_zgS);
- const nm=rec.pm[ZG_CLI[cn]][phq];
+ const nm=tab_[phq];
  let full=0;
  for(let ni=0;ni<rec.NN;ni++){
   const im=rec.msh[ni];if(!im)continue;
@@ -114,9 +119,23 @@ function glZumbiPush(x,y,k,v,fa,id,t,s){
  pfAdd('zgl',t0);
  return 1;
 }
+// empurra um modelo num clipe/fase arbitrários (corpo do gordão explodindo, gosma): sem estado de zumbi
+const _zgQ2=new THREE.Quaternion(),_zgZ=new THREE.Vector3(0,0,1);
+function glClipPush(mi,x,y,yaw,cn,ph,sc,wf,abs,ay,roll){
+ let rec=ZG_R.get(mi);if(rec===undefined){rec=zgBuild(mi);ZG_R.set(mi,rec)}
+ if(!rec)return 0;const ci=ZG_CLI[cn],tab=rec.pm[ci];if(!tab)return 0;
+ const NP=tab.length,phq=Math.max(0,Math.min(NP-1,(ph*NP)|0));
+ let gy=0;if(typeof gpH==='function')gy=gpH(x,y)||0;
+ _zgP.set(x,gy+(ay||0),y);_zgQ.setFromAxisAngle(_zgY,yaw);if(roll){_zgQ2.setFromAxisAngle(_zgZ,roll);_zgQ.multiply(_zgQ2)}const S_=abs?sc:rec.SC*sc;_zgS.set(S_*wf,S_,S_*wf);_zgB.compose(_zgP,_zgQ,_zgS);
+ const nm=tab[phq];
+ for(let ni=0;ni<rec.NN;ni++){const im=rec.msh[ni];if(!im)continue;const c=rec.cnt[ni];if(c>=ZMAX)continue;
+  _zgM.copy(_zgB).multiply(nm[ni]);im.setMatrixAt(c,_zgM);rec.cnt[ni]=c+1}
+ return rec;
+}
 // fim do quadro (glRenderNow): publica count/needsUpdate só do trecho usado e esconde o que não foi desenhado
 function glZumbiEnd(){
  if(!glLive)return;
+ if(typeof gooDraw=='function')gooDraw(); // 89k-glgosma.js: corpo explodindo + poça de gosma
  for(const rec of ZG_R.values()){if(!rec)continue;
   const c=rec.cnt;
   for(let ni=0;ni<rec.NN;ni++){const im=rec.msh[ni];if(!im)continue;

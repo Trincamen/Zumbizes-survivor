@@ -90,9 +90,9 @@ function ghMiniLabels(MMW,f,MMH){
  const L=HGM.el.L;if(!L)return;
  while(L.firstChild)L.removeChild(L.firstChild);
  const lbs=[];
- for(const b of BLD){const T=b.T;if(T!='h'&&T!='p'&&T!='m')continue;
-  const nm=T=='h'?'HOSPITAL':T=='p'?'POLÍCIA':'MERCADO',w=MOB?10:nm.length*5.2;
-  lbs.push({T,nm,w,lx:Math.max(w/2+2,Math.min(MMW-w/2-2,(b.x+b.w/2)*f)),ly:b.y*f-5,color:T=='h'?'#ff8a8a':T=='p'?'#8fb0ff':'#ffc070',mc:T=='h'?'#e33':T=='p'?'#36f':'#e80'})}
+ for(const b of BLD){const T=b.T;if(T!='h'&&T!='p'&&T!='m'&&T!='r')continue;
+  const nm=T=='r'?'AREA SEGURA':T=='h'?'HOSPITAL':T=='p'?'POLÍCIA':'MERCADO',w=MOB?10:nm.length*5.2;
+  lbs.push({T,nm,w,lx:Math.max(w/2+2,Math.min(MMW-w/2-2,(b.x+b.w/2)*f)),ly:b.y*f-5,color:T=='h'?'#ff8a8a':T=='p'?'#8fb0ff':T=='r'?'#6fb4ff':'#ffc070',mc:T=='h'?'#e33':T=='p'?'#36f':T=='r'?'#39f':'#e80'})}
  lbs.sort((a,b)=>a.lx-b.lx);
  const done=[];
  for(const l of lbs){let best=Math.max(7,l.ly);for(const dy of[0,-10,10,-20,20,30,-30]){const y=Math.max(7,Math.min(MMH-6,l.ly+dy));if(!done.some(q=>Math.abs(q.lx-l.lx)<(q.w+l.w)/2+2&&Math.abs(q.y-y)<9)){best=y;break}}l.y=best;done.push(l)}

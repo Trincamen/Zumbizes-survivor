@@ -25,6 +25,12 @@ function casaPick(x,y,w,h,st){
 }
 const LOOTC={"h":[[-3.05,-5.2,1.4,0.7],[2.6,-4.7,1.4,0.6],[3.5,-6.3,0.9,0.7],[-9.9,-6.2,1.4,0.9],[-9.9,-4.4,1.4,0.9],[-9.9,-2.6,1.4,0.9],[-6.2,-6.2,1.4,0.6],[9.8,-6.4,1.1,0.6],[10.55,-3.9,0.9,0.7],[-10.2,2.35,1.4,0.9],[-10.2,4.65,1.4,0.9],[-8.0,6.35,1.4,0.9],[-6.1,6.35,0.8,0.6],[-2.8,3.5,1.2,0.8],[-4.65,6.15,0.6,0.6],[-0.6,6.3,0.6,0.6],[1.15,6.68,1.4,0.6],[3.25,6.68,1.4,0.6],[4.4,1.55,1.4,0.6],[4.95,6.25,0.8,0.7],[9.85,2.95,1.4,0.6],[7.8,6.25,1.4,0.7],[10.55,4.5,0.8,0.7]],"p":[[-4.7,-3.5,1.4,0.7],[5.2,-3.4,1.4,0.6],[7.55,-4.9,0.9,0.7],[-6.75,0.7,1.1,0.6],[-7.65,2.0,0.8,0.6],[-6.75,4.7,1.1,0.6],[-7.7,3.5,1.4,0.6],[-3.35,5.55,1.2,0.8],[-1.2,5.65,1.2,0.6],[1.2,5.65,1.2,0.6],[1.0,0.75,1.2,0.8],[3.0,5.2,1.4,0.9],[4.9,5.2,1.4,0.9],[6.7,5.2,1.4,0.9],[7.1,0.8,1.1,0.6],[7.72,2.2,1.2,0.6]],"m":[[-2.8,-1.8,1.4,0.6],[-2.8,-0.2,1.4,0.6],[2.2,-1.2,1.4,0.6],[4.45,-0.5,1.4,0.8],[3.4,-2.9,1.4,0.6],[-2.1,-3.0,1.0,0.6],[1.45,-2.95,1.0,0.7],[3.9,0.35,0.8,0.7],[-2.8,3.15,1.2,0.6],[-4.0,3.15,1.2,0.6],[-4.3,1.7,1.2,0.9],[1.2,2.9,1.1,0.6],[2.3,3.05,0.8,0.6],[4.5,1.7,0.7,0.6]],"c0":[[-2.0,1.95,1.4,0.9],[-0.6,2.1,0.8,0.7],[0.1,2.15,1.4,0.6],[-1.9,-0.25,1.2,0.8],[-2.7,-1.4,1.4,0.8],[2.55,-2.1,1.0,0.7]],"c1":[[-3.6,0.6,1.4,0.8],[-2.2,0.55,1.1,0.7],[-3.3,2.55,1.4,0.6],[-3.6,-2.5,1.0,0.7],[3.1,2.35,1.4,0.9],[1.05,2.55,1.1,0.6],[1.7,-2.55,1.4,0.6],[3.65,-2.45,0.8,0.7],[2.4,-0.45,1.2,0.8]],"c2":[[-2.0,2.55,1.0,0.7],[0.1,2.55,1.0,0.7],[-0.5,-0.4,1.2,0.8],[2.85,0.7,1.4,0.6],[2.85,2.65,0.8,0.7],[-2.85,-2.65,1.0,0.7]],"c3":[[-4.6,-1.5,1.4,0.8],[-3.0,-1.25,1.2,0.8],[-0.6,0.05,1.4,0.6],[1.1,-0.05,0.8,0.7],[-4.0,2.3,1.4,0.9],[-2.05,2.7,1.1,0.6],[0.65,2.65,1.1,0.6],[4.0,0.7,1.0,0.7],[2.35,2.65,1.4,0.6],[2.0,-0.4,1.0,0.7]],"c4":[[-3.1,-1.3,1.4,0.8],[-1.7,-1.1,1.1,0.7],[2.0,-2.35,1.4,0.6],[3.3,-2.25,0.8,0.7],[2.1,-0.85,1.2,0.8],[2.55,2.15,1.4,0.9],[-0.55,2.35,1.1,0.6]],"c5":[[-4.0,1.15,1.4,0.9],[-2.45,1.35,1.1,0.6],[-0.6,1.35,1.4,0.8],[1.9,1.45,1.4,0.6],[4.05,1.35,0.8,0.7],[-0.3,-1.2,1.2,0.8],[4.55,-1.3,1.0,0.7]],"c6":[[-2.5,-2.6,1.4,0.8],[-2.7,-1.4,1.1,0.7],[2.7,-2.85,1.4,0.6],[4.25,-2.7,0.8,0.7],[2.5,-1.0,1.2,0.8],[-3.5,2.7,1.4,0.9],[-0.7,2.9,1.1,0.6],[-4.0,1.0,1.0,0.7],[3.45,2.7,1.4,0.9],[0.8,2.95,1.0,0.7],[4.15,1.0,1.0,0.7]],"c7":[[-3.0,-1.8,1.4,0.8],[1.6,-1.3,1.2,0.8],[-1.45,-3.0,1.0,0.7],[-2.45,2.9,1.4,0.9],[-0.7,3.1,1.1,0.6],[1.7,3.0,1.1,0.6],[3.1,1.3,0.8,0.6],[3.15,3.0,1.0,0.7]],"c8":[[-3.1,-1.3,1.4,0.8],[-1.6,-1.1,1.2,0.8],[2.25,-2.35,1.4,0.6],[3.25,-2.1,0.8,0.7],[-2.55,2.1,1.4,0.9],[1.5,2.25,1.1,0.6]],"c9":[[-0.1,1.95,1.4,0.8],[-0.1,0.8,1.1,0.7],[0.92,-2.05,1.0,0.7],[-2.65,2.1,1.4,0.6],[-3.5,-2.0,0.8,0.7],[-2.9,-0.4,1.2,0.8],[2.9,1.9,1.4,0.9],[1.6,2.15,1.1,0.6],[3.5,-2.0,1.0,0.7]]};
 // interior dos prédios: colliders nos MÓVEIS reais (nós loot_* dos GLB, tamanho aproximado); footprint do GLB em metros
+const TUR_H=135,RZ_M=170; // RZ_M = margem livre (px) ao redor da Área Segura
+function nearAS(x,y){const b=BLD.find(q=>q.T=='r');return !!b&&x>b.x-RZ_M&&x<b.x+b.w+RZ_M&&y>b.y-RZ_M&&y<b.y+b.h+RZ_M}
+
+function asClosed(on){const b=BLD.find(q=>q.T=='r');if(b&&b.door)b.door.dead=on?0:1}
+function asIn(){const b=BLD.find(q=>q.T=='r');if(!b)return 0;for(const p of Object.values(PL))if(!p.dead&&p.x>b.x+14&&p.x<b.x+b.w-14&&p.y>b.y+14&&p.y<b.y+b.h-14)return 1;return 0}
+function turPos(b,i){return[b.x+(i&1?b.w-40:40),b.y+(i&2?b.h-40:40)]} // torretas nos 4 cantos do telhado da Área Segura
 const LOOT_FP={h:[22.4,14.4],p:[16.4,12.4],m:[10,7]};
 const CEN_HV_=[0,1,2,3,4,5,7,8,9,10,11,12]; // mesmas linhas horizontais de CEN_HV (86-cenario.js)
 function genMap(sd){let a=sd;const r=()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296},q=(m,n)=>m+r()*(n-m),o=[],B=[],TT=14;
@@ -34,9 +40,10 @@ function genMap(sd){let a=sd;const r=()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(
   // casa_05 (índice 4): a cerca do quintal passa de ±5,4 m × -4,4..4,1 m e invadia a rua; encolhe a casa para a cerca caber no terreno original
   if(cm0==4){const nw=w*7.4/11.2,nh=h*5.6/8.8;x+=(w-nw)/2;y+=(h-nh)/2-.15*nh/5.6;w=nw;h=nh}
   const dx0=x+q(24,w-80),cm_=cm0,
-  dx=(T=='h'||T=='p'||T=='m')?x+w/2-28:cm_<0?dx0:Math.max(x+TT,Math.min(x+w-TT-56,Math.round(x+w/2+CASA_EXT[cm_][3]*(w/CASA_EXT[cm_][0])-28))),
+  dx=(T=='h'||T=='p'||T=='m'||T=='r')?x+w/2-28:cm_<0?dx0:Math.max(x+TT,Math.min(x+w-TT-56,Math.round(x+w/2+CASA_EXT[cm_][3]*(w/CASA_EXT[cm_][0])-28))),
   b={x,y,w,h,H,c,d,dx,T,W:0,sm:T=='x'&&w*h<32000};if(cm_>=0)b.cm=cm_;B.push(b);
   o.push({t:5,b,x,y,w,h:TT,wl:'n'},{t:5,b,x,y,w:TT,h,wl:'w'},{t:5,b,x:x+w-TT,y,w:TT,h,wl:'e'},{t:5,b,x,y:y+h-TT,w:dx-x,h:TT,wl:'s'},{t:5,b,x:dx+56,y:y+h-TT,w:x+w-dx-56,h:TT,wl:'s'});
+  if(T=='r'){const dr={t:5,b,x:dx,y:y+h-TT,w:56,h:TT,wl:'s',dead:1,dr:1};o.push(dr);b.door=dr} // porta da Área Segura: só bloqueia (dead=0) enquanto o boss está ativo
   // divisórias e caixas ALEATÓRIAS de dentro foram removidas (ficavam onde não há nada no GLB); q() continua sendo chamado
   // para não deslocar o RNG do mapa. No lugar: colliders dos móveis reais (LOOTC), só em casas não pequenas.
   for(let p=0;p<part;p++)q(50,h-172);
@@ -54,9 +61,9 @@ function genMap(sd){let a=sd;const r=()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(
  const cells=[];for(const j of ROWS)for(let i=0;i<7;i++)cells.push([i,j]);for(let i=cells.length-1;i>0;i--){const k=r()*(i+1)|0,t=cells[i];cells[i]=cells[k];cells[k]=t}
  const used={},spec={},placed=[],pick=(T,wd)=>{const cand=[];for(const[i,j]of cells){const k0=i+','+j;if(used[k0]||(wd&&used[(i+1)+','+j]))continue;const cx=wd?(i+1)*500:i*500+250,cy=j*500+250;let md=1e9;for(const q of placed)md=Math.min(md,Math.hypot(q[0]-cx,q[1]-cy));cand.push([md+r()*300,i,j,cx,cy])}
  if(!cand.length)return;cand.sort((a,b)=>b[0]-a[0]);const c=cand[Math.min(cand.length-1,r()*3|0)];used[c[1]+','+c[2]]=1;if(wd)used[(c[1]+1)+','+c[2]]=1;spec[c[1]+','+c[2]]=T;placed.push([c[3],c[4]])};
- pick('h',1);pick('p',0);pick('m',0);if(r()<.5)pick('h',1);if(r()<.4)pick('p',0);if(r()<.6)pick('m',0);
+ pick('h',1);pick('p',0);pick('m',0);if(r()<.5)pick('h',1);if(r()<.4)pick('p',0);if(r()<.6)pick('m',0);pick('r',1);
  for(const j of ROWS)for(let i=0;i<8;i++){const bx=i*500+60,by=j*500+60,key=i+','+j,t=r();
-  if(spec[key]){const T=spec[key];if(T=='h')mk(bx+4,by+10,876,360,'h','#dde6ea','#9bb',88,2,8);else if(T=='p')mk(bx+10,by+10,360,360,'p','#5a7aa8','#234',84,1,6);else mk(bx+5,by+10,370,350,'m','#d9a05a','#a52',84,1,8);continue}
+  if(spec[key]){const T=spec[key];if(T=='h')mk(bx+4,by+10,876,360,'h','#dde6ea','#9bb',88,2,8);else if(T=='r')mk(bx+4,by+10,876,360,'r','#8a8f86','#445',100,0,0);else if(T=='p')mk(bx+10,by+10,360,360,'p','#5a7aa8','#234',84,1,6);else mk(bx+5,by+10,370,350,'m','#d9a05a','#a52',84,1,8);continue}
   if(used[key])continue;
   const hs_=()=>hc[r()*6|0],rs_=()=>rc[r()*5|0];
   if(t<.40){const w=q(150,310),h=q(140,270);mk(bx+q(8,372-w),by+q(8,372-h),w,h,'x',hs_(),rs_(),70,0,1+(r()*2|0))}
@@ -66,13 +73,14 @@ function genMap(sd){let a=sd;const r=()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(
   else if(t<.88){const n=q(5,9)|0;for(let k=0;k<n;k++)o.push({t:1,x:bx+q(30,330),y:by+q(30,330),w:24,h:24})}
   else{const n=q(3,6)|0;for(let k=0;k<n;k++)o.push({t:3,x:bx+q(20,320),y:by+q(20,320),w:36,h:36})}}
  o.push({t:6,x:0,y:RY0,w:920,h:600},{t:6,x:1080,y:RY0,w:1840,h:600},{t:6,x:3080,y:RY0,w:920,h:600});
+ const RZ=B.find(b=>b.T=='r'),inRZ=c=>RZ&&c.x<RZ.x+RZ.w+RZ_M&&c.x+c.w>RZ.x-RZ_M&&c.y<RZ.y+RZ.h+RZ_M&&c.y+c.h>RZ.y-RZ_M; // Área Segura: nada de carros/engarrafamento ao redor
  for(let k=0;k<70;k++){const hz=r()<.5,no=r()<.5,rl=hz?(no?1+(r()*4|0):8+(r()*4|0))*500:(1+(r()*7|0))*500,u=hz?q(80,3900):no?q(80,2400):q(3580,5900),c=hz?{x:u,y:rl-23+q(-25,25),w:92,h:46}:{x:rl-23+q(-25,25),y:u,w:46,h:92};
-  if(Math.abs(c.x-2000)<250&&Math.abs(c.y-4500)<250||B.some(b=>c.x<b.x+b.w&&c.x+c.w>b.x&&c.y<b.y+b.h&&c.y+c.h>b.y))continue;c.t=2;c.c=cc[r()*6|0];o.push(c)}
+  if(inRZ(c)||Math.abs(c.x-2000)<250&&Math.abs(c.y-4500)<250||B.some(b=>c.x<b.x+b.w&&c.x+c.w>b.x&&c.y<b.y+b.h&&c.y+c.h>b.y))continue;c.t=2;c.c=cc[r()*6|0];o.push(c)}
  // engarrafamentos: grupos de carros parados atravessando a rua (aleatórios por semente)
  for(let jn=0;jn<7;jn++){const vert=r()<.5,line=vert?(1+(r()*7|0))*500:CEN_HV_[r()*CEN_HV_.length|0]*500,u=vert?(r()<.5?q(200,2300):q(3700,5800)):q(200,3800),n=3+(r()*3|0);
   if(Math.abs(u-2000)<350&&Math.abs(line-4500)<350&&!vert)continue;
   for(let k=0;k<n;k++){const al=u+q(-70,70),ac=line+q(-42,42),turn=r()<.25,w=(vert?!turn:turn)?46:92,h=w==46?92:46,c={x:(vert?ac:al)-w/2,y:(vert?al:ac)-h/2,w,h,t:2,c:cc[r()*6|0]};
-   if(c.x<20||c.y<20||c.x+w>MW-20||c.y+h>MH-20||(c.y+h>RY0-150&&c.y<RY1+150)||(Math.abs(c.x+w/2-2000)<250&&Math.abs(c.y+h/2-4500)<250))continue;
+   if(inRZ(c)||c.x<20||c.y<20||c.x+w>MW-20||c.y+h>MH-20||(c.y+h>RY0-150&&c.y<RY1+150)||(Math.abs(c.x+w/2-2000)<250&&Math.abs(c.y+h/2-4500)<250))continue;
    if(B.some(b=>c.x<b.x+b.w&&c.x+c.w>b.x&&c.y<b.y+b.h&&c.y+c.h>b.y)||o.some(p=>p.t==2&&c.x<p.x+p.w&&c.x+c.w>p.x&&c.y<p.y+p.h&&c.y+c.h>p.y))continue;
    c.jam=1;o.push(c)}}
  const fr=[];o.forEach((q,i)=>q.i=i);for(const c of o)if(c.t==2&&r()<.18)fr.push([c.x+c.w/2,c.y+c.h/2-8,1.1,c.y+c.h+1,null,c]);for(const b of B)if(b.T=='x'&&r()<.12){b.fire=1;fr.push([b.x+b.w*.3-b.H*.3,b.y-b.H+14,1.6,b.y+b.h+2,b],[b.x+b.w*.7-b.H*.3,b.y-b.H+26,1.3,b.y+b.h+2,b])}o.FR=fr;o.B=B;return o}

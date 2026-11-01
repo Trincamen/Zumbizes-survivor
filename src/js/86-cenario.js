@@ -142,7 +142,7 @@ function cenMakeObl(g,o){
 }
 // ---------- ruas (tile 24 m = 300 px, 12,5 px/m: asfalto de 8 m = 100 px, igual à rua do jogo) e prédios h/p/m ----------
 const CEN_RGLB=['@@GLB:assets/rua/rua_reta.glb@@','@@GLB:assets/rua/rua_cruzamento.glb@@','@@GLB:assets/rua/rua_T.glb@@','@@GLB:assets/rua/rua_curva.glb@@'];
-const CEN_PGLB={h:'@@GLB:assets/predios/predio_hospital.glb@@',p:'@@GLB:assets/predios/predio_policia.glb@@',m:'@@GLB:assets/predios/predio_mercado.glb@@'};
+const CEN_PGLB={h:'@@GLB:assets/predios/predio_hospital.glb@@',p:'@@GLB:assets/predios/predio_policia.glb@@',m:'@@GLB:assets/predios/predio_mercado.glb@@',r:'@@GLB:assets/predios/predio_refugio.glb@@'};
 const CEN_RUA={v:null,h:null,x:null,t:null,c:null};
 // ruas horizontais desenhadas (sem a do rio)
 const CEN_HV=[0,1,2,3,4,5,7,8,9,10,11,12];
@@ -193,7 +193,7 @@ function cenBldBuild(T,w,d,H){
 }
 // sprite exterior (interior=0) ou interior (interior=1) do prédio; null = usa desenho procedural
 function cenBldSpr(b,interior){
- if(!b||(b.T!='h'&&b.T!='p'&&b.T!='m'))return null;
+ if(!b||(b.T!='h'&&b.T!='p'&&b.T!='m'&&b.T!='r'))return null;
  let s=CEN_BLD[b.T];
  if(s&&s.fail&&s.w===b.w&&s.d===b.h&&s.H===b.H)return null;
  if(!s||s.w!==b.w||s.d!==b.h||s.H!==b.H){
@@ -326,7 +326,7 @@ function genDecor(sd){
  // asfalto: verticais em x=k*500 (fora do rio) e horizontais em y=k*500
  const onRua=(x,y)=>((y<2500||y>3500)&&Math.abs(x-Math.round(x/500)*500)<64)||CEN_HV.some(k=>Math.abs(y-k*500)<64);
  const far=(x,y)=>x>40&&y>40&&x<MW-40&&y<MH-40&&!inRiv(y)&&Math.hypot(x-2000,y-4500)>=200;
- const free=(x,y,r)=>{if(!far(x,y))return 0;if(blk(x,y,r==null?12:r))return 0;
+ const free=(x,y,r)=>{if(!far(x,y)||nearAS(x,y))return 0;if(blk(x,y,r==null?12:r))return 0;
   for(const b of BLD)if(x>b.x-6&&x<b.x+b.w+6&&y>b.y-6&&y<b.y+b.h+6)return 0;
   // zona livre à frente da porta (sprites altos tapavam a entrada na projeção oblíqua)
   for(const b of BLD){const yb=b.y+b.h;
@@ -388,7 +388,7 @@ function genDecor(sd){
  {const rr=cenRng((sd^0x2f9be6c1)>>>0),qq=(m,n)=>m+rr()*(n-m);
   const roadPt=()=>{if(rr()<.5){const k=1+(rr()*7|0),y=rr()<.5?qq(250,2250):qq(3750,5750);if(CEN_HV.some(h=>Math.abs(y-h*500)<170))return null;return{vert:1,x:k*500,y}}
    const h=CEN_HV[rr()*CEN_HV.length|0],x=qq(250,3750);if(Math.abs(x-Math.round(x/500)*500)<170)return null;return{vert:0,x,y:h*500}};
-  const okp=(x,y,r)=>x>30&&y>30&&x<MW-30&&y<MH-30&&!inRiv(y)&&Math.hypot(x-2000,y-4500)>=330&&!blk(x,y,r)&&!out.some(d=>Math.abs(d.x-x)<46&&Math.abs(d.y-y)<46);
+  const okp=(x,y,r)=>!nearAS(x,y)&&x>30&&y>30&&x<MW-30&&y<MH-30&&!inRiv(y)&&Math.hypot(x-2000,y-4500)>=330&&!blk(x,y,r)&&!out.some(d=>Math.abs(d.x-x)<46&&Math.abs(d.y-y)<46);
   let nb=0,np=0;
   for(let t=0;t<60&&(nb<5||np<7);t++){const p=roadPt();if(!p)continue;
    if(nb<5&&rr()<.45){

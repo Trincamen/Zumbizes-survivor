@@ -1,6 +1,6 @@
 // ---------- ZUMBIS 3D (GLB) com cache de sprites ----------
-// 0 padrao, 1 policial, 2 bombeiro, 3 sem_braco, 4 corredor, 5 gordao (boss nao usa este arquivo)
-const ZGLB=['@@GLB:assets/zumbis/zumbi_padrao.glb@@','@@GLB:assets/zumbis/zumbi_policial.glb@@','@@GLB:assets/zumbis/zumbi_bombeiro.glb@@','@@GLB:assets/zumbis/zumbi_sem_braco.glb@@','@@GLB:assets/zumbis/zumbi_corredor.glb@@','@@GLB:assets/zumbis/zumbi_gordao.glb@@'];
+// 0 padrao, 1 policial, 2 bombeiro, 3 sem_braco, 4 corredor, 5 gordao (v2: clipes walk/idle/attack/explode), 6 gosma_bile (props; clipes spawn/bubble) (boss nao usa este arquivo)
+const ZGLB=['@@GLB:assets/zumbis/zumbi_padrao.glb@@','@@GLB:assets/zumbis/zumbi_policial.glb@@','@@GLB:assets/zumbis/zumbi_bombeiro.glb@@','@@GLB:assets/zumbis/zumbi_sem_braco.glb@@','@@GLB:assets/zumbis/zumbi_corredor.glb@@','@@GLB:assets/zumbis/zumbi_gordao_v2.glb@@','@@GLB:assets/props/gosma_bile.glb@@','@@GLB:assets/zumbis/zumbi_cacador.glb@@'];
 const ZM=[],ZSPR=new Map(),ZST=new Map(),ZSS=new Map(),ZH=46,ZTAU=Math.PI*2,ZMAX=700;
 let ZBUD=0;
 // suavizacao de posicao dos zumbis (chave numerica, sem string por quadro)
@@ -9,9 +9,9 @@ function zsClean(){for(const[k,r]of ZSS)if(r.u<FR-120)ZSS.delete(k)}
 // GLB -> modelo por nó (hierarquia preservada: pose por clipe + matrizes mundo)
 function zParse(b64){
  const {j,acc}=pgParseGlb(b64);
- const NN=j.nodes.length,CH=[],RT=new Float32Array(NN*3),RR=new Float32Array(NN*4),PAR=new Int8Array(NN).fill(-1);
+ const NN=j.nodes.length,CH=[],RT=new Float32Array(NN*3),RR=new Float32Array(NN*4),RS=new Float32Array(NN*3).fill(1),PAR=new Int8Array(NN).fill(-1);
  for(let i=0;i<NN;i++){const nd=j.nodes[i];CH[i]=nd.children||[];const tr=nd.translation||[0,0,0],ro=nd.rotation||[0,0,0,1];
-  RT[i*3]=tr[0];RT[i*3+1]=tr[1];RT[i*3+2]=tr[2];RR[i*4]=ro[0];RR[i*4+1]=ro[1];RR[i*4+2]=ro[2];RR[i*4+3]=ro[3]}
+  RT[i*3]=tr[0];RT[i*3+1]=tr[1];RT[i*3+2]=tr[2];RR[i*4]=ro[0];RR[i*4+1]=ro[1];RR[i*4+2]=ro[2];RR[i*4+3]=ro[3];if(nd.scale){RS[i*3]=nd.scale[0];RS[i*3+1]=nd.scale[1];RS[i*3+2]=nd.scale[2]}}
  for(let i=0;i<NN;i++)for(const c of CH[i])PAR[c]=i;
  const ORD=[],qu=[],seen=new Uint8Array(NN);for(let i=0;i<NN;i++)if(PAR[i]<0)qu.push(i); // raiz = nós sem pai (no boss v4 a raiz é o último nó)
  while(qu.length){const i=qu.shift();if(seen[i])continue;seen[i]=1;ORD.push(i);for(const c of CH[i])qu.push(c)}
@@ -27,21 +27,22 @@ function zParse(b64){
   GEO[i]={P:TP,C:TC,n:nt};TOT+=nt}
  const CLP={};
  for(const an of (j.animations||[])){const chs=[];let dur=0;
-  for(const ch of an.channels){const sm=an.samplers[ch.sampler],ti=acc(sm.input),va=acc(sm.output),nq=ch.target.path==='rotation';
-   if(ti.length)dur=Math.max(dur,ti[ti.length-1]);chs.push({node:ch.target.node,q:nq,t:ti,v:va,nc:nq?4:3})}
+  for(const ch of an.channels){const sm=an.samplers[ch.sampler],ti=acc(sm.input),va=acc(sm.output),nq=ch.target.path==='rotation',ns=ch.target.path==='scale';
+   if(ti.length)dur=Math.max(dur,ti[ti.length-1]);chs.push({node:ch.target.node,q:nq,sc:ns,t:ti,v:va,nc:nq?4:3})}
   CLP[an.name]={ch:chs,dur:dur||.001}}
- return {NN,PAR,RT,RR,ORD,GEO,CLP,TOT,SC:0,CSS:{},
+ return {NN,PAR,RT,RR,RS,PGS:new Float32Array(NN*3),ORD,GEO,CLP,TOT,SC:0,CSS:{},
   WRT:new Float32Array(NN*9),WT:new Float32Array(NN*3),PGT:new Float32Array(NN*3),PGR:new Float32Array(NN*4),
   FX:new Float32Array(TOT*6),FD:new Float32Array(TOT),FO:new Int32Array(TOT),FK:new Uint32Array(TOT),VX:new Float32Array(TOT*9)};
 }
 function zModel(mi){let M=ZM[mi];if(M===undefined){try{M=zParse(ZGLB[mi])}catch(e){M=null}ZM[mi]=M}return M}
 function zClip(M,n){return M.CLP[n]||(n==='walk'?M.CLP.run:n==='run'?M.CLP.walk:M.CLP.walk)||M.CLP.idle||{ch:[],dur:1}}
-function zPose(M,clip,ph){const T=M.PGT,R=M.PGR;T.set(M.RT);R.set(M.RR);if(!clip)return;
+function zPose(M,clip,ph){const T=M.PGT,R=M.PGR,S=M.PGS;T.set(M.RT);R.set(M.RR);S.set(M.RS);if(!clip)return;
  const tm=ph*clip.dur;
- for(const ch of clip.ch)pgSample(ch,tm,ch.q?R:T,ch.node*(ch.q?4:3))}
-function zWorld(M){const R=M.WRT,Wt=M.WT,PGT=M.PGT,PGR=M.PGR,PAR=M.PAR,ORD=M.ORD;
+ for(const ch of clip.ch)pgSample(ch,tm,ch.q?R:ch.sc?S:T,ch.node*(ch.q?4:3))}
+function zWorld(M){const R=M.WRT,Wt=M.WT,PGT=M.PGT,PGR=M.PGR,PGS=M.PGS,PAR=M.PAR,ORD=M.ORD;
  for(const i of ORD){const qx=PGR[i*4],qy=PGR[i*4+1],qz=PGR[i*4+2],qw=PGR[i*4+3],x2=qx+qx,y2=qy+qy,z2=qz+qz,xx=qx*x2,xy=qx*y2,xz=qx*z2,yy=qy*y2,yz=qy*z2,zz=qz*z2,wx=qw*x2,wy=qw*y2,wz=qw*z2,
-  l0=1-(yy+zz),l1=xy-wz,l2=xz+wy,l3=xy+wz,l4=1-(xx+zz),l5=yz-wx,l6=xz-wy,l7=yz+wx,l8=1-(xx+yy),
+  sx=PGS[i*3],sy=PGS[i*3+1],sz=PGS[i*3+2], // escala local: colunas da rotação
+  l0=(1-(yy+zz))*sx,l1=(xy-wz)*sy,l2=(xz+wy)*sz,l3=(xy+wz)*sx,l4=(1-(xx+zz))*sy,l5=(yz-wx)*sz,l6=(xz-wy)*sx,l7=(yz+wx)*sy,l8=(1-(xx+yy))*sz,
   tx=PGT[i*3],ty=PGT[i*3+1],tz=PGT[i*3+2],p=PAR[i];
   if(p<0){R[i*9]=l0;R[i*9+1]=l1;R[i*9+2]=l2;R[i*9+3]=l3;R[i*9+4]=l4;R[i*9+5]=l5;R[i*9+6]=l6;R[i*9+7]=l7;R[i*9+8]=l8;Wt[i*3]=tx;Wt[i*3+1]=ty;Wt[i*3+2]=tz}
   else{const pr=p*9,a0=R[pr],a1=R[pr+1],a2=R[pr+2],a3=R[pr+3],a4=R[pr+4],a5=R[pr+5],a6=R[pr+6],a7=R[pr+7],a8=R[pr+8];

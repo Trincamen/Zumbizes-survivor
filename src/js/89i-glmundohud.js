@@ -396,9 +396,9 @@ function gwEnd(s){
  if(GWU.zo!==ZO){GWU.zo=ZO;GWU.el.style.setProperty('--gwzo',String(ZO))}
  for(const k in GWU.pl){const o=GWU.pl[k];if(o&&o.u!==GWU.stamp)gwDisp(o.g,0)}
  for(let i=0;i<GWU.zl.length;i++){const o=GWU.zl[i];if(o&&o.u!==GWU.stamp)gwDisp(o.g,0)}
- const one=[GWU.boss,GWU.sel,GWU.shop,GWU.arc,GWU.pill,GWU.mk];
+ const one=[GWU.boss,GWU.sel,GWU.shop,GWU.arc,GWU.pill];
  for(let i=0;i<one.length;i++){const o=one[i];if(o&&o.u!==GWU.stamp)gwDisp(o.g,0)}
- for(const nm of['dh','kr']){const A=GWU[nm];if(A)for(let i=0;i<A.length;i++){const o=A[i];if(o&&o.u!==GWU.stamp)gwDisp(o.g,0)}}
+ for(const nm of['dh','kr','mk']){const A=GWU[nm];if(A)for(let i=0;i<A.length;i++){const o=A[i];if(o&&o.u!==GWU.stamp)gwDisp(o.g,0)}}
  for(let i=0;i<GWU.lab.length;i++){const o=GWU.lab[i];if(o&&o.u!==GWU.stamp)gwDisp(o.g,0)}
  GWU.lz=GWU.zln;GWU.stamp++;GWU.zln=0;GWU.labn=0;GWU.dhn=0;GWU.krn=0;
  pfAdd('gwm',t0);

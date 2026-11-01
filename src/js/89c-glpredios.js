@@ -15,8 +15,9 @@ const GR_CASA=['@@GLB:assets/casas/casa_01_chale_pequeno.glb@@','@@GLB:assets/ca
  '@@GLB:assets/casas/casa_05_quintal.glb@@','@@GLB:assets/casas/casa_06_trailer.glb@@',
  '@@GLB:assets/casas/casa_07_fazenda.glb@@','@@GLB:assets/casas/casa_08_esquina.glb@@',
  '@@GLB:assets/casas/casa_09_queimada.glb@@','@@GLB:assets/casas/casa_10_bangalo_azul.glb@@'];
-const GR_EXT={h:{footprint_xz:[22.4,14.4],wall_height:3.4},p:{footprint_xz:[16.4,12.4],wall_height:3.2},m:{footprint_xz:[10,7],wall_height:2.8}};
+const GR_EXT={h:{footprint_xz:[22.4,14.4],wall_height:3.4},p:{footprint_xz:[16.4,12.4],wall_height:3.2},m:{footprint_xz:[10,7],wall_height:2.8},r:{footprint_xz:[26.5,18.2],wall_height:5}};
 for(let i=0;i<CASA_EXT.length;i++)GR_EXT['c'+i]={footprint_xz:[CASA_EXT[i][0],CASA_EXT[i][1]],wall_height:CASA_EXT[i][2]};
+const GR_TUR='@@GLB:assets/armas/torreta.glb@@';
 const GR_SKIP=/^(loot_|player_spawn|zombie_|parking|cart_corral)/;
 // nós escondidos quando o jogador está DENTRO: telhado/chaminé/props externos e as peças da fachada
 // (sign/awning/canopy/flag/doors) — o 2D também só desenha o sprite de interior nesse caso.
@@ -29,7 +30,25 @@ function grGlass(){return GR_GLASS||(GR_GLASS=new THREE.MeshLambertMaterial({ver
 function grBoxGeo(){return GR_BOX||(GR_BOX=new THREE.BoxGeometry(1,1,1))}
 function grColMat(c){GR_MC=GR_MC||{};const k=c||'#888';return GR_MC[k]||(GR_MC[k]=new THREE.MeshLambertMaterial({color:new THREE.Color(k),side:THREE.DoubleSide}))}
 // GLB (Y-up, metros) -> uma geometria por NÓ, já em coordenadas do modelo (piso em y=0, centro em x=z=0).
+// letreiro da Área Segura: o do GLB diz '+ REFUGIO +' (letras e cruzes são caixas); refaz moldura/painel/pernas e as letras em fonte 5x7
+const GR_FNT={A:'01110100011000111111100011000110001',R:'11110100011000111110101001001010001',E:'11111100001000011110100001000011111',S:'01111100001000001110000010000111110',G:'01110100011000010111100011000101110',U:'10001100011000110001100011000101110',' ':'0'.repeat(35)};
+function grSignR(txt){
+ const P=[],N=[],C=[];
+ const box=(x0,x1,y0,y1,z0,z1,r,g,b)=>{const ge=new THREE.BoxGeometry(x1-x0,y1-y0,z1-z0).toNonIndexed();ge.translate((x0+x1)/2,(y0+y1)/2,(z0+z1)/2);
+  const p=ge.attributes.position.array,n=ge.attributes.normal.array;for(let i=0;i<p.length;i++){P.push(p[i]);N.push(n[i])}for(let i=0;i<p.length/3;i++)C.push(r/255,g/255,b/255)};
+ const D=[30,30,34];
+ box(-5.45,5.45,5.43,5.55,9.22,9.44,...D);box(-5.45,5.45,7.45,7.57,9.22,9.44,...D);box(-5.45,-5.33,5.55,7.45,9.22,9.44,...D);box(5.33,5.45,5.55,7.45,9.22,9.44,...D);
+ box(-5.11,-4.95,5.1,5.43,9.14,9.26,...D);box(4.95,5.11,5.1,5.43,9.14,9.26,...D);
+ box(-5.33,5.33,5.55,7.45,9.22,9.38,60,80,60);
+ const cs=.143,x0=-(txt.length*6-1)*cs/2;
+ for(let i=0;i<txt.length;i++){const gl=GR_FNT[txt[i]]||GR_FNT[' '];
+  for(let k=0;k<35;k++)if(gl[k]=='1'){const cx=x0+(i*6+k%5)*cs,cy=7.0-((k/5|0)+1)*cs;box(cx,cx+cs,cy,cy+cs,9.38,9.46,232,226,190)}}
+ const ge=new THREE.BufferGeometry();
+ ge.setAttribute('position',new THREE.Float32BufferAttribute(P,3));ge.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));ge.setAttribute('color',new THREE.Float32BufferAttribute(C,3));
+ return ge;
+}
 function grGrab(T,g){
+ if(T=='tur'&&g.animations&&g.animations[0])GR.tclip=g.animations[0]; // clipe 'fire' do torreta.glb (0,3 s: recuo do cano + balanço da cabeça)
  g=g.scene||g;g.updateMatrixWorld(true);
  const geo={},list=[];
  g.traverse(o=>{
@@ -41,15 +60,17 @@ function grGrab(T,g){
   geo[nm]=cl;list.push(nm);
  });
  if(!list.length)return;
+ if(T=='r'&&geo.sign)geo.sign=grSignR('AREA SEGURA');
  GR.geo[T]=geo;GR.nodes[T]=list;
 }
 function grLoad(){
- if(GR.st)return;GR.st=1;GR.left=3+GR_CASA.length;
+ if(GR.st)return;GR.st=1;GR.left=5+GR_CASA.length;
  const done=()=>{if(--GR.left<=0)GR.rdy=1};
  const ld=new THREE.GLTFLoader();
  const one=(key,buf)=>{try{ld.parse(buf,'',g=>{try{grGrab(key,g)}catch(e){console.warn('glpredios',key,e)}done()},e=>{console.warn('glpredios',key,e);done()})}
   catch(e){console.warn('glpredios',key,e);done()}};
- for(const T of['h','p','m'])one(T,gmBuf(GR_SRC[T]));
+ for(const T of['h','p','m','r'])one(T,gmBuf(GR_SRC[T]));
+ one('tur',gmBuf(GR_TUR));
  for(let i=0;i<GR_CASA.length;i++)one('c'+i,gmBuf(GR_CASA[i]));
 }
 // superfície do chão sob a pegada (as camadas do 89-glmundo têm alturas diferentes) + folga p/ não brigar com o gramado
@@ -93,8 +114,45 @@ function grBldBox(b){
  GLW.add(grp);
  return {b,grp,roof:[roof,door],low:[{me:sw,h0:H,lo:GR_LO_S,py:H/2}],inside:-1};
 }
+// 4 torretas (torreta.glb) nos cantos do telhado; a cabeça gira para o último alvo (FX com f[6]==-1)
+function grTurrets(it){
+ const geo=GR.geo.tur,nodes=GR.nodes.tur,b=it.b;if(!geo||!nodes)return;
+ const S=34,top=grBase(b)+b.H*1.24,wrap=new THREE.Group();it.tur=wrap;it.turH=[];it.turS=[];
+ for(let i=0;i<4;i++){
+  const[tx,ty]=turPos(b,i),g=new THREE.Group(),head=new THREE.Group();
+  g.position.set(tx,top,ty);g.scale.set(S,S,S);
+  const bar=[];for(const nm of nodes){const me=new THREE.Mesh(geo[nm],grMat());me.name=nm;(/head|barrel/.test(nm)?head:g).add(me);if(/barrel/.test(nm))bar.push(me)}
+  const fl=new THREE.Mesh(new THREE.SphereGeometry(.2,8,6),new THREE.MeshBasicMaterial({color:0xffe08a}));fl.position.set(0,1.08,1.12);fl.visible=false;head.add(fl);
+  g.add(head);wrap.add(g);it.turH.push(head);
+  const ya=Math.atan2((i&1?1:-1),(i&2?1:-1)); // direção padrão: para fora do prédio
+  it.turS.push({cur:ya,tgt:ya,base:ya,t0:-9e9,fl,bar,fid:0,last:-9e9,ph:i*1.7});
+ }
+ GLW.add(wrap);
+ const dr=new THREE.Mesh(grBoxGeo(),new THREE.MeshLambertMaterial({color:0x4a4f57}));
+ dr.scale.set(56,70,12);dr.position.set(b.dx+28,grBase(b)+35,b.y+b.h-7);dr.visible=false;GLW.add(dr);it.door=dr;
+}
+// amostra linear de uma trilha do clipe (times/values) no instante k
+function grTrk(t,k){const n=t.getValueSize(),T=t.times,V=t.values;let i=0;while(i<T.length-1&&T[i+1]<k)i++;
+ const j=Math.min(i+1,T.length-1),u=T[j]>T[i]?Math.max(0,Math.min(1,(k-T[i])/(T[j]-T[i]))):0,r=[];
+ for(let m=0;m<n;m++)r.push(V[i*n+m]+(V[j*n+m]-V[i*n+m])*u);return r}
+// animação das torretas: giro suave até o alvo, recuo do cano, clarão no tiro e varredura lenta sem alvo
+function grTurAnim(it,b){
+ const now=performance.now(),dt=Math.min(.1,(now-(it.tT||now))/1000);it.tT=now;
+ for(const q of FXL){const f=q.f;if(f[6]!==-1)continue;
+  let bi=0,bd=1e9;for(let k=0;k<4;k++){const p=turPos(b,k),d=Math.hypot(p[0]-f[0],p[1]-f[1]);if(d<bd){bd=d;bi=k}}
+  const s=it.turS[bi];if(f[5]<=s.fid)continue;s.fid=f[5];s.tgt=Math.atan2(f[2]-f[0],f[3]-f[1]);s.t0=now;s.last=now}
+ for(let i=0;i<4;i++){const s=it.turS[i];
+  if(now-s.last>1500)s.tgt=s.base+Math.sin(now/900+s.ph)*.9;
+  let d=s.tgt-s.cur;d=Math.atan2(Math.sin(d),Math.cos(d));s.cur+=d*Math.min(1,dt*(now-s.last<1500?16:3));
+  const k=(now-s.t0)/1000;let bz=0,hx=0;
+  if(GR.tclip&&k<.3){const tr=GR.tclip.tracks;for(const t of tr){const q=grTrk(t,k);if(t.name=='turret_barrel.position')bz=q[2]-.45;else if(t.name=='turret_head.quaternion')hx=2*q[0]}}
+  it.turH[i].rotation.set(hx,s.cur,0,'YXZ');
+  for(const m of s.bar)m.position.z=bz;
+  s.fl.visible=k<.07;if(s.fl.visible)s.fl.scale.setScalar(1.3-k*8);
+ }
+}
 function grClear(){
- for(const it of GR.items)GLW.remove(it.grp);
+ for(const it of GR.items){GLW.remove(it.grp);if(it.tur)GLW.remove(it.tur);if(it.door)GLW.remove(it.door)}
  GR.items.length=0;GR.built=0;
 }
 // dentro × fora: esconde telhado/chaminé/props e baixa as paredes sul/internas (mesmo pulo seco do 2D)
@@ -111,10 +169,10 @@ function grBuild(sn){
  let nGlb=0,nBox=0,nCasa=0;
  for(const b of BLD){
   let it=null;
-  if(b.T=='h'||b.T=='p'||b.T=='m'){it=grBldGlb(b);if(it)nGlb++;else it=grBldBox(b)}
+  if(b.T=='h'||b.T=='p'||b.T=='m'||b.T=='r'){it=grBldGlb(b);if(it)nGlb++;else it=grBldBox(b)}
   else if(b.T=='x'){it=grBldGlb(b,'c'+(((b.cm|0)%10+10)%10));if(it)nCasa++;else it=grBldBox(b)}
   else if(b.T=='W')it=grBldBox(b);
-  if(it){GR.items.push(it);nBox++}
+  if(it){if(b.T=='r')grTurrets(it);GR.items.push(it);nBox++}
  }
  GR.sd=sn;GR.built=1;
  GR.ms=Math.round((performance&&performance.now?performance.now():Date.now())-t0);
@@ -134,6 +192,9 @@ function glPrediosFrame(){
   if(it.grp.visible!==vis)it.grp.visible=vis;
   const ins=b===meB?1:0;
   if(ins!==it.inside){it.inside=ins;grInside(it,ins)}
+  if(it.door){const cl=!!(snap&&(snap.bp||(snap.Z&&snap.Z.some(z=>z[2]==3))));if(b.door&&(b.door.dead?1:0)===(cl?1:0))asClosed(cl);it.door.visible=vis&&cl}
+  if(it.tur){it.tur.visible=vis&&!ins;
+   if(it.tur.visible)grTurAnim(it,b)}
  }
 }
 // diagnóstico (leitura): prédios, estado dentro/fora, tempo de montagem e stats do renderer

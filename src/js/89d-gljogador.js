@@ -70,7 +70,7 @@ function drawPlayerGL(x,y,o){
  const p=jgObj(o.k),cc=rgbOf(pgHex(o.c||'#3a5a8a')),gg=rgbOf(pgHex(o.gun||'#333'));
  const wsel=(typeof WPG!=='undefined'&&WPG[o.w])?o.w:-1;
  p.tok=JG_TOK;p.grp.visible=true;
- p.grp.position.set(x,0,y);p.grp.rotation.y=st.yaw;p.grp.scale.set(S,S,S);
+ p.grp.position.set(x,0,y);p.grp.rotation.y=st.yaw;{const hv=typeof HZV!=='undefined'&&HZV[o.k];p.grp.rotation.z=(hv&&Date.now()-hv.u<160)?hv.v:0}p.grp.scale.set(S,S,S);
  const R=PG.WRT,Wt=PG.WT;
  for(let ni=0;ni<PG.NN;ni++){
   if(!JG_BASE[ni])continue;

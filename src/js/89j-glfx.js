@@ -102,6 +102,7 @@ function fxShot(q,now){
  let wx=f[0],wy=f[1],hp=24/GLSIN;
  const mw=q.mw;
  if(mw){wx=mw[0];wy=mw[1];hp=mw[2]}
+ if(f[6]===-1)hp=TUR_H; // torreta da Área Segura (telhado)
  const sx=wx,sy=wy-hp*GLSIN,ex=f[2],ey=f[3]-18;
  const L0=Math.hypot(ex-sx,ey-sy)||1,ux=(ex-sx)/L0,uy=(ey-sy)/L0,ua=Math.atan2(uy,ux),nx=-uy,ny=ux;
  if(w==4){ // lança-chamas: 28 bolhas ao longo do jato (mesma cor/tamanho do 2D)

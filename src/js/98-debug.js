@@ -53,7 +53,9 @@
    let x=p.x+Math.cos(a)*d,y=p.y+Math.sin(a)*d;
    if(blk(x,y,26)){x=p.x+Math.cos(a)*90;y=p.y+Math.sin(a)*90}
    if(blk(x,y,20)){x=p.x;y=p.y-110}
-   spawnZ(k,x,y);if(k==3){const z=Z[Z.length-1];if(z)z.em=1.3}}}
+   if(k==40){spawnZ(4);continue} // caçador no esconderijo de verdade (500–1700 px)
+   spawnZ(k,x,y);if(k==3){const z=Z[Z.length-1];if(z)z.em=1.3}
+   if(k==4){const z=Z[Z.length-1];if(z){z.x=x;z.y=y;z.ty='w';z.st=0;z.alt=0;z.b=null}}}} // caçador na frente (~250 px): emboscada na hora
  function killAll(){if(host)Z.length=0}
  function bossNow(){if(!host)return;startBoss();if(bossPend){bossPend.t0=performance.now()-(BOSS_LEAD-.3)*1000;bossPend.t=.3}}
  const AID='dbg_ally';
@@ -111,7 +113,7 @@
     +B('chão',()=>drop(k,v))+B('dar',()=>giveIt(k,v))+'</div>'}
    h+=hdr('Cheats')+row(B('★ Todas as armas no nível máx',allMax));
   }else if(D.tab=='Inimigos'){
-   h+=hdr('Spawnar na frente (~250 px)')+row(B('Zumbi comum',()=>zspawn(0,1))+B('Corredor',()=>zspawn(1,1))+B('Gordão',()=>zspawn(2,1))+B('×10 comuns',()=>zspawn(0,10)));
+   h+=hdr('Spawnar na frente (~250 px)')+row(B('Zumbi comum',()=>zspawn(0,1))+B('Corredor',()=>zspawn(1,1))+B('Gordão',()=>zspawn(2,1))+B('Caçador (na frente)',()=>zspawn(4,1))+B('Caçador (escondido)',()=>zspawn(40,1))+B('×10 comuns',()=>zspawn(0,10)));
    h+=row(B('⚠ BOSS KRAID',()=>zspawn(3,1))+B('☠ Matar todos',killAll));
    h+=hdr('Controle')+row(tog('fr','Congelar zumbis')+tog('na','Zumbi não ataca'));
    h+=hdr('Aliado de teste')+row(B('Aliado vivo',allyAlive)+B('Aliado caído (desfibrilador)',allyDown)+B('Remover aliado',allyDel));
