@@ -7138,7 +7138,7 @@ function gwPlayer(pid,x,y,o){
   P.sh.style.left=(-w/2)+'px';P.sh.style.top=(-h/2)+'px';P.sh.style.width=w+'px';P.sh.style.height=h+'px';
   P.bl.style.left=(-bw/2)+'px';P.bl.style.top=(-bh/2)+'px';P.bl.style.width=bw+'px';P.bl.style.height=bh+'px'}
  gwDisp(P.sh,1);gwDisp(P.bl,d);gwDisp(P.xm,d);gwDisp(P.cn,d);
- gwDisp(P.bb,!d);gwDisp(P.nm,!d);gwDisp(P.dv,0);gwDisp(P.buf,!d&&o.buff>0);
+ gwDisp(P.bb,!d);gwDisp(P.nm,!d);gwDisp(P.dv,0);gwDisp(P.buf,0);
  gwDisp(P.rc,!d&&o.rlf>0);
  if(P.blc!==o.c){P.blc=o.c;P.bl.style.border='3px solid '+o.c}
   if(d){
@@ -7687,13 +7687,31 @@ function fxTexts(t){
 // (1) ao acertar (RLH0, setado em handleEv t==8): 4 argolas vermelhas SOBEM do pé até a cabeça (~0,7 s);
 // (2) enquanto a corrida x2 vale: fogo nos pés + pegadas que ficam queimando ~0,7 s;
 // (3) enquanto o buff de 5 s vale: chamas ao longo da arma (da mão até a boca do cano, st.mzW).
-const FXB={};
+const FXB={},FXBR={};let FXBRF=0;
+// anel do buff NO CHÃO (malha 3D plana): fica POR BAIXO do personagem (o 3D o cobre), não por cima como o DOM.
+// Mesma animação da recarga: o vermelho vai queimando (chama na ponta) e virando cinza conforme o tempo acaba.
+function fxBufRing(pid,x,y,fr,t){
+ let r=FXBR[pid];
+ if(!r){const cv=document.createElement('canvas');cv.width=256;cv.height=112;
+  const tex=new THREE.CanvasTexture(cv);
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(64,28),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));
+  m.rotation.x=-Math.PI/2;m.renderOrder=2;m.frustumCulled=false;GLW.add(m);
+  r=FXBR[pid]={m,cv,tex,cx:cv.getContext('2d'),k:-1,u:0}}
+ r.u=FXBRF;r.m.visible=true;r.m.position.set(x,gpH(x,y)+.4,y);
+ const kk=Math.max(0,Math.min(100,fr*100|0)),a0=-1.5708,ah=a0+6.2832*(1-kk/100);
+ if(r.k!==kk){r.k=kk;const g=r.cx;g.clearRect(0,0,256,112);g.lineCap='round';g.lineWidth=15;
+  g.strokeStyle='#7a7a7a';g.beginPath();g.ellipse(128,56,112,42,0,a0,ah);g.stroke();
+  g.strokeStyle='#e01818';g.beginPath();g.ellipse(128,56,112,42,0,ah,a0+6.2832);g.stroke();
+  g.strokeStyle='#ff9a1a';g.beginPath();g.ellipse(128,56,112,42,0,ah,ah+.35);g.stroke();
+  r.tex.needsUpdate=true}
+ if(kk>0&&kk<100)fxFire(x+28*Math.cos(ah),y+10*Math.sin(ah),.22,t)}
 function fxBuff(s,t){
  if(!s||!s.P)return;
- const now=performance.now();
+ const now=performance.now();FXBRF++;
  for(const e of s.P){
   if(e[7])continue;
   const pid=e[0],x=e[3],y=e[4],arT=e[30]|0,arD=(e[31]|0)/10;
+  if(arT>0)fxBufRing(pid,x,y,Math.max(e[33]|0,e[34]|0,e[35]|0)/50,t);
   const b=FXB[pid]||(FXB[pid]={tr:[],lx:x,ly:y});
   // (1) argolas vermelhas subindo pelo corpo até a cabeça
   const t0=RLH0[pid];
@@ -7735,6 +7753,7 @@ function glFxFrame(s,t,dtf){
  for(let i=0;i<FXL.length;i++)fxShot(FXL[i],t);
  fxFires(t);
  fxBuff(s,t);
+ for(const k in FXBR)if(FXBR[k].u!==FXBRF)FXBR[k].m.visible=false;
  fxBits(dtf);
  fxProj(s);
  fxTexts(t);

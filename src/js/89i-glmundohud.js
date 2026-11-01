@@ -79,7 +79,7 @@ function gwPlayer(pid,x,y,o){
   P.sh.style.left=(-w/2)+'px';P.sh.style.top=(-h/2)+'px';P.sh.style.width=w+'px';P.sh.style.height=h+'px';
   P.bl.style.left=(-bw/2)+'px';P.bl.style.top=(-bh/2)+'px';P.bl.style.width=bw+'px';P.bl.style.height=bh+'px'}
  gwDisp(P.sh,1);gwDisp(P.bl,d);gwDisp(P.xm,d);gwDisp(P.cn,d);
- gwDisp(P.bb,!d);gwDisp(P.nm,!d);gwDisp(P.dv,0);gwDisp(P.buf,!d&&o.buff>0);
+ gwDisp(P.bb,!d);gwDisp(P.nm,!d);gwDisp(P.dv,0);gwDisp(P.buf,0);
  gwDisp(P.rc,!d&&o.rlf>0);
  if(P.blc!==o.c){P.blc=o.c;P.bl.style.border='3px solid '+o.c}
   if(d){
