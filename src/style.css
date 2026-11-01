@@ -162,4 +162,8 @@ canvas{display:block;width:100%;height:100%}
 .gwPz{position:absolute;top:1px;box-sizing:border-box}
 .gwPc{position:absolute;background:#fff}
 .gwPt{position:absolute;width:8px;height:5px;background:#fff;clip-path:polygon(50% 100%,0 0,100% 0)}
+.gwPzf{position:absolute;inset:0;display:none;background:radial-gradient(ellipse at 50% 100%,#fff6b0 0,#ffb020 35%,transparent 70%);animation:gwFire .14s steps(2) infinite alternate;mix-blend-mode:screen}
+.gwPcf{position:absolute;z-index:5;pointer-events:none;background:radial-gradient(ellipse at 50% 78%,#fff7c0 0,#ffd23a 22%,#ff7a12 48%,rgba(220,30,10,.75) 66%,transparent 74%);clip-path:polygon(50% 0,72% 30%,88% 62%,74% 100%,26% 100%,12% 62%,28% 30%);animation:gwFlame .16s ease-in-out infinite alternate;filter:drop-shadow(0 0 4px #ff6a10)}
+@keyframes gwFlame{from{transform:scale(1,1) skewX(-4deg)}to{transform:scale(.84,1.14) skewX(5deg)}}
+@keyframes gwFire{from{opacity:.55;transform:translateY(1px)}to{opacity:1;transform:translateY(-2px)}}
 .gwPf{z-index:1}.gwPz{z-index:2}.gwPc{z-index:3}.gwP>.gwT{z-index:4;text-shadow:0 0 3px #000,0 0 3px #000}

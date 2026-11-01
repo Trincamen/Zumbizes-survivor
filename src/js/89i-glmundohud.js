@@ -218,41 +218,65 @@ function gwPillNew(){
  const sc=MOB?1.3:1,w=124*sc,h=20*sc;
  o.sc=sc;o.w=w;o.h=h;
  // projeção do CHÃO do retângulo de MUNDO (x-w/2, y-H): é o que o PILL usa no hit-test, então o clique
- // no que está desenhado cai dentro dele (no 2D o desenho e o retângulo eram o mesmo espaço).
+ // no que está desenhado cai dentro dele (no 2D desenho e retângulo eram o mesmo espaço).
  o.box=gwD(o.i,'gwP',-w/2,0,w,h);
  o.fl=gwD(o.box,'gwPf',0,0,w,h);
  o.zn=gwD(o.box,'gwPz',0,1,0,h-2);
+ o.zf=gwD(o.zn,'gwPzf',0,0,0,0);          // chamas da zona (só ao acertar)
  o.cu=gwD(o.box,'gwPc',0,-1,3,h+2);
+ o.cf=gwD(o.box,'gwPcf',0,0,16*sc,26*sc); // chama que SEGUE o cursor
  o.tx=gwT(o.box,10*sc,w/2,h/2);
  o.hn=gwT(o.i,11,w+6,h/2);o.hn.textContent='[ R ]';o.hn.style.color='#cfe6ff';
  o.tr=gwD(o.i,'gwPt',0,0,8,5);
  o.k='';
  return o;
 }
-function gwPill(x,y,rlf,t,zs,ze,fail,own){
+// posição SUAVE da seta: o snapshot só traz % inteiro e chega com atraso; aqui a seta avança pelo relógio local
+// (duração da recarga e[32]) e só é corrigida se desviar >8% do snapshot. O valor mostrado é o que o cliente envia
+// ao host no clique (rlSend em 50-cliente.js), então o que o jogador VÊ é o que o host JULGA.
+function rlSmooth(pid,rlf,rltMs){
+ const n=performance.now(),pS=1-rlf/100;let s=RLS[pid];
+ if(!s||n-s.n>400||rlf>s.lr+5){s=RLS[pid]={p:pS,n,lr:rlf,rlt:(rltMs>200?rltMs:1500)/1000}}
+ else{s.p=Math.min(1,s.p+(n-s.n)/1000/s.rlt);s.n=n;if(rlf!==s.lr){s.lr=rlf;if(Math.abs(pS-s.p)>.08)s.p=pS}if(rltMs>200)s.rlt=rltMs/1000}
+ return s.p}
+function gwPill(x,y,rlf,t,zs,ze,fail,own,pid,rltMs){
  if(!glLive)return;
  const P=GWU.pill||(GWU.pill=gwPillNew());if(!P)return;
+ const hit=rlf<=0; // pílula "acesa": acabou de acertar (RLH), fica ~0,7 s em chamas no meio da zona
+ let p,S=RLS[pid];
+ if(hit){if(!S)return;zs=S.zs;ze=S.ze;p=(zs+ze)/200;fail=0}
+ else{p=rlSmooth(pid,rlf,rltMs);S=RLS[pid];S.zs=zs;S.ze=ze}
  const py=y-(114+(P.sc-1)*12);
  gwPut(P,x,py);
- const p=1-rlf/100,inZ=!fail&&p*100>=zs&&p*100<=ze;
- const k=(p*1000|0)+'|'+zs+'|'+ze+'|'+fail+'|'+inZ+'|'+own;
+ const inZ=!fail&&p*100>=zs&&p*100<=ze;
+ if(own&&!hit){RLV.f=p;RLV.t=performance.now()}
+ const fl=Math.floor(t/90)%2,k=(p*500|0)+'|'+zs+'|'+ze+'|'+fail+'|'+inZ+'|'+own+'|'+hit+'|'+fl;
  if(k!==P.k){P.k=k;
   P.fl.style.width=(P.w*p).toFixed(1)+'px';
   P.fl.style.background=fail?'linear-gradient(180deg,#8a2a2a,#4a1010)':'linear-gradient(180deg,#ffe27a,#b8780c)';
   P.fl.style.opacity='.55';
   P.zn.style.display=fail?'none':'';
   P.zn.style.left=(P.w*zs/100).toFixed(1)+'px';P.zn.style.width=(P.w*(ze-zs)/100).toFixed(1)+'px';
-  P.zn.style.background='#3a9bff';P.zn.style.boxShadow='inset 0 '+(P.h*.4).toFixed(1)+'px rgba(255,255,255,.35)';
-  P.zn.style.borderLeft='2px solid '+(inZ?'#fff':'#9fd2ff');
-  P.zn.style.borderRight='2px solid '+(inZ?'#fff':'#9fd2ff');
+  // zona VERMELHA (antes azul); no momento do acerto vira brasa/fogo
+  P.zn.style.background=hit?'linear-gradient(180deg,#fff2a0,#ff9a1a 45%,#e02010)':inZ?'linear-gradient(180deg,#ff8a7a,#e0201a)':'linear-gradient(180deg,#ff5a4a,#b30f0f)';
+  P.zn.style.boxShadow=hit?'0 0 12px 3px #ff7a1a':'inset 0 '+(P.h*.4).toFixed(1)+'px rgba(255,255,255,.3)';
+  P.zn.style.borderLeft='2px solid '+(inZ||hit?'#fff':'#ffb0a0');
+  P.zn.style.borderRight='2px solid '+(inZ||hit?'#fff':'#ffb0a0');
+  P.zf.style.display=hit?'block':'none';
   P.cu.style.left=(P.w*p-1.5).toFixed(1)+'px';
-  P.box.style.borderColor=inZ?'#fff':fail?'#ff6a6a':'#ffe27a';
-  P.box.style.borderWidth=(inZ?2.5:1.5)+'px';
+  P.cu.style.background=hit?'#ffd070':'#fff';
+  // chama no cursor: acompanha a seta enquanto recarrega
+  P.cf.style.display=fail?'none':'block';
+  P.cf.style.left=(P.w*p-8*P.sc).toFixed(1)+'px';P.cf.style.top=(-24*P.sc).toFixed(1)+'px';
+  P.cf.style.transform=fl?'scale(1,1)':'scale(.82,1.12)';
+  P.cf.style.filter=inZ?'brightness(1.5) saturate(1.4)':'none';
+  P.box.style.borderColor=hit?'#ff9a1a':inZ?'#fff':fail?'#ff6a6a':'#ffe27a';
+  P.box.style.borderWidth=(inZ||hit?2.5:1.5)+'px';
   P.tr.style.left=(P.w*p-4).toFixed(1)+'px';
-  P.tr.style.top='-6px';
-  const tx=fail?'FALHOU':inZ&&MOB?'TOQUE!':'RECARREGANDO';
+  P.tr.style.top='-6px';P.tr.style.display=hit?'none':'';
+  const tx=hit?'PERFEITO!':fail?'FALHOU':inZ&&MOB?'TOQUE!':'RECARREGANDO';
   if(P.tx.textContent!==tx)P.tx.textContent=tx;
-  gwDisp(P.hn,own&&!fail);
+  gwDisp(P.hn,own&&!fail&&!hit);
  }
  if(own)PILL={x:x-P.w/2,y:py,w:P.w,h:P.h,t:Date.now()}; // coords de MUNDO, iguais às do 2D
 }
