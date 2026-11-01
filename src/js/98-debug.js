@@ -73,15 +73,15 @@
  function zoom(d){if(d){CAM=Math.max(.5,Math.min(2.2,CAM+d))}else CAM=1.29;rs()}
 
  // ---------- painel ----------
- const BT='font:700 11px sans-serif;background:#160d0d;color:#d8d2c0;border:1px solid #4a1a1e;border-left:3px solid #8a1218;border-radius:2px;padding:5px 7px;margin:2px;cursor:pointer;text-align:left';
+ const BT='font:700 11px Dracutaz,sans-serif;background:#160d0d;color:#d8d2c0;border:1px solid #4a1a1e;border-left:3px solid #8a1218;border-radius:2px;padding:5px 7px;margin:2px;cursor:pointer;text-align:left';
  const TABS=['Jogador','Itens','Inimigos','Mundo','Visual'];
  const P=document.createElement('div');
- P.style.cssText='position:fixed;left:6px;top:6px;z-index:31;width:min(360px,95vw);max-height:min(82vh,660px);overflow:auto;background:#0c0c10;border:2px solid #4a1a1e;border-left:5px solid #8a1218;border-radius:3px;color:#d8d2c0;font:12px/1.35 sans-serif;padding:6px;display:none;box-shadow:0 0 20px #000';
+ P.style.cssText='position:fixed;left:6px;top:6px;z-index:31;width:min(360px,95vw);max-height:min(82vh,660px);overflow:auto;background:#0c0c10;border:2px solid #4a1a1e;border-left:5px solid #8a1218;border-radius:3px;color:#d8d2c0;font:12px/1.35 Dracutaz,sans-serif;padding:6px;display:none;box-shadow:0 0 20px #000';
  P.innerHTML='<div id="dbt" style="display:flex;flex-wrap:wrap;margin-bottom:4px"></div><div id="dbc"></div>';
  document.body.appendChild(P);
  const BTN=document.createElement('button');
  BTN.textContent='DBG';
- BTN.style.cssText='position:fixed;left:4px;bottom:calc(10px + 54px*var(--hs,1));z-index:30;opacity:.35;padding:2px 5px;font:700 10px sans-serif;background:#0c0c10;color:#d83a3a;border:1px solid #4a1a1e;border-radius:2px;cursor:pointer';
+ BTN.style.cssText='position:fixed;left:4px;bottom:calc(10px + 54px*var(--hs,1));z-index:30;opacity:.35;padding:2px 5px;font:700 10px Dracutaz,sans-serif;background:#0c0c10;color:#d83a3a;border:1px solid #4a1a1e;border-radius:2px;cursor:pointer';
  BTN.onpointerenter=()=>BTN.style.opacity=1;
  BTN.onpointerleave=()=>BTN.style.opacity=.35;
  BTN.onclick=()=>toggle();
@@ -176,7 +176,7 @@
    const p=PL[id];
    const L=['FPS '+fps,'zumbis '+Z.length,'IT '+IT.length,'DECOR '+DECOR.length,'O '+O.length,
     'pos '+(p?Math.round(p.x)+','+Math.round(p.y):'-'),'tempo '+fmt(gt|0),'dif '+dl()];
-   g.font='bold 12px monospace';g.textAlign='left';g.textBaseline='top';
+   g.font='bold 12px Dracutaz,monospace';g.textAlign='left';g.textBaseline='top';
    const po=P.style.display=='block',nar=w<700,ox0=po&&!nar?404:8,oy0=po&&nar?Math.min(h-140,P.getBoundingClientRect().bottom+6):8;
    L.forEach((s,i)=>{const y=oy0+i*15;g.lineWidth=3;g.strokeStyle='rgba(0,0,0,.85)';g.strokeText(s,ox0,y);g.fillStyle='#7fe3ff';g.fillText(s,ox0,y)});
   }

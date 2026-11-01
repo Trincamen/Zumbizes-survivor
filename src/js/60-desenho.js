@@ -1,5 +1,5 @@
 // ---------- desenho 2.5D ----------
-function txt(t,x,y,sz,c){X.fillStyle=c;X.font=sz+'px sans-serif';X.textAlign='center';X.textBaseline='middle';X.fillText(t,x,y)}
+function txt(t,x,y,sz,c){X.fillStyle=c;X.font=sz+'px Dracutaz,sans-serif';X.textAlign='center';X.textBaseline='middle';X.fillText(t,x,y)}
 function poly(x,y,r,n,rot,r2){X.beginPath();for(let i=0;i<n*(r2?2:1);i++){const a=rot+i*6.283/(n*(r2?2:1)),q=r2&&i%2?r2:r;X[i?'lineTo':'moveTo'](x+Math.cos(a)*q,y+Math.sin(a)*q)}X.closePath();X.fill()}
 function bar(x,y,w,f,c){X.fillStyle='#000a';X.fillRect(x,y,w,6);X.fillStyle=c;X.fillRect(x,y,w*Math.max(0,f),6)}
 function ell(x,y,rx,ry,c,st){X.beginPath();X.ellipse(x,y,rx,ry,0,0,7);if(st){X.strokeStyle=c;X.lineWidth=3;X.stroke()}else{X.fillStyle=c;X.fill()}}
@@ -60,7 +60,7 @@ function entrBuild(){const SS=2,W=64,H=44,cv=document.createElement('canvas');cv
  g.strokeStyle='#cfd6e0';g.lineWidth=1.5;g.strokeRect(3.75,9.75,56.5,28.5);
  g.fillStyle='#2a2f3a';g.fillRect(6,12,52,24);
  g.strokeStyle='#ffe9a0';g.lineWidth=3;g.beginPath();g.moveTo(23,32);g.lineTo(32,24);g.lineTo(41,32);g.stroke();
- g.font='bold 11px sans-serif';g.lineWidth=3;g.strokeStyle='rgba(0,0,0,.85)';g.strokeText('ENTRADA',32,18);
+ g.font='bold 11px Dracutaz,sans-serif';g.lineWidth=3;g.strokeStyle='rgba(0,0,0,.85)';g.strokeText('ENTRADA',32,18);
  g.fillStyle='#fff6c8';g.fillText('ENTRADA',32,18);
  return cv}
 function drawEntr(b){if(!ENTR)ENTR=entrBuild();const cx=b.dx+28,cy=b.y+b.h+8;

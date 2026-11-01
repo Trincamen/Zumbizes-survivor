@@ -65,7 +65,7 @@ function grabNear(z){const c=near(z.x,z.y,300).filter(o=>!o.dead&&o.t>=1&&o.t<=3
 function startReload(p,cu){p.rl=p.rlt=rtOf(cu.c,cu.l);const wd=Math.max(.14,.3/p.rlt),zs=R(.14,.93-wd);p.rz=[zs,zs+wd];p.arF=0}
 function activeReload(p,fc){const cu=p.sl[p.cs];if(p.rl<=0){if(cu.a<magOf(cu.c,cu.l))startReload(p,cu);return}
  if(p.arF)return;let f=1-p.rl/p.rlt;if(typeof fc=='number'&&isFinite(fc)&&Math.abs(fc-f)<.22)f=fc;
- if(f>=p.rz[0]&&f<=p.rz[1]){cu.a=magOf(cu.c,cu.l);p.rl=0;p.arT=5;p.arD=.5;ev(8,null,p.x,p.y,0,0,p.id)}else{p.arF=1;ev(9,null,p.x,p.y,0,0,p.id)}}
+ if(f>=p.rz[0]&&f<=p.rz[1]){cu.a=magOf(cu.c,cu.l);p.rl=0;p.bDm=p.bCd=p.bSp=5;p.arD=.5;ev(8,null,p.x,p.y,0,0,p.id)}else{p.arF=1;ev(9,null,p.x,p.y,0,0,p.id)}}
 function bossAct(z,dt,all){z.bs=0;
  if(z.em>0){z.em-=dt;z.bs=6;z.arm=1;return 1}
  if(z.stun>0){z.stun-=dt;z.bs=5;z.arm=0;return 1}
@@ -96,19 +96,19 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
   if(m_>lastMin){lastMin=m_;minuteTick(m_)}
   if(bossPend){bossPend.t=BOSS_LEAD-(performance.now()-bossPend.t0)/1000;if(bossPend.t<=0){const bp=bossPend;bossPend=null;spawnZ(3,bp.x,bp.y);const bz=Z[Z.length-1];if(bz&&bz.k==3){bz.em=1.3;ev(7,null,bz.x,bz.y,0,0,'')}}}
   if(shopOn){shopT-=dt;if(shopT<=0){shopOn=0;shopP=0}}
-  for(const p of all){if(p.dead)continue;p.hp=Math.min(p.mx,p.hp+p.rc*1.5*dt);if(p.bt>0)p.bt-=dt;if(p.arT>0)p.arT-=dt;if(p.arD>0)p.arD-=dt;
+  for(const p of all){if(p.dead)continue;p.hp=Math.min(p.mx,p.hp+p.rc*1.5*dt);if(p.bt>0)p.bt-=dt;if(p.bDm>0)p.bDm-=dt;if(p.bCd>0)p.bCd-=dt;if(p.bSp>0)p.bSp-=dt;if(p.arD>0)p.arD-=dt;
    const cu=p.sl[p.cs],rg=rgOf(p.cw,cu.l);let t=p.tz&&p.tz.hp>0?p.tz:(p.tz=null),gx=null,gy,mv=0,mvx=0,mvy=0,mvL=0;
    if(p.dd){const ok_=Date.now()-p.jt<700,jx=ok_?p.jx:0,jy=ok_?p.jy:0,L=Math.hypot(jx,jy);if(L>.1){mvx=jx/L;mvy=jy/L;mvL=Math.min(1,L);mv=1;p.fa=Math.atan2(jy,jx)}}
    else{if(t&&Math.hypot(t.x-p.x,t.y-p.y)>rg*.9){gx=t.x;gy=t.y}else if(!t&&p.tx!=null){gx=p.tx;gy=p.ty}
-   if(gx!=null){const d=Math.hypot(gx-p.x,gy-p.y);if(d<6){if(!t)p.tx=null}else{mv=1;pathTo(p,'p'+p.id,gx,gy,150*p.sp*(p.bt>0?1.4:1)*(p.arT>0?1.15:1)*(p.arD>0?2:1)*(p.cw==4?.5:1)*dt,12)}}}
+   if(gx!=null){const d=Math.hypot(gx-p.x,gy-p.y);if(d<6){if(!t)p.tx=null}else{mv=1;pathTo(p,'p'+p.id,gx,gy,150*p.sp*(p.bt>0?1.4:1)*(p.bSp>0?1.15:1)*(p.arD>0?2:1)*(p.cw==4?.5:1)*dt,12)}}}
    p.cd-=dt;if(p.rl>0){p.rl-=dt;if(p.rl<=0)cu.a=magOf(cu.c,cu.l)}else if(cu.a<=0)startReload(p,cu);
    const ang_=z=>Math.abs(ad(Math.atan2(z.y-p.y,z.x-p.x),p.fa)),okA=z=>!mv||ang_(z)<.7;
    let s=null;if(t&&Math.hypot(t.x-p.x,t.y-p.y)<=rg+t.r&&clear(p,t))s=t;
    if(!s){let bd=rg;for(const z of Z){if(z.hp<=0)continue;const d=Math.hypot(z.x-p.x,z.y-p.y)-z.r;if(d<bd&&okA(z)&&clear(p,z)){bd=d;s=z}}}
    let bp=0;if(s&&mv){const a_=ang_(s);if(a_>.7)bp=Math.min(1,(a_-.7)/1.6)}
    if(s&&!mv)p.fa=Math.atan2(s.y-p.y,s.x-p.x);
-   if(p.dd&&mv)mvT(p,p.x+mvx*60,p.y+mvy*60,150*p.sp*(p.bt>0?1.4:1)*(p.arT>0?1.15:1)*(p.arD>0?2:1)*(p.cw==4?.5:1)*mvL*(1-.4*bp*(1-.6*p.bk))*dt,12,1);
-   if(s&&p.cd<=0&&p.rl<=0&&cu.a>0){p.cd=cdOf(p.cw,cu.l)/(p.arT>0?1.2:1);cu.a--;if(cu.a<=0)startReload(p,cu);const dm=dmOf(p.cw,cu.l)*(p.arT>0?1.2:1);let ex=s.x,ey=s.y;
+   if(p.dd&&mv)mvT(p,p.x+mvx*60,p.y+mvy*60,150*p.sp*(p.bt>0?1.4:1)*(p.bSp>0?1.15:1)*(p.arD>0?2:1)*(p.cw==4?.5:1)*mvL*(1-.4*bp*(1-.6*p.bk))*dt,12,1);
+   if(s&&p.cd<=0&&p.rl<=0&&cu.a>0){p.cd=cdOf(p.cw,cu.l)/(p.bCd>0?1.2:1);cu.a--;if(cu.a<=0)startReload(p,cu);const dm=dmOf(p.cw,cu.l)*(p.bDm>0?1.2:1);let ex=s.x,ey=s.y;
     const aim=Math.atan2(s.y-p.y,s.x-p.x);p.aim=aim;p.ls=Date.now();p.bkf=bp;
     const hit=p.cw==4||Math.random()<Math.max(.1,Math.min(.96,WA[p.cw]+p.pr+(mv?0:.08)-.3*bp*(1-p.bk)));
     if(p.cw==4){const dx=s.x-p.x,dy=s.y-p.y,L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L,wd=rayW(p.x,p.y,ux,uy,L+70+cu.l*12),Lp=Math.max(10,Math.min(L,wd-60));ex=p.x+ux*Lp;ey=p.y+uy*Lp;const hs=[];for(const z of Z){if(z.hp<=0)continue;const rx=z.x-p.x,ry=z.y-p.y,tt=rx*ux+ry*uy,pd=Math.abs(rx*uy-ry*ux);if(tt>-20&&tt<Math.min(L+70+cu.l*12,wd)&&pd<z.r+34&&(tt<12||rayW(p.x,p.y,ux,uy,tt)>=tt))hs.push([tt,z])}hs.sort((a,b)=>a[0]-b[0]);for(const h of hs.slice(0,2+cu.l))hurt(h[1],dm,p)}
@@ -125,7 +125,7 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
   if(tick%30==0)IT=IT.filter(i=>!i.ex||i.ex>Date.now());
   Z=Z.filter(z=>z.hp>0)}
  const base={t:'S',ph,gt:gt|0,bn,sd,left:Z.length,sh:shopOn?[shopX|0,shopY|0,shopT|0]:0,bp:bossPend?[bossPend.x|0,bossPend.y|0,Math.ceil(Math.max(0,bossPend.t)),+Math.max(0,bossPend.t).toFixed(3)]:0,F:FX,K:RK.map(r=>[r.x|0,r.y|0,r.t<r.dur?r.t/r.dur:1+(r.t-r.dur)/.4]),Pj:PJ.map(j=>[j.k,j.c,j.x|0,j.y|0,j.h|0,j.rot*100|0]),EV,Dh:Z.filter(z=>z.dash).map(z=>[z.dash.x0|0,z.dash.y0|0,z.dash.a*100|0,750,z.dash.t]),
-  P:all.map(p=>[p.id,p.n,p.c,p.x|0,p.y|0,p.hp|0,p.mx|0,p.dead,p.cw,p.lv,p.xp|0,need(p.lv),p.sl.filter(q=>q.c==11).length,p.o,p.sl.map(q=>[q.c,q.l,q.a]),p.sl[p.cs].l,p.cs,p.fa*10|0,p.k,p.money|0,p.da,Math.ceil(Math.max(0,p.bt)),p.rl>0?p.rl/(p.rlt||RT[p.cw])*100|0:0,p.of?[wiOf(p.of.it.k),p.of.it.l||0,p.sl[p.cs].c,p.sl[p.cs].l]:0,p.aim*10|0,(p.ls&&Date.now()-p.ls<450)?(p.bkf>.4?2:1):0,p.tz&&p.tz.hp>0?p.tz.i:0,p.rl>0&&p.rz?p.rz[0]*100|0:0,p.rl>0&&p.rz?p.rz[1]*100|0:0,p.arF?1:0,Math.ceil(Math.max(0,p.arT||0)),Math.ceil(Math.max(0,p.arD||0)*10),Math.round((p.rlt||0)*1000)])};
+  P:all.map(p=>[p.id,p.n,p.c,p.x|0,p.y|0,p.hp|0,p.mx|0,p.dead,p.cw,p.lv,p.xp|0,need(p.lv),p.sl.filter(q=>q.c==11).length,p.o,p.sl.map(q=>[q.c,q.l,q.a]),p.sl[p.cs].l,p.cs,p.fa*10|0,p.k,p.money|0,p.da,Math.ceil(Math.max(0,p.bt)),p.rl>0?p.rl/(p.rlt||RT[p.cw])*100|0:0,p.of?[wiOf(p.of.it.k),p.of.it.l||0,p.sl[p.cs].c,p.sl[p.cs].l]:0,p.aim*10|0,(p.ls&&Date.now()-p.ls<450)?(p.bkf>.4?2:1):0,p.tz&&p.tz.hp>0?p.tz.i:0,p.rl>0&&p.rz?p.rz[0]*100|0:0,p.rl>0&&p.rz?p.rz[1]*100|0:0,p.arF?1:0,Math.ceil(Math.max(0,p.bDm||0,p.bCd||0,p.bSp||0)),Math.ceil(Math.max(0,p.arD||0)*10),Math.round((p.rlt||0)*1000),Math.ceil(Math.max(0,p.bDm||0)*10),Math.ceil(Math.max(0,p.bCd||0)*10),Math.ceil(Math.max(0,p.bSp||0)*10)])};
  if(tick%6==0){base.I=IT.map(i=>[i.x|0,i.y|0,i.k,i.v|0]);base.ZM=Z.map(z=>[z.x/30|0,z.y/30|0,z.k]);base.DS=DEADL.map(o=>o.i)}
  const zA=Z.map(z=>[z.x|0,z.y|0,z.k,z.hp/z.mx*100|0,z.v,z.fa*10|0,z.i].concat(z.k==3?[z.bs|0,z.arm*100|0,Math.ceil(Math.max(0,z.stun||0)*10),Math.ceil(Math.max(0,z.em||0)*10)]:[]));
  onSnap(Object.assign({},base,{Z:zA}));

@@ -25,7 +25,7 @@ addEventListener('pointercancel',()=>{if(dr&&dr.g)dr.g.remove();dr=null});
 const RLS={},RLH={},RLH0={},RLV={f:null,t:0};function rlSend(){return RLV.f!=null&&performance.now()-RLV.t<400?+RLV.f.toFixed(3):undefined}
 let lastTap=0,joy=null,mvLast=[0,0],mvT0=0,hintT=0,ctl=LS.get('ctl')||'auto';const KS={},JR=()=>(MOB?55:60)*Math.min(1.3,HUDS),wantJoy=e=>ctl=='joy'||(ctl=='auto'&&e.pointerType!='mouse');
 const CTL=[['auto','🤖 Automático','celular: joystick • PC: WASD ou setas'],['joy','🕹 Joystick na tela','toque e arraste na metade de baixo'],['tap','👆 Toque para andar','toque onde quer ir (modo antigo)']];
-function ctlBtns(){for(const k of['ctl1','ctl2']){const e=$(k);if(e)e.innerHTML=CTL.map(c=>`<button class=sb style="display:block;width:100%;text-align:left;margin:4px 0;background:${ctl==c[0]?'linear-gradient(90deg,#8a6f35,#2a2218)':'#0a0a0c'};border-color:${ctl==c[0]?'#c9a54a':'#3a3226'};transform:none;font:700 15px sans-serif;letter-spacing:0" onclick="setCtl('${c[0]}')">${c[1]}<br><small>${c[2]}</small></button>`).join('')}}
+function ctlBtns(){for(const k of['ctl1','ctl2']){const e=$(k);if(e)e.innerHTML=CTL.map(c=>`<button class=sb style="display:block;width:100%;text-align:left;margin:4px 0;background:${ctl==c[0]?'linear-gradient(90deg,#8a6f35,#2a2218)':'#0a0a0c'};border-color:${ctl==c[0]?'#c9a54a':'#3a3226'};transform:none;font:700 15px Dracutaz,sans-serif;letter-spacing:0" onclick="setCtl('${c[0]}')">${c[1]}<br><small>${c[2]}</small></button>`).join('')}}
 function setCtl(m){ctl=m;LS.set('ctl',m);joy=null;ctlBtns();pushMove()}
 function optOpen(){const p=$('opp'),o=p.style.display!='block';p.style.display=o?'block':'none';if(o){$('vol3').value=AU.vol*100;$('mvol3').value=AU.mv*100;ctlBtns()}}
 ctlBtns();

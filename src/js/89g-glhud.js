@@ -5,16 +5,20 @@
 // Regras cumpridas: pointer-events:none em tudo; z-order #glc(-1) < #vig(0) < #c(0, depois no DOM) < #glh(5);
 // por quadro só transform/opacity/style.width/textContent QUANDO o valor muda (nenhum layout read no laço);
 // pulso/glow por @keyframes CSS; escala --hh = --hs*--zo (x.6 em .mob) mais o fator .8 do HUD de tela.
+// ícones dos 3 buffs da recarga perfeita (dano, cadência, velocidade) — PNG 112 px embutidos
+const BUFIC=['data:image/png;base64,@@GLB:assets/buffs/dano.png@@','data:image/png;base64,@@GLB:assets/buffs/cadencia.png@@','data:image/png;base64,@@GLB:assets/buffs/corrida.png@@'];
 const HG={ok:0,vis:0,zo:-1,ih:-1,tm:'',hp:-9,mx:-9,hc:'',low:-1,lv:-9,lvu:-1,xp:-9,nd:-9,xb:-1,bf:'',cai:-1,cw:-1,ch:-1,bn:-1,bnv:-1,sk:'',sh:-1,me:-1,av:['','','']};
-// medida de texto fora do laço: o mesmo 'bold Npx sans-serif' do canvas (só quando o número muda)
+// a fonte Dracutaz é embutida (CSS); as larguras de texto medidas antes dela carregar ficam erradas: invalida os caches
+try{if(document.fonts&&document.fonts.load)document.fonts.load('bold 20px Dracutaz').then(function(){HG.hp=-9;HG.mx=-9;HG.xp=-9;HG.nd=-9;HG.bf='';HG.tm=''}).catch(function(){})}catch(e){}
+// medida de texto fora do laço: o mesmo 'bold Npx Dracutaz,sans-serif' do canvas (só quando o número muda)
 const HGC=(typeof document!=='undefined'&&document.createElement)?document.createElement('canvas').getContext('2d'):null;
-function ghW(t,sz){if(!HGC)return 0;HGC.font='bold '+sz+'px sans-serif';return HGC.measureText(t).width}
+function ghW(t,sz){if(!HGC)return 0;HGC.font='bold '+sz+'px Dracutaz,sans-serif';return HGC.measureText(t).width}
 function ghInit(){
  if(HG.ok)return 1;
  const h=$('glh');if(!h)return 0;
  const q=k=>$(k);
  HG.el={h:h,vig:$('vig'),tm:q('ghtm'),hp:q('ghhpn'),hpm:q('ghhpm'),hpb:q('ghhp'),st:q('ghst'),stn:q('ghstn'),
-  xp:q('ghxp'),xpm:q('ghxpm'),xpb:q('ghxpbi'),bf:q('ghbf'),b1:q('ghbf1'),b2:q('ghbf2'),b3:q('ghbf3'),
+  xp:q('ghxp'),xpm:q('ghxpm'),xpb:q('ghxpbi'),bf:q('ghbf'),b1:q('ghbf1'),b2:q('ghbf2'),b3:q('ghbf3'),gi:[q('gbi1'),q('gbi2'),q('gbi3')],
   cai:q('ghcaido'),bn:q('gbn'),bnt:q('gbnT'),sc:q('gsc'),scl:q('gscL'),h2:q('gh2'),
   av:[[q('ga1'),q('gal1')],[q('ga2'),q('gal2')],[q('ga3'),q('gal3')]]};
  HG.ok=1;return 1;
@@ -118,7 +122,7 @@ function ghMini(s){
  }
  const g=HGM.X;if(!g||!s)return;
  const t=Date.now();
- const mt=(tx,x,y,sz,col)=>{g.fillStyle=col;g.font=sz+'px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(tx,x,y)};
+ const mt=(tx,x,y,sz,col)=>{g.fillStyle=col;g.font=sz+'px Dracutaz,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(tx,x,y)};
  g.clearRect(0,0,MMW,MMH);
  g.globalCompositeOperation='lighter';
  for(const it of IL){if(!it)continue;const x=it[0],y=it[1],k=it[2],ix=x*f,iy=y*f;
@@ -239,11 +243,15 @@ function glHudFrame(s){
   }
   const xb=Math.round(150*Math.min(1,nd>0?xp/nd:0));
   if(xb!==HG.xb){HG.xb=xb;E.xpb.style.width=xb+'px'}
-  const b1=df?'⚡ x'+df:'',b2=pd>0?'💊 '+pd+'s':'',b3=ar>0?'🎯 '+ar+'s':'',bk=b1+'|'+b2+'|'+b3;
+  const b1=df?'⚡ x'+df:'',b2=pd>0?'💊 '+pd+'s':'',b3='',bi=[me[33]|0,me[34]|0,me[35]|0],bk=b1+'|'+b2+'|'+b3+'|'+bi.join(',');
   if(bk!==HG.bf){
    HG.bf=bk;let ix=0;
    const put=(el,tx,col,adv)=>{if(tx){el.textContent=tx;el.style.color=col;el.style.left=ix+'px';el.style.display='block';ix+=adv}else el.style.display='none'};
    put(E.b1,b1,'#e8c25a',52);put(E.b2,b2,'#e8c25a',62);put(E.b3,b3,'#d8d2c0',62);
+   for(let i=0;i<3;i++){const g=E.gi[i],v=bi[i];if(!g)continue;
+    if(v>0){if(!g.firstChild.src||g.firstChild.getAttribute('data-i')!=='1'){g.firstChild.src=BUFIC[i];g.firstChild.setAttribute('data-i','1')}
+     g.lastChild.textContent=Math.ceil(v/10);g.style.display='block';g.classList.toggle('lo',v<15)}
+    else g.style.display='none'}
   }
   // 'VOCÊ CAIU': posição/escala 100% por CSS (#ghcaido: left 50%, top 100%-110*--hh), sem JS por quadro
   if(dead!==HG.cai){HG.cai=dead;E.cai.style.display=dead?'block':'none'}

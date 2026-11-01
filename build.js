@@ -13,7 +13,8 @@ const vjs=VEND.filter(f=>vdir.includes(f)).concat(vdir.filter(f=>!VEND.includes(
  .map(f=>rd('vendor/'+f)+'\n').join('');
 const js=(vjs+fs.readdirSync(src('js')).filter(f=>f.endsWith('.js')&&!(REL&&f==='98-debug.js')).sort().map(f=>rd('js/'+f)).join('\n'))
  .replace(/@@GLB:([^@]+)@@/g,(_,f)=>fs.readFileSync(src(f)).toString('base64'));
-const out=rd('index.html').replace('@@CSS@@',()=>rd('style.css')).replace('@@JS@@',()=>js);
+const css=rd('style.css').replace(/@@GLB:([^@]+)@@/g,(_,f)=>fs.readFileSync(src(f)).toString('base64')); // fonte (woff2) e imagens embutidas no CSS
+const out=rd('index.html').replace('@@CSS@@',()=>css).replace('@@JS@@',()=>js);
 const dst=path.join(__dirname,'game.html');
 const tag=REL?'release, sem debug':'debug INCLUÍDO';
 if(process.argv.includes('--check')){
