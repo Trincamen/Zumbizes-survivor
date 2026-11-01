@@ -5427,7 +5427,7 @@ function zumbiSpr(ctx,x,y,k,v,fa,id,t,s){
  pfAdd('zdraw',t0);
  return 1}
 
-// ---------- 88-gl.js — infraestrutura WebGL (three.js) do modo 3D: ?gl=1 ou LS 'gl'=1 ----------
+// ---------- 88-gl.js — infraestrutura WebGL (three.js) do modo 3D: padrão; ?gl=0 desliga ----------
 // Sub-etapa 1a: renderer, cena, câmera ortográfica, chão liso e as conversões tela<->mundo.
 // Sem a flag (ou se o WebGL falhar) glLive=0 e w2s/s2w devolvem EXATAMENTE o cálculo 2D de sempre.
 // PROJEÇÃO: o 2D usa um CISALHAMENTO (tela=(X-0.3h, Y-h)*ZO), que nenhuma câmera rígida reproduz.
@@ -5435,7 +5435,7 @@ function zumbiSpr(ctx,x,y,k,v,fa,id,t,s){
 // por 1/cos(GTLT). O esticamento em profundidade cancela o encurtamento da câmera, então o CHÃO cai
 // exatamente em (x+ox, y+oy)*ZO (sprites 2D de zumbis/jogador continuam alinhados) e a altura h aparece
 // como h*sin(GTLT)*ZO (o 2D usa h*ZO; os 18% de diferença de altura ficam para as sub-etapas 1b/1c).
-const glOn=/[?&]gl=1(?:&|$)/.test(location.search||'')||LS.get('gl')=='1';
+const glOn=!(/[?&]gl=0(?:&|$)/.test(location.search||'')||LS.get('gl')=='0'); // 3D é o PADRÃO (2026-11-01); ?gl=0 ou LS 'gl'=0 força o 2D legado (tag git legado-2d)
 const GTLT=55*Math.PI/180,GLCOS=Math.cos(GTLT),GLSIN=Math.sin(GTLT),GCAMR=30000;
 let GL_SOFT=0,GL_GPU='',GLR=null,GLSCN=null,GLCAM=null,GLW=null,GLCV=null,GLBAD=0,glLive=0;
 // MU2-3: tremor (QK) compartilhado — 90-sons.js calcula shx/shy ANTES de glFrame e a camera 3D usa o mesmo
