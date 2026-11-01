@@ -1,3 +1,17 @@
+# TAREFA_atual.md — EXECUTAR AGORA: M4 (elementos do mundo em DOM com `w2s`, só com `glLive`)
+
+> Testes: SÓ Chrome (`tools/teste/lib.py`). Edite `src/`, `node build.js`, `node build.js --check`. NÃO mexer em `server.js`, Dockerfile, workflows, `package*.json`, `40-host.js`. Sem `glLive` o 2D fica EXATAMENTE como está. Se travar 2×, pare e reporte. **Regra do usuário:** se algum item NÃO compensar migrar (custo/risco), MANTENHA em 2D e diga qual no relatório.
+> **Objetivo:** com `glLive`, o que hoje é desenhado no canvas 2D `#c` por cima do mundo passa a ser DOM (em `#glh` ou novo `#gw` com `pointer-events:none`, `position:fixed`) posicionado por `w2s(x,y,h)` (devolve px CSS; ver `88-gl.js:20`), para que `?gl=1&c2d=0` mostre tudo. Itens, na ordem de prioridade (localizar por `grep` no ramo de entidades de `draw()` em `90-sons.js` ~linhas 480–520, `80-jogador.js:186`, `60-desenho.js`, `85-armas.js`):
+> 1. **Jogadores:** nome (cor/estilo atual), barra de vida (verde), ▼ do jogador local, ✖/caído, anel azul de buff (`e[30]>0`), anel de recarga `reloadRing`.
+> 2. **Zumbis:** barra de vida (`bar(...)`, só se `h<100` ou `k==2`), com a mesma escala por tipo (`bs_`).
+> 3. **Boss:** barra vermelha, "KRAID", "BOSS"/"ATORDOADO Ns", `stars` (estrelas do atordoamento), elipse/sombra se ainda 2D (preferir `GQ.blob`/disco 3D como os zumbis).
+> 4. **Loja:** seller (`60-desenho.js:95`), marca "LOJA", `$` flutuante, seta de borda já é DOM (M1).
+> 5. **Itens:** arco de proximidade dos itens (elipse dos pés, só jogador local, item <220 px, `itCol`), rótulo de nome do item se houver.
+> 6. **Pílula de recarga** `reloadPill` (`90-sons.js:58`): é CLICÁVEL (`50-cliente.js:39` usa `PILL` em coords de mundo com margem; manter essa lógica `PILL` em coords de mundo; o DOM só desenha; o clique continua pelo `#inp`).
+> **Desempenho:** pool de elementos reutilizados (sem criar/remover por quadro), só `transform:translate3d` e `opacity`; `textContent` só quando mudar; esconder (display:none ou `visibility`) os fora da tela; limitar a zumbis visíveis (<=60 barras). Usar `HG`/caches como o resto de `89g-glhud.js`. Os novos arquivos/funções vão em `src/js/89i-glmundohud.js` (carrega depois de `89h`), chamados de `glHudFrame`.
+> **Oclusão:** o DOM fica por cima do telhado (imperfeição já conhecida e aceita; só registrar no relatório se piorar).
+> **Pronto quando:** (a) `--check` e `node --check` ok; (b) Chrome `?gl=1&c2d=0` + `solo()`, com zumbis, boss e item perto: print mostra nome+barra do jogador, barra de zumbi, KRAID, ▼ e arco do item, todos alinhados com os modelos 3D (compare com `?gl=1` sem `c2d=0` ANTES da mudança, tirando print de referência primeiro); (c) `window.__err` vazio; custo de `glHudFrame` extra < 1 ms com 100 zumbis; (d) clique na pílula de recarga ainda funciona (simule via `Input.dispatchMouseEvent`); (e) sem `?gl=1` nada mudou; (f) ≤8 linhas: arquivos, `git diff --stat`, resultados, prints, itens que MANTIVE em 2D e por quê.
+
 # TAREFA_atual.md — EXECUTAR AGORA: BOSS 3D (`zumbi_boss.glb` no lugar do `drawBoss` 2D, só com `glLive`)
 
 > Testes: SÓ Chrome (`tools/teste/lib.py`). Edite `src/`, `node build.js` e `node build.js --check`. NÃO mexer em `server.js`, Dockerfile, workflows, `package*.json`, `40-host.js`. Sem `glLive` o `drawBoss` 2D continua como está (fallback até o M7). Se travar 2×, pare e reporte.
