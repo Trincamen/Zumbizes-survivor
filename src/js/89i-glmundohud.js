@@ -46,7 +46,10 @@ function gwPl(pid){
  o.g.style.zIndex='3'; // nome/barra do jogador ficam POR CIMA das auréolas de item (z-index 1)
  // anel do BUFF: círculo VERMELHO com um quadrado LARANJA girando dentro (sem fogo)
  o.buf=gwD(o.i,'gwR',-30,-11*GWSIN,60,22*GWSIN);o.buf.className='gwR gwBufF';
- {const q=document.createElement('div');q.className='gwBufQ';o.buf.appendChild(q)}
+ {const cv=document.createElement('canvas');cv.className='gwC';cv.width=240;cv.height=96;
+  cv.style.left='-10px';cv.style.top=(11*GWSIN-16)+'px';cv.style.width='80px';cv.style.height='32px';
+  o.buf.appendChild(cv);o.bcv=cv;o.bcx=cv.getContext('2d');o.bk=-1;
+  o.bfl=document.createElement('div');o.bfl.className='gwPcf';o.bfl.style.width='14px';o.bfl.style.height='22px';o.buf.appendChild(o.bfl)}
  const rc=document.createElement('canvas');rc.className='gwC';rc.width=240;rc.height=96;
  rc.style.left='-40px';rc.style.top='-16px';rc.style.width='80px';rc.style.height='32px';
  o.i.appendChild(rc);o.rc=rc;o.rx=rc.getContext('2d');o.rk='';
@@ -89,6 +92,14 @@ function gwPlayer(pid,x,y,o){
  if(P.nmc!==nc){P.nmc=nc;P.nm.style.color=nc}
  const hf=o.mx>0?Math.max(0,Math.min(1,o.hp/o.mx)):0;
  if(P.hf!==hf){P.hf=hf;P.bf.style.width=(hf*100).toFixed(1)+'%';P.bf.style.background=hf>.6?'#3e3':hf>.3?'#ec3':'#f33'}
+ // anel do buff = TEMPO RESTANTE, com a mesma animação da recarga: o vermelho vai pegando fogo (chama na ponta) e virando cinza
+ if(o.buff>0){const fr=Math.max(0,Math.min(1,o.bfr||0)),kk=fr*100|0;
+  if(P.bk!==kk){P.bk=kk;const g=P.bcx,a0=-1.5708,ah=a0+6.2832*(1-fr);
+   if(g){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,240,96);g.setTransform(3,0,0,3,120,48);g.lineCap='round';g.lineWidth=4;
+    g.strokeStyle='#7a7a7a';g.beginPath();g.ellipse(0,0,28,10*GWSIN,0,a0,ah);g.stroke();
+    g.strokeStyle='#e01818';g.shadowColor='#e01818';g.shadowBlur=6;g.beginPath();g.ellipse(0,0,28,10*GWSIN,0,ah,a0+6.2832);g.stroke();g.shadowBlur=0;
+    g.strokeStyle='#ff9a1a';g.lineWidth=4;g.beginPath();g.ellipse(0,0,28,10*GWSIN,0,ah,ah+.35);g.stroke()}
+   P.bfl.style.left=(30+28*Math.cos(ah)-7)+'px';P.bfl.style.top=(11*GWSIN+10*GWSIN*Math.sin(ah)-20)+'px';P.bfl.style.display=fr>0&&fr<1?'block':'none'}}
  if(o.rlf>0){
   const p=1-o.rlf/100,rk=p.toFixed(3);
   if(P.rk!==rk){P.rk=rk;const g=P.rx;

@@ -512,7 +512,7 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!(glLive&&(o.t==5||o.t==1||o.t==2
    else{if(pid==id&&IL.length){const L=[];
      for(const[qx,qy,qk]of IL){const dd=Math.hypot(qx-x,qy-y);if(dd<220)L.push([Math.atan2((qy-y)/13,(qx-x)/34),dd,qk])}
      if(L.length){L.sort((u,v)=>u[1]-v[1]);L.length=Math.min(3,L.length);arc=[x,y,L[0][0],L[0][1],L[0][2],L]}}
-    if(glLive)gwPlayer(pid,x,y,{dead:0,lv:lv_,hp:hp,mx:mx,c:c,n:n,self:pid==id,rlf:rlf,buff:e[30]|0});
+    if(glLive)gwPlayer(pid,x,y,{dead:0,lv:lv_,hp:hp,mx:mx,c:c,n:n,self:pid==id,rlf:rlf,buff:e[30]|0,bfr:Math.max(e[33]|0,e[34]|0,e[35]|0)/50});
     else{if((e[30]|0)>0)ell(x,y,30+Math.sin(t/160)*2,11,'rgba(80,170,255,.6)',1);if(rlf>0)reloadRing(x,y,rlf)}
     (glLive?drawPlayerGL:drawPlayer)(x,y,{k:pid,fa:e[17]/10,aim:e[25]>0?e[24]/10:null,c:c,gun:WC[cw],ring:c,shot:LSH[pid]||0,dead:false,fast:(e[21]|0)>0||(e[30]|0)>0,t:t,w:cw});
     if(!glLive){bar(x-18,y-56,36,hp/mx,'#3e3');txt(n,x,y-66,14,pid==id?'#ff0':'#fff');if(pid==id)txt('▼',x,y-80,14,'#ff0');if(rlf>0)reloadPill(x,y,rlf,t,e[27]|0,e[28]|0,e[29]|0,pid==id)}else if(rlf>0||(RLH[pid]||0)>Date.now())gwPill(x,y,rlf,t,e[27]|0,e[28]|0,e[29]|0,pid==id,pid,e[32]|0)}}}
