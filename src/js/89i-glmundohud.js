@@ -215,7 +215,7 @@ function gwArc(x,y,a,bd,k){
 // ---------- pílula de recarga: só DESENHA (o clique segue por PILL em coords de mundo, #inp) ----------
 function gwPillNew(){
  const o=gwNew();if(!o)return null;
- const sc=(MOB?1.1:1)*1.5,w=124*sc,h=20*sc; // 1,5x maior que antes (pedido do usuário: mais visível)
+ const sc=(MOB?1.1:1)*1.35,w=124*sc,h=20*sc; // 1,5x maior que antes (pedido do usuário: mais visível)
  o.sc=sc;o.w=w;o.h=h;
  // projeção do CHÃO do retângulo de MUNDO (x-w/2, y-H): é o que o PILL usa no hit-test, então o clique
  // no que está desenhado cai dentro dele (no 2D desenho e retângulo eram o mesmo espaço).

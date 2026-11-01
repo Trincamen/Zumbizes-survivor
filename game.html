@@ -43,9 +43,9 @@ canvas{display:block;width:100%;height:100%}
 @media(max-width:900px){#logo .l1{font-size:44px}#logo .l2{font-size:32px;letter-spacing:4px}#nick{font-size:16px;right:10px;top:8px}#net{font-size:12px;right:10px;top:30px}.scr{top:96px}.mi{font-size:20px;letter-spacing:1.5px;padding:4px 10px 4px 16px}.mb{padding:8px 12px;font-size:15px;margin:5px 0;width:230px}.pn{font-size:13px}.it{padding:8px;font-size:14px}}
 .mob #wb{left:4px;bottom:4px}.mob #wb button{width:62px;height:48px;font-size:8px;margin-right:3px;border-width:2px;border-left-width:3px;padding:0}.mob #wb div button{width:26px!important;height:20px!important;font-size:10px!important;margin:0 0 2px!important}.mob #wb div{margin-right:2px!important}
 .mob #sk{bottom:50px}.mob #sk button{width:110px;font-size:11px;padding:6px;margin:2px}.mob #shop{top:64px!important;padding:4px;font-size:11px;left:4px!important}.mob #shB button{width:150px;font-size:11px;padding:5px;margin:2px 0}
-.opt{position:fixed;bottom:8px;right:10px;width:44px;height:44px;border-radius:2px;border:2px solid #3a3226;border-left:4px solid #8a6f35;background:#0a0a0cf0;color:#d8d2c0;font-size:22px;display:none;padding:0;--sh:88px;left:auto;width:calc(var(--sh)*var(--hs,1)*.73);height:calc(var(--sh)*var(--hs,1)*.73);box-sizing:border-box;align-items:center;justify-content:center}.opt svg{width:60%;height:60%}@media(max-width:900px){.opt{--sh:64px}}.mob .opt{--sh:48px;bottom:4px}
+.opt{position:fixed;bottom:8px;right:10px;width:44px;height:44px;border-radius:2px;border:2px solid #3a3226;border-left:4px solid #8a6f35;background:#0a0a0cf0;color:#d8d2c0;font-size:22px;display:none;padding:0;--sh:88px;left:auto;width:calc(var(--sh)*var(--hs,1)*.66);height:calc(var(--sh)*var(--hs,1)*.66);box-sizing:border-box;align-items:center;justify-content:center}.opt svg{width:60%;height:60%}@media(max-width:900px){.opt{--sh:64px}}.mob .opt{--sh:48px;bottom:4px}
 #opp{position:fixed;top:60px;right:10px;display:none;z-index:6;width:min(340px,92vw)}.mob #opp{top:50px;font-size:12px}
-#wb{transform:scale(calc(var(--hs,1)*.73));transform-origin:left bottom}#sk{transform:scale(var(--hs,1));transform-origin:center bottom}#shop{transform:scale(var(--hs,1));transform-origin:left top}
+#wb{transform:scale(calc(var(--hs,1)*.66));transform-origin:left bottom}#sk{transform:scale(var(--hs,1));transform-origin:center bottom}#shop{transform:scale(var(--hs,1));transform-origin:left top}
 #wb button{background-image:linear-gradient(to top,rgba(255,226,122,.65) var(--rl,0%),rgba(0,0,0,0) var(--rl,0%)),linear-gradient(to top,rgba(0,0,0,0) var(--zs,0%),var(--zc,rgba(60,150,255,.8)) var(--zs,0%),var(--zc,rgba(60,150,255,.8)) var(--ze,0%),rgba(0,0,0,0) var(--ze,0%)),linear-gradient(180deg,#0a0a0ce8,#171310e8);position:relative}
 .kn{position:absolute;top:0;left:0;z-index:2;font-style:normal;font:700 10px Dracutaz,sans-serif;background:#8a6f35;color:#f0e6d8;padding:0 4px;line-height:14px;border-radius:0 0 2px 0}
 .wn{position:absolute;top:1px;left:22px;right:3px;z-index:2;text-align:left;font:700 12px Dracutaz,sans-serif;text-transform:uppercase;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 3px #000,0 1px 2px #000,0 0 6px #000}
@@ -7254,7 +7254,7 @@ function gwArc(x,y,a,bd,k){
 // ---------- pílula de recarga: só DESENHA (o clique segue por PILL em coords de mundo, #inp) ----------
 function gwPillNew(){
  const o=gwNew();if(!o)return null;
- const sc=(MOB?1.1:1)*1.5,w=124*sc,h=20*sc; // 1,5x maior que antes (pedido do usuário: mais visível)
+ const sc=(MOB?1.1:1)*1.35,w=124*sc,h=20*sc; // 1,5x maior que antes (pedido do usuário: mais visível)
  o.sc=sc;o.w=w;o.h=h;
  // projeção do CHÃO do retângulo de MUNDO (x-w/2, y-H): é o que o PILL usa no hit-test, então o clique
  // no que está desenhado cai dentro dele (no 2D desenho e retângulo eram o mesmo espaço).
