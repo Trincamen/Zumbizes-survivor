@@ -547,6 +547,7 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!(glLive&&(o.t==5||o.t==1||o.t==2
   X.font='bold 13px sans-serif';X.fillStyle='#e8c25a';X.textAlign='left';let ix=18;if(df){X.fillText('⚡ x'+df,ix,148);ix+=52}if(me[21]>0){X.fillText('💊 '+me[21]+'s',ix,148);ix+=62}if(me[30]>0){X.fillStyle='#d8d2c0';X.fillText('🎯 '+me[30]+'s',ix,148)}
   
   X.restore();if(dead)txt('VOCÊ CAIU — um aliado com desfibrilador (⚡) precisa chegar perto e usar o desfibrilador',WW/2,H/hk-110,22,'#f66')}
+ if(!glLive){
  X.fillStyle='#0f140f';X.fillRect(mx0,10,MMW,MMH);
  {const mk=((typeof curSd!=='undefined'&&curSd?curSd:(typeof sd!=='undefined'?sd:0))||0)+'|'+BLD.length+'|'+MMW+'|'+MH;
   if(!MMCV||MMCK!==mk){MMCK=mk;MMCV=mmBuild(MMW,f)}
@@ -586,4 +587,5 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!(glLive&&(o.t==5||o.t==1||o.t==2
   if(mine&&!dd){const pl=1+Math.sin(t/170)*.22;
    X.strokeStyle='rgba(255,255,255,'+(.55+.3*Math.sin(t/170))+')';X.lineWidth=1.4;X.beginPath();X.arc(px,py-2,6.5*pl,0,7);X.stroke();
    const a=(p[17]|0)/10;X.fillStyle='#fff';poly(px+Math.cos(a)*8.5,py-2+Math.sin(a)*8.5,2.8,3,a)}
-  X.globalAlpha=1}X.restore();if(glLive)glHudFrame(s);drawJoy();pfAdd('hud',ph_);pfEnd(_p0);if(glLive)glRenderNow();{const _d=performance.now()-_n;DRAW_MS=DRAW_MS?DRAW_MS*.9+_d*.1:_d}}
+  X.globalAlpha=1}}
+ X.restore();if(glLive)glHudFrame(s);drawJoy();pfAdd('hud',ph_);pfEnd(_p0);if(glLive)glRenderNow();{const _d=performance.now()-_n;DRAW_MS=DRAW_MS?DRAW_MS*.9+_d*.1:_d}}

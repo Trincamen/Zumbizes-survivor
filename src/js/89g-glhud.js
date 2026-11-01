@@ -63,6 +63,95 @@ function ghScore(L){
   E.scl.appendChild(row);
  }
 }
+// ---------- F4 (M2): minimapa em DOM ----------
+// Estático = o canvas que mmBuild(MMW,f) já gera (cache MMCK), copiado UMA vez para #gmmc quando a chave muda.
+// Rótulos HOSPITAL/POLÍCIA/MERCADO = <span> em pool (estáticos, mesma anti-colisão do 2D), recalculados junto.
+// Dinâmico = #gmmd (MMW×MMH × DPR≤2), limpo e redesenhado todo quadro com os MESMOS desenhos do bloco 2D
+// (coordenadas locais: mx0→0, 10→0). Moldura e cantos são CSS (#gmm:before). Tudo pointer-events:none.
+const HGM={ok:0,mmw:0,mmh:0,dpr:0,X:null,el:null};
+function ghMiniInit(){
+ if(HGM.ok)return 1;
+ const h=$('glh');if(!h)return 0;
+ const box=document.createElement('div');box.id='gmm';
+ const c=document.createElement('canvas');c.id='gmmc';
+ const L=document.createElement('div');L.id='gmmL';
+ const d=document.createElement('canvas');d.id='gmmd';
+ box.appendChild(c);box.appendChild(L);box.appendChild(d);h.appendChild(box);
+ HGM.el={box:box,c:c,L:L,d:d};HGM.ok=1;return 1;
+}
+// rótulos: mesma conta do bloco 2D, em coordenadas locais do mapa (0..MMW, 0..MMH)
+function ghMiniLabels(MMW,f,MMH){
+ const L=HGM.el.L;if(!L)return;
+ while(L.firstChild)L.removeChild(L.firstChild);
+ const lbs=[];
+ for(const b of BLD){const T=b.T;if(T!='h'&&T!='p'&&T!='m')continue;
+  const nm=T=='h'?'HOSPITAL':T=='p'?'POLÍCIA':'MERCADO',w=MOB?10:nm.length*5.2;
+  lbs.push({T,nm,w,lx:Math.max(w/2+2,Math.min(MMW-w/2-2,(b.x+b.w/2)*f)),ly:b.y*f-5,color:T=='h'?'#ff8a8a':T=='p'?'#8fb0ff':'#ffc070',mc:T=='h'?'#e33':T=='p'?'#36f':'#e80'})}
+ lbs.sort((a,b)=>a.lx-b.lx);
+ const done=[];
+ for(const l of lbs){let best=Math.max(7,l.ly);for(const dy of[0,-10,10,-20,20,30,-30]){const y=Math.max(7,Math.min(MMH-6,l.ly+dy));if(!done.some(q=>Math.abs(q.lx-l.lx)<(q.w+l.w)/2+2&&Math.abs(q.y-y)<9)){best=y;break}}l.y=best;done.push(l)}
+ for(const l of done){
+  const e=document.createElement(MOB?'i':'span');
+  e.style.left=l.lx.toFixed(2)+'px';e.style.top=l.y.toFixed(2)+'px';
+  if(MOB){e.className='gmlm';e.style.background=l.mc;e.textContent=l.nm[0]}
+  else{e.className='gmll';e.style.color=l.color;e.textContent=l.nm}
+  L.appendChild(e)}
+}
+// chamado de glHudFrame (só com glLive e HUD visível)
+function ghMini(s){
+ if(!glLive||!ghMiniInit())return;
+ const W_=HGM.el,MMW=170,f=MMW/MW,MMH=MH*f;
+ if(HGM.mmw!==MMW||HGM.mmh!==MMH){
+  HGM.mmw=MMW;HGM.mmh=MMH;
+  W_.box.style.width=MMW+'px';W_.box.style.height=MMH+'px';
+  const dp=Math.min(window.devicePixelRatio||1,2);HGM.dpr=dp;
+  W_.d.width=Math.round(MMW*dp);W_.d.height=Math.round(MMH*dp);
+  HGM.X=W_.d.getContext('2d');if(HGM.X)HGM.X.setTransform(dp,0,0,dp,0,0);
+ }
+ const mk=((typeof curSd!=='undefined'&&curSd?curSd:(typeof sd!=='undefined'?sd:0))||0)+'|'+BLD.length+'|'+MMW+'|'+MH;
+ if(!MMCV||MMCK!==mk){
+  MMCK=mk;MMCV=mmBuild(MMW,f);
+  if(MMCV){const c=W_.c;c.width=MMCV.width;c.height=MMCV.height;const g2=c.getContext('2d');if(g2){g2.setTransform(1,0,0,1,0,0);g2.clearRect(0,0,c.width,c.height);g2.drawImage(MMCV,0,0)}}
+  ghMiniLabels(MMW,f,MMH);
+ }
+ const g=HGM.X;if(!g||!s)return;
+ const t=Date.now();
+ const mt=(tx,x,y,sz,col)=>{g.fillStyle=col;g.font=sz+'px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(tx,x,y)};
+ g.clearRect(0,0,MMW,MMH);
+ g.globalCompositeOperation='lighter';
+ for(const it of IL){if(!it)continue;const x=it[0],y=it[1],k=it[2],ix=x*f,iy=y*f;
+  g.fillStyle=itRGBA(k,.2);g.beginPath();g.arc(ix,iy,4,0,7);g.fill();
+  g.fillStyle=itRGBA(k,.9);g.beginPath();g.arc(ix,iy,1.1,0,7);g.fill()}
+ g.globalCompositeOperation='source-over';
+ for(const z of ZMM)if(z[2]<3){const zx=z[0]*30*f,zy=z[1]*30*f;
+  g.fillStyle='rgba(0,0,0,.55)';g.beginPath();g.ellipse(zx,zy+1,2.1,.8,0,0,7);g.fill();
+  g.fillStyle=z[2]==1?'#7a5a30':'#2a2f22';g.fillRect(zx-1.1,zy-2.8,2.2,2.8);
+  g.fillStyle='#9a9a7a';g.beginPath();g.arc(zx,zy-3.8,1.1,0,7);g.fill();
+  g.strokeStyle='rgba(0,0,0,.6)';g.lineWidth=.6;g.strokeRect(zx-1.1,zy-2.8,2.2,2.8)}
+ for(const z of (s.Z||[]))if(z[2]==3){const bx=z[0]*f,by=z[1]*f,pu=1+Math.sin(t/200)*.2;
+  g.fillStyle='rgba(0,0,0,.6)';g.beginPath();g.ellipse(bx,by+2,5,2,0,0,7);g.fill();
+  g.globalCompositeOperation='lighter';g.fillStyle='rgba(190,60,255,.35)';g.beginPath();g.arc(bx,by-3,8*pu,0,7);g.fill();g.globalCompositeOperation='source-over';
+  g.fillStyle='#9a3de0';g.beginPath();g.ellipse(bx,by-3,4.2,4.8,0,0,7);g.fill();g.strokeStyle='#e0a0ff';g.lineWidth=.8;g.stroke();
+  mt('BOSS',bx,by+8,7,'#f0f')}
+ if(s.bp){const pl=1+Math.sin(t/120)*.35,bx=s.bp[0]*f,by=s.bp[1]*f;
+  g.strokeStyle='#f33';g.lineWidth=2;g.beginPath();g.arc(bx,by,10*pl,0,7);g.stroke();
+  g.fillStyle=t%300<150?'#f33':'#fff';g.beginPath();g.arc(bx,by,5,0,7);g.fill();mt('!',bx,by+1,9,'#000');mt('BOSS',bx,by+17,11,'#f55')}
+ if(s.sh){g.fillStyle=t%600<300?'#fc3':'#fff';g.beginPath();g.arc(s.sh[0]*f,s.sh[1]*f,6,0,7);g.fill();mt('$',s.sh[0]*f,s.sh[1]*f+1,10,'#000')}
+ for(const p of (s.P||[])){const px=p[3]*f,py=p[4]*f,dd=p[7],mine=p[0]==id;
+  g.fillStyle='rgba(0,0,0,.55)';g.beginPath();g.ellipse(px,py+1.2,3.2,1.3,0,0,7);g.fill();
+  g.globalAlpha=dd?.42:1;
+  g.beginPath();g.moveTo(px-1.8,py+1.2);g.lineTo(px-1.6,py-2);g.arc(px,py-2,1.6,3.14159,0);g.lineTo(px+1.8,py+1.2);g.closePath();
+  g.fillStyle=p[2];g.fill();g.strokeStyle='rgba(0,0,0,.7)';g.lineWidth=.7;g.stroke();
+  g.fillStyle='#f2ddc0';g.beginPath();g.arc(px,py-4.4,1.6,0,7);g.fill();g.strokeStyle='rgba(0,0,0,.55)';g.lineWidth=.6;g.stroke();
+  if(dd)mt('☠',px,py-6.5,8,'#ddd');
+  if(mine&&!dd){const pl=1+Math.sin(t/170)*.22;
+   g.strokeStyle='rgba(255,255,255,'+(.55+.3*Math.sin(t/170))+')';g.lineWidth=1.4;g.beginPath();g.arc(px,py-2,6.5*pl,0,7);g.stroke();
+   const a=(p[17]|0)/10,ax=px+Math.cos(a)*8.5,ay=py-2+Math.sin(a)*8.5;
+   g.fillStyle='#fff';g.beginPath();
+   for(let i=0;i<3;i++){const an=a+i*6.283/3;g[i?'lineTo':'moveTo'](ax+Math.cos(an)*2.8,ay+Math.sin(an)*2.8)}
+   g.closePath();g.fill()}
+  g.globalAlpha=1}
+}
 // chamado UMA vez por quadro pelo draw() (90-sons.js), só com glLive
 function glHudFrame(s){
  if(!glLive){glHudShow(0);return}
@@ -148,6 +237,8 @@ function glHudFrame(s){
  let key='';
  for(let i=0;i<P.length;i++){const p=P[i];key+=p[0]+'|'+(p[1]||'')+'|'+(p[5]|0)+'/'+(p[6]|0)+'|'+(p[7]?1:0)+'|'+(p[8]|0)+'|'+(p[18]|0)+';'}
  if(key!==HG.sk){HG.sk=key;ghScore(P.slice().sort((a,b)=>b[18]-a[18]))}
+ // ---- F4 (M2): minimapa DOM ----
+ ghMini(s);
 }
 // diagnóstico (leitura) para o teste de aceitação
 if(typeof window!=='undefined')window.__glhud=()=>({vis:HG.vis,zo:ZO,rows:HG.el&&HG.el.scl?HG.el.scl.children.length:0});
