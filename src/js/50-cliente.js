@@ -1,5 +1,5 @@
 // ---------- UI / cliente ----------
-function onSnap(s){snap=s;me=s.P.find(p=>p[0]==id);if(s.sd&&s.sd!=curSd){curSd=s.sd;O=genMap(s.sd);BLD=O.B;buildOB();DECOR=genDecor(s.sd);decorObs();buildOB();FIRES=O.FR;DD={};POP={};FL2=[];PT=[]}if(s.I)IL=s.I;if(s.ZM)ZMM=s.ZM;for(const p of s.P){const lv=LVP[p[0]];if(lv!=null&&p[9]>lv)LUE.push({pid:p[0],t:Date.now()});LVP[p[0]]=p[9]}
+function onSnap(s){snap=s;me=s.P.find(p=>p[0]==id);if(s.sd&&s.sd!=curSd){curSd=s.sd;O=genMap(s.sd);BLD=O.B;buildOB();DECOR=genDecor(s.sd);decorObs();buildOB();FIRES=O.FR;DD={};POP={};FL2=[];PT=[]}if(s.I){IL=s.I;const ks={};for(const e of IL)ks[e[4]]=1;for(const u in ITD)if(!ks[u])delete ITD[u]}if(s.ZM)ZMM=s.ZM;for(const p of s.P){const lv=LVP[p[0]];if(lv!=null&&p[9]>lv)LUE.push({pid:p[0],t:Date.now()});LVP[p[0]]=p[9]}
  $('menu').style.display=s.ph==0?'flex':'none';$('opt').style.display=s.ph==1?'block':'none';if(s.ph!=1)$('opp').style.display='none';if(s.ph==1&&!hintT)hintT=Date.now();if(s.ph==0&&$('s-lobby').style.display!='block')show('lobby');$('end').style.display=s.ph==2?'flex':'none';
  if(s.ph==0){$('pl').innerHTML=s.P.map(p=>`<div style="color:${p[2]}">● ${p[1]}</div>`).join('');$('mp').textContent=minP;$('st').disabled=s.P.length<minP}
  if(s.ph==2){$('er').textContent='Vocês sobreviveram '+fmt(s.gt);$('nb').style.display=host?'':'none'}
@@ -65,3 +65,10 @@ function drawJoy(){if(glLive)return; // M3: com GL o joystick e a dica são DOM 
   X.strokeStyle='rgba(255,255,255,.55)';X.lineWidth=3;X.fillStyle='rgba(255,255,255,.12)';X.beginPath();X.arc(joy.x0,joy.y0,R_,0,7);X.fill();X.stroke();
   X.fillStyle='rgba(255,255,255,.45)';X.beginPath();X.arc(joy.x0+dx,joy.y0+dy,R_*.42,0,7);X.fill();X.stroke()}
  else if(hintT&&Date.now()-hintT<9000&&ctl!='tap'){const m=MOB||ctl=='joy';txt(m?'Toque e arraste na metade de baixo da tela para andar':'Use W A S D ou as setas para andar',innerWidth/2,innerHeight*.78,m?14:20,'rgba(255,255,255,'+(.9-(Date.now()-hintT)/12000)+')')}}
+// suavização dos itens puxados pelo ímã: o host manda a posição ~30x/s; aqui cada item desliza até ela a cada quadro
+const ITD={};let ILT=0;
+function ilSmooth(){const n=performance.now(),a=1-Math.exp(-Math.min(.1,(n-ILT)/1000)*16);ILT=n;
+ for(const e of IL){if(e[4]==null)continue;if(e[5]===undefined){e[5]=e[0];e[6]=e[1]}
+  let d=ITD[e[4]];if(!d){ITD[e[4]]={x:e[0],y:e[1]};continue}
+  if(Math.abs(e[5]-d.x)+Math.abs(e[6]-d.y)>250){d.x=e[5];d.y=e[6]}else{d.x+=(e[5]-d.x)*a;d.y+=(e[6]-d.y)*a}
+  e[0]=d.x;e[1]=d.y}}

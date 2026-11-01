@@ -206,9 +206,9 @@ canvas{display:block;width:100%;height:100%}
 .opt svg{display:block;margin:auto}
 #end{z-index:20}
 
-.gwBufF{border:4px solid #ff7a12;box-sizing:border-box;overflow:visible;animation:gwBufP .3s ease-in-out infinite alternate;box-shadow:0 0 8px 2px #ff5a10,inset 0 0 8px 1px #ffb020}
-@keyframes gwBufP{from{border-color:#ff5a10;box-shadow:0 0 6px 1px #ff4a10,inset 0 0 5px 1px #ff8a20}to{border-color:#ffc83a;box-shadow:0 0 13px 4px #ff7a12,inset 0 0 10px 2px #ffd060}}
-.gwFl{position:absolute;width:12px;height:18px;transform-origin:50% 100%;background:radial-gradient(ellipse at 50% 78%,#fff7c0 0,#ffd23a 25%,#ff7a12 55%,rgba(220,30,10,.7) 75%,transparent 80%);clip-path:polygon(50% 0,72% 30%,88% 62%,74% 100%,26% 100%,12% 62%,28% 30%);animation:gwFlame .18s ease-in-out infinite alternate;filter:drop-shadow(0 0 3px #ff6a10)}
+.gwBufF{border:3px solid #e01818;box-sizing:border-box;box-shadow:0 0 7px 1px #e01818,inset 0 0 5px #a00;overflow:visible}
+.gwBufQ{position:absolute;left:50%;top:50%;width:15px;height:15px;margin:-7.5px 0 0 -7.5px;box-sizing:border-box;border:2.5px solid #ff9a1a;box-shadow:0 0 4px #ff9a1a;animation:gwBufR 1.2s linear infinite}
+@keyframes gwBufR{from{transform:scaleY(.82) rotate(0)}to{transform:scaleY(.82) rotate(360deg)}}
 
 </style></head><body>
 <canvas id=glc style="position:fixed;left:0;top:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:none"></canvas><div id=vig></div><canvas id=c></canvas><div id=inp></div>
@@ -4290,7 +4290,9 @@ function skill(p,k){[()=>p.dd*=1.02,()=>p.sp*=1.05,()=>{p.mx*=1.25;p.hp=p.mx},()
 function hurt(z,d,p){if(z.hp<=0)return;z.hp-=d;if(z.k==3)z.h[p.id]=1;if(z.hp<=0)kill(z,p)}
 function cash(z){if(z.k==3){for(let i=0;i<6;i++)IT.push({x:z.x+R(-70,70),y:z.y+R(-70,70),k:8,v:80,ex:Date.now()+90000})}else{const c=[[.35,8],[.4,10],[1,30]][z.k];if(Math.random()<c[0])IT.push({x:z.x,y:z.y,k:8,v:c[1],ex:Date.now()+60000})}}
 const isW=k=>k==7||k==11||(k>=2&&k<=5),wiOf=k=>k==7?0:k==11?5:k-1,needsConf=(p,it)=>isW(it.k)&&p.sl.length>=6&&!p.sl.some(q=>q.c==wiOf(it.k));
-const MAGR=110;let MAGMV=0;
+const MAGR=100;let MAGMV=0,IID=0;
+// linha de visão do ímã: nenhum ponto do trajeto item→jogador pode estar dentro de parede/obstáculo
+function magLos(ax,ay,bx,by){const d=Math.hypot(bx-ax,by-ay),n=Math.ceil(d/6);for(let i=0;i<=n;i++){const x=ax+(bx-ax)*i/n,y=ay+(by-ay)*i/n;if(blk(x,y,5)||wallAt(x,y,5))return 0}return 1}
 function give(p,it){const cu=p.sl[p.cs];
  if(it.k==6){if(cu.l>=6)return 0;cu.l++;cu.a=magOf(cu.c,cu.l)}else if(it.k==8)p.money+=it.v;
  else if(it.k<2||it.k==9||it.k==10){if(p.sl.length>=6)return 0;p.sl.push({c:it.k==0?10:it.k==1?11:it.k==9?12:13,l:0})}
@@ -4375,7 +4377,7 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
    // ÍMÃ leve: itens que o jogador PODE pegar, dentro de MAGR px, deslizam até ele (mais rápido quanto mais perto)
    {const cu_=p.sl[p.cs];for(const it of IT){if(it.nt>Date.now())continue;const dx=p.x-it.x,dy=p.y-it.y,d=Math.hypot(dx,dy);if(d>=MAGR||d<=30)continue;
      const k=it.k;if((k<2||k==9||k==10)&&p.sl.length>=6)continue;if(k==6&&(!cu_||cu_.l>=6))continue;
-     const m=Math.min((70+(1-d/MAGR)*170)*dt,d-28),nx=it.x+dx/d*m,ny=it.y+dy/d*m;if(!blk(nx,ny,6)){it.x=nx;it.y=ny;MAGMV=1}}}
+     if(!magLos(it.x,it.y,p.x,p.y))continue;const m=Math.min((35+(1-d/MAGR)*85)*dt,d-28),nx=it.x+dx/d*m,ny=it.y+dy/d*m;if(!blk(nx,ny,5)&&!wallAt(nx,ny,5)){it.x=nx;it.y=ny;MAGMV=1}}}
    if(p.of&&(IT.indexOf(p.of.it)<0||Math.hypot(p.of.it.x-p.x,p.of.it.y-p.y)>45))p.of=null;if(p.skip&&(IT.indexOf(p.skip)<0||Math.hypot(p.skip.x-p.x,p.skip.y-p.y)>90))p.skip=null}
   for(const z of Z){if(z.hp<=0)continue;if(z.k==3&&bossAct(z,dt,all))continue;let n=null,bd=1e9;for(const p of all){if(p.dead)continue;const d=Math.hypot(p.x-z.x,p.y-z.y);if(d<bd){bd=d;n=p}}
    if(!n)break;if(bd>z.r+12||!los(z,n))pathTo(z,'z'+n.id,n.x,n.y,z.s*dt,z.k==3?16:z.r*.7);else{z.fa=Math.atan2(n.y-z.y,n.x-z.x);n.hp-=z.d*dt;if(n.hp<=0){n.hp=0;n.dead=1;n.tz=null}}}
@@ -4386,13 +4388,13 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
   Z=Z.filter(z=>z.hp>0)}
  const base={t:'S',ph,gt:gt|0,bn,sd,left:Z.length,sh:shopOn?[shopX|0,shopY|0,shopT|0]:0,bp:bossPend?[bossPend.x|0,bossPend.y|0,Math.ceil(Math.max(0,bossPend.t)),+Math.max(0,bossPend.t).toFixed(3)]:0,F:FX,K:RK.map(r=>[r.x|0,r.y|0,r.t<r.dur?r.t/r.dur:1+(r.t-r.dur)/.4]),Pj:PJ.map(j=>[j.k,j.c,j.x|0,j.y|0,j.h|0,j.rot*100|0]),EV,Dh:Z.filter(z=>z.dash).map(z=>[z.dash.x0|0,z.dash.y0|0,z.dash.a*100|0,750,z.dash.t]),
   P:all.map(p=>[p.id,p.n,p.c,p.x|0,p.y|0,p.hp|0,p.mx|0,p.dead,p.cw,p.lv,p.xp|0,need(p.lv),p.sl.filter(q=>q.c==11).length,p.o,p.sl.map(q=>[q.c,q.l,q.a]),p.sl[p.cs].l,p.cs,p.fa*10|0,p.k,p.money|0,p.da,Math.ceil(Math.max(0,p.bt)),p.rl>0?p.rl/(p.rlt||RT[p.cw])*100|0:0,p.of?[wiOf(p.of.it.k),p.of.it.l||0,p.sl[p.cs].c,p.sl[p.cs].l]:0,p.aim*10|0,(p.ls&&Date.now()-p.ls<450)?(p.bkf>.4?2:1):0,p.tz&&p.tz.hp>0?p.tz.i:0,p.rl>0&&p.rz?p.rz[0]*100|0:0,p.rl>0&&p.rz?p.rz[1]*100|0:0,p.arF?1:0,Math.ceil(Math.max(0,p.bDm||0,p.bCd||0,p.bSp||0)),Math.ceil(Math.max(0,p.arD||0)*10),Math.round((p.rlt||0)*1000),Math.ceil(Math.max(0,p.bDm||0)*10),Math.ceil(Math.max(0,p.bCd||0)*10),Math.ceil(Math.max(0,p.bSp||0)*10)])};
- if(tick%6==0||(MAGMV&&tick%2==0)){MAGMV=0;base.I=IT.map(i=>[i.x|0,i.y|0,i.k,i.v|0]);base.ZM=Z.map(z=>[z.x/30|0,z.y/30|0,z.k]);base.DS=DEADL.map(o=>o.i)}
+ if(tick%6==0||MAGMV){MAGMV=0;base.I=IT.map(i=>[i.x|0,i.y|0,i.k,i.v|0,i.u||(i.u=++IID)]);base.ZM=Z.map(z=>[z.x/30|0,z.y/30|0,z.k]);base.DS=DEADL.map(o=>o.i)}
  const zA=Z.map(z=>[z.x|0,z.y|0,z.k,z.hp/z.mx*100|0,z.v,z.fa*10|0,z.i].concat(z.k==3?[z.bs|0,z.arm*100|0,Math.ceil(Math.max(0,z.stun||0)*10),Math.ceil(Math.max(0,z.em||0)*10)]:[]));
  onSnap(Object.assign({},base,{Z:zA}));
  if(ws&&ws.bufferedAmount<3e6)for(const q of all)if(q.id!=id)ws.send('@'+q.id+'|'+JSON.stringify(Object.assign({},base,{Z:zA.filter(z=>z[2]==3||Math.abs(z[0]-q.x)<1500&&Math.abs(z[1]-q.y)<950)})));
  FX=[];EV=[]}
 // ---------- UI / cliente ----------
-function onSnap(s){snap=s;me=s.P.find(p=>p[0]==id);if(s.sd&&s.sd!=curSd){curSd=s.sd;O=genMap(s.sd);BLD=O.B;buildOB();DECOR=genDecor(s.sd);decorObs();buildOB();FIRES=O.FR;DD={};POP={};FL2=[];PT=[]}if(s.I)IL=s.I;if(s.ZM)ZMM=s.ZM;for(const p of s.P){const lv=LVP[p[0]];if(lv!=null&&p[9]>lv)LUE.push({pid:p[0],t:Date.now()});LVP[p[0]]=p[9]}
+function onSnap(s){snap=s;me=s.P.find(p=>p[0]==id);if(s.sd&&s.sd!=curSd){curSd=s.sd;O=genMap(s.sd);BLD=O.B;buildOB();DECOR=genDecor(s.sd);decorObs();buildOB();FIRES=O.FR;DD={};POP={};FL2=[];PT=[]}if(s.I){IL=s.I;const ks={};for(const e of IL)ks[e[4]]=1;for(const u in ITD)if(!ks[u])delete ITD[u]}if(s.ZM)ZMM=s.ZM;for(const p of s.P){const lv=LVP[p[0]];if(lv!=null&&p[9]>lv)LUE.push({pid:p[0],t:Date.now()});LVP[p[0]]=p[9]}
  $('menu').style.display=s.ph==0?'flex':'none';$('opt').style.display=s.ph==1?'block':'none';if(s.ph!=1)$('opp').style.display='none';if(s.ph==1&&!hintT)hintT=Date.now();if(s.ph==0&&$('s-lobby').style.display!='block')show('lobby');$('end').style.display=s.ph==2?'flex':'none';
  if(s.ph==0){$('pl').innerHTML=s.P.map(p=>`<div style="color:${p[2]}">● ${p[1]}</div>`).join('');$('mp').textContent=minP;$('st').disabled=s.P.length<minP}
  if(s.ph==2){$('er').textContent='Vocês sobreviveram '+fmt(s.gt);$('nb').style.display=host?'':'none'}
@@ -4458,6 +4460,14 @@ function drawJoy(){if(glLive)return; // M3: com GL o joystick e a dica são DOM 
   X.strokeStyle='rgba(255,255,255,.55)';X.lineWidth=3;X.fillStyle='rgba(255,255,255,.12)';X.beginPath();X.arc(joy.x0,joy.y0,R_,0,7);X.fill();X.stroke();
   X.fillStyle='rgba(255,255,255,.45)';X.beginPath();X.arc(joy.x0+dx,joy.y0+dy,R_*.42,0,7);X.fill();X.stroke()}
  else if(hintT&&Date.now()-hintT<9000&&ctl!='tap'){const m=MOB||ctl=='joy';txt(m?'Toque e arraste na metade de baixo da tela para andar':'Use W A S D ou as setas para andar',innerWidth/2,innerHeight*.78,m?14:20,'rgba(255,255,255,'+(.9-(Date.now()-hintT)/12000)+')')}}
+// suavização dos itens puxados pelo ímã: o host manda a posição ~30x/s; aqui cada item desliza até ela a cada quadro
+const ITD={};let ILT=0;
+function ilSmooth(){const n=performance.now(),a=1-Math.exp(-Math.min(.1,(n-ILT)/1000)*16);ILT=n;
+ for(const e of IL){if(e[4]==null)continue;if(e[5]===undefined){e[5]=e[0];e[6]=e[1]}
+  let d=ITD[e[4]];if(!d){ITD[e[4]]={x:e[0],y:e[1]};continue}
+  if(Math.abs(e[5]-d.x)+Math.abs(e[6]-d.y)>250){d.x=e[5];d.y=e[6]}else{d.x+=(e[5]-d.x)*a;d.y+=(e[6]-d.y)*a}
+  e[0]=d.x;e[1]=d.y}}
+
 // ---------- desenho 2.5D ----------
 function txt(t,x,y,sz,c){X.fillStyle=c;X.font=sz+'px Dracutaz,sans-serif';X.textAlign='center';X.textBaseline='middle';X.fillText(t,x,y)}
 function poly(x,y,r,n,rot,r2){X.beginPath();for(let i=0;i<n*(r2?2:1);i++){const a=rot+i*6.283/(n*(r2?2:1)),q=r2&&i%2?r2:r;X[i?'lineTo':'moveTo'](x+Math.cos(a)*q,y+Math.sin(a)*q)}X.closePath();X.fill()}
@@ -7092,11 +7102,9 @@ function gwPl(pid){
  o.sh=gwD(o.i,'gwEl',-20,-9*GWSIN,40,18*GWSIN);o.sh.style.background='rgba(0,0,0,.4)';
  o.bl=gwD(o.i,'gwEl',-34,-14*GWSIN,68,28*GWSIN);
  o.g.style.zIndex='3'; // nome/barra do jogador ficam POR CIMA das auréolas de item (z-index 1)
- // anel do BUFF = círculo pegando fogo: borda de brasa pulsando + 12 chamas animadas em volta da elipse
+ // anel do BUFF: círculo VERMELHO com um quadrado LARANJA girando dentro (sem fogo)
  o.buf=gwD(o.i,'gwR',-30,-11*GWSIN,60,22*GWSIN);o.buf.className='gwR gwBufF';
- for(let q=0;q<12;q++){const th=q/12*6.2832,f=document.createElement('div');f.className='gwFl';
-  f.style.left=(30+30*Math.cos(th)-6)+'px';f.style.top=(11*GWSIN+11*GWSIN*Math.sin(th)-17)+'px';
-  f.style.animationDuration=(.15+(q%4)*.04)+'s';f.style.animationDelay=(-q*.037)+'s';o.buf.appendChild(f)}
+ {const q=document.createElement('div');q.className='gwBufQ';o.buf.appendChild(q)}
  const rc=document.createElement('canvas');rc.className='gwC';rc.width=240;rc.height=96;
  rc.style.left='-40px';rc.style.top='-16px';rc.style.width='80px';rc.style.height='32px';
  o.i.appendChild(rc);o.rc=rc;o.rx=rc.getContext('2d');o.rk='';
@@ -8224,7 +8232,7 @@ function draw(){requestAnimationFrame(draw);const _n=performance.now();
  pfAdd('predios',pb);
  if(!glLive&&s.bp&&v(s.bp[0],s.bp[1],150)){const bx=s.bp[0],by=s.bp[1],pl=(t%1000)/1000;X.strokeStyle='rgba(255,50,50,'+(1-pl)+')';X.lineWidth=4;X.beginPath();X.arc(bx,by,30+pl*70,0,7);X.stroke();X.fillStyle='rgba(255,40,40,.2)';X.beginPath();X.arc(bx,by,60,0,7);X.fill();txt('!',bx,by-30-Math.abs(Math.sin(t/150))*10,44,'#f33');if(FR%6==0)pts(2,bx+(Math.random()-.5)*90,by+(Math.random()-.5)*40,'#3f8a35',140,220,6,1)}
  for(const[x,y,an,len,tt]of s.Dh||[]){if(glLive){gwDash(x,y,an/100,len,tt);continue}X.save();X.translate(x,y);X.rotate(an/100);const fl=tt<1;X.fillStyle=fl?'rgba(255,40,40,'+(.12+tt*.25)+')':'rgba(255,90,40,.35)';X.fillRect(0,-50,len,100);X.strokeStyle='#f44';X.lineWidth=3;X.strokeRect(0,-50,len,100);if(fl){X.fillStyle='#f66';for(let u=60;u<len;u+=90){X.beginPath();X.moveTo(u,-14);X.lineTo(u+28,0);X.lineTo(u,14);X.closePath();X.fill()}}X.restore()}
- for(const[x,y,k,vv]of IL){if(!v(x,y))continue;const ib=bAt(x,y);if(ib&&ib!==meB)continue;const bb=Math.sin(t/250+x)*3;
+ ilSmooth();for(const[x,y,k,vv]of IL){if(!v(x,y))continue;const ib=bAt(x,y);if(ib&&ib!==meB)continue;const bb=Math.sin(t/250+x)*3;
   if(glLive){glItemPush(x,y,k,vv,t,bb);if(k==8&&!igTxtHide(x,y))gwItemTxt(x,y,vv)}else drawPickup(x,y,k,vv,t,bb)}
 let pl=pfStart();
 const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!(glLive&&(o.t==5||o.t==1||o.t==2||o.t==3))&&!DD[o.i]&&v(o.x+o.w/2,o.y+o.h/2,o.w+80))D.push([o.y+o.h,0,o]);

@@ -44,11 +44,9 @@ function gwPl(pid){
  o.sh=gwD(o.i,'gwEl',-20,-9*GWSIN,40,18*GWSIN);o.sh.style.background='rgba(0,0,0,.4)';
  o.bl=gwD(o.i,'gwEl',-34,-14*GWSIN,68,28*GWSIN);
  o.g.style.zIndex='3'; // nome/barra do jogador ficam POR CIMA das auréolas de item (z-index 1)
- // anel do BUFF = círculo pegando fogo: borda de brasa pulsando + 12 chamas animadas em volta da elipse
+ // anel do BUFF: círculo VERMELHO com um quadrado LARANJA girando dentro (sem fogo)
  o.buf=gwD(o.i,'gwR',-30,-11*GWSIN,60,22*GWSIN);o.buf.className='gwR gwBufF';
- for(let q=0;q<12;q++){const th=q/12*6.2832,f=document.createElement('div');f.className='gwFl';
-  f.style.left=(30+30*Math.cos(th)-6)+'px';f.style.top=(11*GWSIN+11*GWSIN*Math.sin(th)-17)+'px';
-  f.style.animationDuration=(.15+(q%4)*.04)+'s';f.style.animationDelay=(-q*.037)+'s';o.buf.appendChild(f)}
+ {const q=document.createElement('div');q.className='gwBufQ';o.buf.appendChild(q)}
  const rc=document.createElement('canvas');rc.className='gwC';rc.width=240;rc.height=96;
  rc.style.left='-40px';rc.style.top='-16px';rc.style.width='80px';rc.style.height='32px';
  o.i.appendChild(rc);o.rc=rc;o.rx=rc.getContext('2d');o.rk='';
