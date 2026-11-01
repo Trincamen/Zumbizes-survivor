@@ -14,7 +14,9 @@ let GL_SOFT=0,GL_GPU='',GLR=null,GLSCN=null,GLCAM=null,GLW=null,GLCV=null,GLBAD=
 let GL_SHX=0,GL_SHY=0;
 // GQ (declarado em 00-base.js) = interruptores de QUALIDADE: blob = sombra em disco dos zumbis (89e);
 // esfera = esfera translúcida dos itens no chão e halo = brilho aditivo (89f; sem eles o item continua visível);
-// scale = passo de resolução aplicado ao DPR (O1-2).
+// scale = passo de resolução aplicado ao DPR (O1-2). M5: fx = efeitos de combate em 3D (0 = volta o 2D) e
+// fxP = fração de partículas/chamas/fumaça (celular usa menos).
+GQ.fx=1;GQ.fxP=1;
 const _gv=new THREE.Vector3(),_gp=new THREE.Vector3(),_gq=new THREE.Vector3();
 // mundo -> tela CSS (px). Em 2D: idêntico a (x+ox, y+oy)*ZO.
 function w2s(x,y,h){
@@ -98,6 +100,7 @@ function glRenderNow(){
  if(typeof glZumbiEnd=='function')glZumbiEnd(); // 89e-glzumbis.js: publica as instancias do quadro
  if(typeof glItemEnd=='function')glItemEnd(); // 89f-glitens.js: publica as instancias dos itens do quadro
  if(typeof glBossEnd==='function')glBossEnd(); // 89h-glboss.js: fecha o boss do quadro
+ if(typeof glFxEnd==='function')glFxEnd(); // 89j-glfx.js: publica as instâncias dos efeitos do quadro
  GLR.render(GLSCN,GLCAM);
 }
 if(glOn)glInit();

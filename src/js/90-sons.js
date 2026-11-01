@@ -480,7 +480,7 @@ function draw(){requestAnimationFrame(draw);const _n=performance.now();
   if(glLive){glItemPush(x,y,k,vv,t,bb);if(k==8&&!igTxtHide(x,y))gwItemTxt(x,y,vv)}else drawPickup(x,y,k,vv,t,bb)}
 let pl=pfStart();
 const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!(glLive&&(o.t==5||o.t==1||o.t==2||o.t==3))&&!DD[o.i]&&v(o.x+o.w/2,o.y+o.h/2,o.w+80))D.push([o.y+o.h,0,o]);
- for(const b of BLD)if(!glLive&&b!==meB&&v(b.x+b.w/2,b.y+b.h/2,b.w))D.push([b.y+b.h+1,3,b]);for(const f of FIRES)if(v(f[0],f[1],120)&&!(f[4]&&f[4]===meB)&&!(f[5]&&DD[f[5].i]))D.push([f[3],5,f]);
+ for(const b of BLD)if(!glLive&&b!==meB&&v(b.x+b.w/2,b.y+b.h/2,b.w))D.push([b.y+b.h+1,3,b]);for(const f of FIRES)if((!glLive||!GQ.fx)&&v(f[0],f[1],120)&&!(f[4]&&f[4]===meB)&&!(f[5]&&DD[f[5].i]))D.push([f[3],5,f]);
  if(s.sh)D.push([s.sh[1]+14,4,s.sh]);
  for(const b of BLD)if(!glLive&&v(b.x+b.w/2,b.y+b.h/2,b.w))D.push([b.y+b.h+.5,6,b]);for(const bx of[1000,3000])for(const yy of[2850,3150])for(const sd of[-1,1])if(v(bx,yy,300))D.push([yy,7,[bx+sd*88,yy,sd]]);
  for(const z of s.Z){if(!v(z[0],z[1]))continue;const r=zSmooth(z[6],z[0],z[1],dtf);D.push([r.y,1,z,r])}
@@ -513,7 +513,7 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!(glLive&&(o.t==5||o.t==1||o.t==2
     if(!glLive){bar(x-18,y-56,36,hp/mx,'#3e3');txt(n,x,y-66,14,pid==id?'#ff0':'#fff');if(pid==id)txt('▼',x,y-80,14,'#ff0');if(rlf>0)reloadPill(x,y,rlf,t,e[27]|0,e[28]|0,e[29]|0,pid==id)}else if(rlf>0)gwPill(x,y,rlf,t,e[27]|0,e[28]|0,e[29]|0,pid==id)}}}
  if(arc){if(glLive)gwArc(arc[0],arc[1],arc[2],arc[3],arc[4]);else{const ga=X.globalAlpha;X.globalAlpha=.6*(1-arc[3]/220)+.15;X.strokeStyle=itCol(arc[4]);X.lineWidth=3;X.beginPath();X.ellipse(arc[0],arc[1],34,13,0,arc[2]-.61,arc[2]+.61);X.stroke();X.globalAlpha=ga}}
  pfAdd('objetos',po);
- let px=pfStart();drawMark(s,t);edges('b');drawFX();drawProj(s,dtf);pfAdd('fx',px);if(s.sh){const b=bAt(s.sh[0],s.sh[1]);if(b&&b!==meB){if(glLive)gwShop(b,t);else txt('🛒 LOJA',b.x+b.w/2,b.y-b.H-22+Math.sin(t/200)*4,26,'#fc3')}}
+ let px=pfStart();drawMark(s,t);edges('b');if(glLive&&GQ.fx)glFxFrame(s,t,dtf);else{drawFX();drawProj(s,dtf)}pfAdd('fx',px);if(s.sh){const b=bAt(s.sh[0],s.sh[1]);if(b&&b!==meB){if(glLive)gwShop(b,t);else txt('🛒 LOJA',b.x+b.w/2,b.y-b.H-22+Math.sin(t/200)*4,26,'#fc3')}}
  for(const[x,y,pg]of s.K){if(pg<1){X.fillStyle='rgba(255,40,40,'+(.12+pg*.25)+')';X.beginPath();X.arc(x,y,70,0,7);X.fill();X.strokeStyle='#f88';X.lineWidth=3;X.beginPath();X.arc(x,y,70,0,7);X.stroke();X.strokeStyle='#f22';X.beginPath();X.arc(x,y,70*pg,0,7);X.stroke();}
   else{const q=pg-1;X.strokeStyle='rgba(210,185,140,'+(1-q)+')';X.lineWidth=8;X.beginPath();X.arc(x,y,40+q*50,0,7);X.stroke()}}
  X.restore();
