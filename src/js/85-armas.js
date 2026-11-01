@@ -66,7 +66,7 @@ function weaponIcon(w){
 // item no chão dentro de esfera translúcida (estilo GTA Vice City)
 const HI={10:7,12:8,13:9,11:12};// classe do slot -> modelo GLB do item
 const IT3={8:6,0:7,9:8,10:9,1:12,6:11};
-function itCol(k){return k==8?'#ffc83a':(k==0||k==9||k==10)?'#5cf07a':k==1?'#ff4d4d':k==6?'#ff9a3a':'#4fe8d0'}
+function itCol(k){return k==8?'#ffc83a':(k==0||k==9||k==10)?'#5cf07a':k==1?'#ff4d4d':k==6?'#ff9a3a':'#ff2a2a'}
 const ITA={};
 function itRGBA(k,a){const key=k+'|'+a;let s=ITA[key];if(s==null){const c=itCol(k);s=ITA[key]='rgba('+parseInt(c.substr(1,2),16)+','+parseInt(c.substr(3,2),16)+','+parseInt(c.substr(5,2),16)+','+a+')'}return s}
 function drawPickup(x,y,k,vv,t,bb){

@@ -68,7 +68,7 @@ function gwPlayer(pid,x,y,o){
   const w=P.sz?26:40,h=(P.sz?10:18)*GWSIN,bw=P.sz?36:68,bh=(P.sz?14:28)*GWSIN;
   P.sh.style.left=(-w/2)+'px';P.sh.style.top=(-h/2)+'px';P.sh.style.width=w+'px';P.sh.style.height=h+'px';
   P.bl.style.left=(-bw/2)+'px';P.bl.style.top=(-bh/2)+'px';P.bl.style.width=bw+'px';P.bl.style.height=bh+'px'}
- gwDisp(P.sh,1);gwDisp(P.bl,1);gwDisp(P.xm,d);gwDisp(P.cn,d);
+ gwDisp(P.sh,1);gwDisp(P.bl,d);gwDisp(P.xm,d);gwDisp(P.cn,d);
  gwDisp(P.bb,!d);gwDisp(P.nm,!d);gwDisp(P.dv,!d&&!!o.self);gwDisp(P.buf,!d&&o.buff>0);
  gwDisp(P.rc,!d&&o.rlf>0);
  if(P.blc!==o.c){P.blc=o.c;P.bl.style.border='3px solid '+o.c}
@@ -144,7 +144,7 @@ function gwBoss(x,y,o,t){
  if(B.shc!==sh){B.shc=sh;B.sh.style.background=sh}
  const hf=Math.max(0,Math.min(1,o.h/100)),hfq=hf.toFixed(2);
  if(B.hf!==hfq){B.hf=hfq;B.bf.style.width=(hf*80).toFixed(1)+'px'}
- const sty=o.bs==5?'ATORDOADO '+o.st5.toFixed(1)+'s':'BOSS',stc=o.bs==5?'#ffe45a':'#d9a0a0';
+ const sty=o.bs==5?'ATORDOADO '+o.st5.toFixed(1)+'s':'',stc=o.bs==5?'#ffe45a':'#d9a0a0';
  if(B.stt!==sty){B.stt=sty;B.st.textContent=sty}
  if(B.stc!==stc){B.stc=stc;B.st.style.color=stc}
  // estrelas do atordoamento: órbitas de 38 px em volta do topo (só com bs==5)
@@ -198,19 +198,25 @@ function gwItemTxt(x,y,v){
  gwPut(o,x,y);
  const s=String(v);if(o.st!==s){o.st=s;o.t.textContent=s}
 }
-function gwArc(x,y,a,bd,k){
+function gwArc(x,y,L){
+ // L = até 3 itens por perto, do MAIS PERTO ao mais longe: [ângulo, distância, k]. O mais perto fica junto do
+ // personagem; cada um dos outros vai um degrau ACIMA e um pouco maior (pedido do usuário).
  if(!glLive)return;
  let o=GWU.arc;
  if(!o){o=GWU.arc=gwNew();if(!o)return;
-  const c=document.createElement('canvas');c.className='gwC';c.width=240;c.height=96;
-  c.style.left='-40px';c.style.top='-16px';c.style.width='80px';c.style.height='32px';
+  const c=document.createElement('canvas');c.className='gwC';c.width=360;c.height=216;
+  c.style.left='-60px';c.style.top='-56px';c.style.width='120px';c.style.height='72px';
   o.i.appendChild(c);o.cv=c;o.cx=c.getContext('2d');o.key=''}
  gwPut(o,x,y);
- const key=a.toFixed(2)+'|'+(bd|0)+'|'+k;
+ let key='';for(const q of L)key+=q[0].toFixed(2)+'|'+(q[1]/4|0)+'|'+q[2]+';';
  if(o.key!==key){o.key=key;const g=o.cx;
-  if(g){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,240,96);g.setTransform(3,0,0,3,120,48);
-   g.globalAlpha=.6*(1-bd/220)+.15;g.strokeStyle=itCol(k);g.lineWidth=3;
-   g.beginPath();g.ellipse(0,0,34,13*GWSIN,0,a-.61,a+.61);g.stroke();g.globalAlpha=1}}
+  if(g){g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,360,216);g.setTransform(3,0,0,3,180,168);
+   g.lineCap='round';
+   for(let n=0;n<L.length;n++){const[a,bd,k]=L[n];
+    g.globalAlpha=Math.min(1,.62+.38*(1-bd/220));g.strokeStyle=itCol(k);g.lineWidth=5;
+    g.shadowColor=itCol(k);g.shadowBlur=10;
+    g.beginPath();g.ellipse(0,-n*9*GWSIN,(34+4*n),(13+1.6*n)*GWSIN,0,a-.66,a+.66);g.stroke()}
+   g.globalAlpha=1;g.shadowBlur=0}}
 }
 // ---------- pílula de recarga: só DESENHA (o clique segue por PILL em coords de mundo, #inp) ----------
 function gwPillNew(){

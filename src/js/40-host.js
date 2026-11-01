@@ -115,7 +115,7 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
     else if(hit){hurt(s,dm,p);if(p.cw==1)for(const z of Z)if(z!==s&&z.hp>0&&Math.hypot(z.x-s.x,z.y-s.y)<50)hurt(z,dm*.5,p)}
     else{const ux=Math.cos(aim),uy=Math.sin(aim),off=(Math.random()<.5?-1:1)*R(26,55);ex=s.x-uy*off+ux*30;ey=s.y+ux*off+uy*30}
     FX.push([p.x|0,p.y|0,ex|0,ey|0,p.cw,++fid,p.id,hit?1:0])}
-   for(let i=IT.length-1;i>=0;i--){const it=IT[i];if(Math.hypot(it.x-p.x,it.y-p.y)>28||it.nt>Date.now())continue;if(needsConf(p,it)){if(p.skip!==it&&(!p.of||p.of.it!==it))p.of={it};continue}if(give(p,it))IT.splice(i,1)}
+   for(let i=IT.length-1;i>=0;i--){const it=IT[i];if(Math.hypot(it.x-p.x,it.y-p.y)>50||it.nt>Date.now())continue;if(needsConf(p,it)){if(p.skip!==it&&(!p.of||p.of.it!==it))p.of={it};continue}if(give(p,it))IT.splice(i,1)}
    if(p.of&&(IT.indexOf(p.of.it)<0||Math.hypot(p.of.it.x-p.x,p.of.it.y-p.y)>45))p.of=null;if(p.skip&&(IT.indexOf(p.skip)<0||Math.hypot(p.skip.x-p.x,p.skip.y-p.y)>90))p.skip=null}
   for(const z of Z){if(z.hp<=0)continue;if(z.k==3&&bossAct(z,dt,all))continue;let n=null,bd=1e9;for(const p of all){if(p.dead)continue;const d=Math.hypot(p.x-z.x,p.y-z.y);if(d<bd){bd=d;n=p}}
    if(!n)break;if(bd>z.r+12||!los(z,n))pathTo(z,'z'+n.id,n.x,n.y,z.s*dt,z.k==3?16:z.r*.7);else{z.fa=Math.atan2(n.y-z.y,n.x-z.x);n.hp-=z.d*dt;if(n.hp<=0){n.hp=0;n.dead=1;n.tz=null}}}
