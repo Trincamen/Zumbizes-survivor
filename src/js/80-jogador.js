@@ -184,7 +184,7 @@ function handleEv(e){const[t,oid,x,y,a,k,c]=e,ang=a/100,d=Math.hypot(x-cx,y-cy),
  else if(t==1){pts(26,x,y,'#999',320,260,10,1.4);pts(10,x,y,'#caa',260,380,6,1);QK=Math.max(QK,v);SND.bump(v,p)}
  else if(t==3){DD[oid]=1;pts(6,x,y,'#8a7a5a',120,160,6,.7);SND.grab(v,p)}
  else if(t==4){delete DD[oid];POP[oid]=Date.now()}
- else if(t==8){RLH[c]=Date.now()+700;ftext(x,y-70,'RECARGA PERFEITA!','#7fe3ff',17);pts(14,x,y-20,'#7fd0ff',220,260,5,.7);SND.perfect(c==id?1:.4)}
+ else if(t==8){RLH[c]=Date.now()+700;RLH0[c]=performance.now();ftext(x,y-70,'RECARGA PERFEITA!','#7fe3ff',17);pts(14,x,y-20,'#7fd0ff',220,260,5,.7);SND.perfect(c==id?1:.4)}
  else if(t==9){ftext(x,y-70,'FALHOU','#ff6a6a',14);SND.fail(c==id?1:.3)}
  else if(t==6)SND.throwW(v,p)
  else if(t==7){if(typeof bmEv7==='function')bmEv7();pts(40,x,y,'#3f8a35',360,520,8,1.4);pts(12,x,y,'#7a5a30',240,300,6,1);QK=Math.max(QK,.9);SND.roar(Math.max(.4,v),p)}}

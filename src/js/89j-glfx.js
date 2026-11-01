@@ -215,6 +215,49 @@ function fxTexts(t){
    al=u<.12?u/.12:Math.max(0,1-(u-.55)/.45);
   for(let k=0;k<3;k++)fxDom(x+42,y-52-k*15-u*26,labs[k][0],labs[k][1],12,al)}}
 // ---------- ganchos ----------
+// ---------- buff da RECARGA PERFEITA (só 3D): argolas vermelhas, pegadas de fogo, arma em chamas ----------
+// Campos do snapshot por jogador (s.P[i]): [30]=buff restante (s, 5 s), [31]=corrida x2 restante (décimos de s, 0,5 s).
+// (1) ao acertar (RLH0, setado em handleEv t==8): 4 argolas vermelhas SOBEM do pé até a cabeça (~0,7 s);
+// (2) enquanto a corrida x2 vale: fogo nos pés + pegadas que ficam queimando ~0,7 s;
+// (3) enquanto o buff de 5 s vale: chamas ao longo da arma (da mão até a boca do cano, st.mzW).
+const FXB={};
+function fxBuff(s,t){
+ if(!s||!s.P)return;
+ const now=performance.now();
+ for(const e of s.P){
+  if(e[7])continue;
+  const pid=e[0],x=e[3],y=e[4],arT=e[30]|0,arD=(e[31]|0)/10;
+  const b=FXB[pid]||(FXB[pid]={tr:[],lx:x,ly:y});
+  // (1) argolas vermelhas subindo pelo corpo até a cabeça
+  const t0=RLH0[pid];
+  if(t0){const u=(now-t0)/750;
+   if(u>1.5)delete RLH0[pid];
+   else for(let k=0;k<4;k++){const uu=u-k*.12;if(uu<0||uu>1)continue;
+    const a=Math.sin(uu*3.14159),yy=-4-uu*54,w=1-.28*uu;
+    fxRing(x,-yy/GLSIN,y,21*w,1.2*a,.08*a,.03*a);            // argola vermelha nítida (textura de anel)
+    fxRing(x,-yy/GLSIN,y,15*w,1.3*a,.35*a,.12*a);            // 2ª argola, mais clara, por dentro
+    for(let q=0;q<3;q++){const an=uu*9+q*2.09+k;fxBbS(x,y,0,Math.cos(an)*15*w,yy+Math.sin(an)*4,3.2,1*a,.25*a,.08*a)}}
+   if(u>.5&&u<1.05){const a=Math.sin((u-.5)*3.14159/.55);fxBbS(x,y,0,0,-58,24,.9*a,.12*a,.05*a)}} // clarão na cabeça
+  // (2) pegadas de fogo na corrida x2
+  if(arD>0){
+   fxFire(x,y,.4,t);
+   if(!b.tr.length||Math.hypot(x-b.lx,y-b.ly)>22){b.tr.push({x:x+(Math.random()-.5)*10,y:y+(Math.random()-.5)*6,t});b.lx=x;b.ly=y}
+  }else{b.lx=x;b.ly=y}
+  for(let i=b.tr.length-1;i>=0;i--){const q=b.tr[i],age=t-q.t;
+   if(age>800){b.tr.splice(i,1);continue}
+   fxFire(q.x,q.y,.14+.3*(1-age/800),t)}
+  // (3) arma pegando fogo (buff de 5 s)
+  if(arT>0){
+   const st=typeof PGS!=='undefined'?PGS[pid]:null;
+   if(st&&st.mzW){const mx=st.mzW[0],my=st.mzW[1],mh=st.mzW[2],fade=Math.min(1,arT/.6);
+    for(let i=0;i<5;i++){const f=i/4,px=mx+(x-mx)*f*.55,py=my+(y-my)*f*.55,ph=mh*(1-f*.25),
+      fl=Math.sin(t/70+i*1.7+pid.length),hh=(9+5*fl)*(1-f*.3)*fade;
+     fxBbS(px,py,ph,0,-hh*.5,6.5*fade,.55,.14,.04);                // língua vermelha
+     fxBbSR(px,py,ph,0,-hh*.6,3.6*fade,hh*.62,0,.65,.4,.06);       // núcleo amarelo
+     if(i%2==0)fxBbS(px,py,ph,Math.sin(t/90+i)*3,-hh-4-((t/60+i*7)%10),2.2*fade,.7,.3,.05)} // faíscas subindo
+    fxBbS(mx,my,mh,0,-3,15*fade,.4,.16,.03)}}                       // brilho na boca do cano
+ }
+}
 function glFxFrame(s,t,dtf){
  if(!glLive||!GLW)return 0;
  if(!fxInit())return 0;
@@ -224,6 +267,7 @@ function glFxFrame(s,t,dtf){
  FXL=FXL.filter(q=>t<q.t+q.life);
  for(let i=0;i<FXL.length;i++)fxShot(FXL[i],t);
  fxFires(t);
+ fxBuff(s,t);
  fxBits(dtf);
  fxProj(s);
  fxTexts(t);

@@ -4370,7 +4370,7 @@ let dr=null;function dn(e,i){dr={i,x:e.clientX,y:e.clientY,g:null};e.preventDefa
 addEventListener('pointermove',e=>{if(!dr)return;if(!dr.g&&Math.hypot(e.clientX-dr.x,e.clientY-dr.y)>15){const g=document.createElement('div');g.style.cssText='position:fixed;pointer-events:none;width:56px;height:56px;border-radius:10px;background:#fc3b;border:3px solid #fff;z-index:9;transform:translate(-50%,-50%)';document.body.appendChild(g);dr.g=g}if(dr.g){dr.g.style.left=e.clientX+'px';dr.g.style.top=e.clientY+'px'}});
 addEventListener('pointerup',e=>{if(!dr)return;const r=$('wb').getBoundingClientRect();if(dr.g){dr.g.remove();if(e.clientY<r.top-25||e.clientX>r.right+25)send({t:'d',id,n:dr.i})}else if(dr.i>=0)send({t:'u',id,n:dr.i});dr=null});
 addEventListener('pointercancel',()=>{if(dr&&dr.g)dr.g.remove();dr=null});
-const RLS={},RLH={},RLV={f:null,t:0};function rlSend(){return RLV.f!=null&&performance.now()-RLV.t<400?+RLV.f.toFixed(3):undefined}
+const RLS={},RLH={},RLH0={},RLV={f:null,t:0};function rlSend(){return RLV.f!=null&&performance.now()-RLV.t<400?+RLV.f.toFixed(3):undefined}
 let lastTap=0,joy=null,mvLast=[0,0],mvT0=0,hintT=0,ctl=LS.get('ctl')||'auto';const KS={},JR=()=>(MOB?55:60)*Math.min(1.3,HUDS),wantJoy=e=>ctl=='joy'||(ctl=='auto'&&e.pointerType!='mouse');
 const CTL=[['auto','🤖 Automático','celular: joystick • PC: WASD ou setas'],['joy','🕹 Joystick na tela','toque e arraste na metade de baixo'],['tap','👆 Toque para andar','toque onde quer ir (modo antigo)']];
 function ctlBtns(){for(const k of['ctl1','ctl2']){const e=$(k);if(e)e.innerHTML=CTL.map(c=>`<button class=sb style="display:block;width:100%;text-align:left;margin:4px 0;background:${ctl==c[0]?'linear-gradient(90deg,#8a6f35,#2a2218)':'#0a0a0c'};border-color:${ctl==c[0]?'#c9a54a':'#3a3226'};transform:none;font:700 15px sans-serif;letter-spacing:0" onclick="setCtl('${c[0]}')">${c[1]}<br><small>${c[2]}</small></button>`).join('')}}
@@ -4766,7 +4766,7 @@ function handleEv(e){const[t,oid,x,y,a,k,c]=e,ang=a/100,d=Math.hypot(x-cx,y-cy),
  else if(t==1){pts(26,x,y,'#999',320,260,10,1.4);pts(10,x,y,'#caa',260,380,6,1);QK=Math.max(QK,v);SND.bump(v,p)}
  else if(t==3){DD[oid]=1;pts(6,x,y,'#8a7a5a',120,160,6,.7);SND.grab(v,p)}
  else if(t==4){delete DD[oid];POP[oid]=Date.now()}
- else if(t==8){RLH[c]=Date.now()+700;ftext(x,y-70,'RECARGA PERFEITA!','#7fe3ff',17);pts(14,x,y-20,'#7fd0ff',220,260,5,.7);SND.perfect(c==id?1:.4)}
+ else if(t==8){RLH[c]=Date.now()+700;RLH0[c]=performance.now();ftext(x,y-70,'RECARGA PERFEITA!','#7fe3ff',17);pts(14,x,y-20,'#7fd0ff',220,260,5,.7);SND.perfect(c==id?1:.4)}
  else if(t==9){ftext(x,y-70,'FALHOU','#ff6a6a',14);SND.fail(c==id?1:.3)}
  else if(t==6)SND.throwW(v,p)
  else if(t==7){if(typeof bmEv7==='function')bmEv7();pts(40,x,y,'#3f8a35',360,520,8,1.4);pts(12,x,y,'#7a5a30',240,300,6,1);QK=Math.max(QK,.9);SND.roar(Math.max(.4,v),p)}}
@@ -7590,6 +7590,49 @@ function fxTexts(t){
    al=u<.12?u/.12:Math.max(0,1-(u-.55)/.45);
   for(let k=0;k<3;k++)fxDom(x+42,y-52-k*15-u*26,labs[k][0],labs[k][1],12,al)}}
 // ---------- ganchos ----------
+// ---------- buff da RECARGA PERFEITA (só 3D): argolas vermelhas, pegadas de fogo, arma em chamas ----------
+// Campos do snapshot por jogador (s.P[i]): [30]=buff restante (s, 5 s), [31]=corrida x2 restante (décimos de s, 0,5 s).
+// (1) ao acertar (RLH0, setado em handleEv t==8): 4 argolas vermelhas SOBEM do pé até a cabeça (~0,7 s);
+// (2) enquanto a corrida x2 vale: fogo nos pés + pegadas que ficam queimando ~0,7 s;
+// (3) enquanto o buff de 5 s vale: chamas ao longo da arma (da mão até a boca do cano, st.mzW).
+const FXB={};
+function fxBuff(s,t){
+ if(!s||!s.P)return;
+ const now=performance.now();
+ for(const e of s.P){
+  if(e[7])continue;
+  const pid=e[0],x=e[3],y=e[4],arT=e[30]|0,arD=(e[31]|0)/10;
+  const b=FXB[pid]||(FXB[pid]={tr:[],lx:x,ly:y});
+  // (1) argolas vermelhas subindo pelo corpo até a cabeça
+  const t0=RLH0[pid];
+  if(t0){const u=(now-t0)/750;
+   if(u>1.5)delete RLH0[pid];
+   else for(let k=0;k<4;k++){const uu=u-k*.12;if(uu<0||uu>1)continue;
+    const a=Math.sin(uu*3.14159),yy=-4-uu*54,w=1-.28*uu;
+    fxRing(x,-yy/GLSIN,y,21*w,1.2*a,.08*a,.03*a);            // argola vermelha nítida (textura de anel)
+    fxRing(x,-yy/GLSIN,y,15*w,1.3*a,.35*a,.12*a);            // 2ª argola, mais clara, por dentro
+    for(let q=0;q<3;q++){const an=uu*9+q*2.09+k;fxBbS(x,y,0,Math.cos(an)*15*w,yy+Math.sin(an)*4,3.2,1*a,.25*a,.08*a)}}
+   if(u>.5&&u<1.05){const a=Math.sin((u-.5)*3.14159/.55);fxBbS(x,y,0,0,-58,24,.9*a,.12*a,.05*a)}} // clarão na cabeça
+  // (2) pegadas de fogo na corrida x2
+  if(arD>0){
+   fxFire(x,y,.4,t);
+   if(!b.tr.length||Math.hypot(x-b.lx,y-b.ly)>22){b.tr.push({x:x+(Math.random()-.5)*10,y:y+(Math.random()-.5)*6,t});b.lx=x;b.ly=y}
+  }else{b.lx=x;b.ly=y}
+  for(let i=b.tr.length-1;i>=0;i--){const q=b.tr[i],age=t-q.t;
+   if(age>800){b.tr.splice(i,1);continue}
+   fxFire(q.x,q.y,.14+.3*(1-age/800),t)}
+  // (3) arma pegando fogo (buff de 5 s)
+  if(arT>0){
+   const st=typeof PGS!=='undefined'?PGS[pid]:null;
+   if(st&&st.mzW){const mx=st.mzW[0],my=st.mzW[1],mh=st.mzW[2],fade=Math.min(1,arT/.6);
+    for(let i=0;i<5;i++){const f=i/4,px=mx+(x-mx)*f*.55,py=my+(y-my)*f*.55,ph=mh*(1-f*.25),
+      fl=Math.sin(t/70+i*1.7+pid.length),hh=(9+5*fl)*(1-f*.3)*fade;
+     fxBbS(px,py,ph,0,-hh*.5,6.5*fade,.55,.14,.04);                // língua vermelha
+     fxBbSR(px,py,ph,0,-hh*.6,3.6*fade,hh*.62,0,.65,.4,.06);       // núcleo amarelo
+     if(i%2==0)fxBbS(px,py,ph,Math.sin(t/90+i)*3,-hh-4-((t/60+i*7)%10),2.2*fade,.7,.3,.05)} // faíscas subindo
+    fxBbS(mx,my,mh,0,-3,15*fade,.4,.16,.03)}}                       // brilho na boca do cano
+ }
+}
 function glFxFrame(s,t,dtf){
  if(!glLive||!GLW)return 0;
  if(!fxInit())return 0;
@@ -7599,6 +7642,7 @@ function glFxFrame(s,t,dtf){
  FXL=FXL.filter(q=>t<q.t+q.life);
  for(let i=0;i<FXL.length;i++)fxShot(FXL[i],t);
  fxFires(t);
+ fxBuff(s,t);
  fxBits(dtf);
  fxProj(s);
  fxTexts(t);
