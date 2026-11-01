@@ -36,6 +36,8 @@ function glKill(){
  GLBAD=1;glLive=0;try{if(GLCV)GLCV.style.display='none';document.body.style.background=''}catch(e){}
  // M1: o HUD migrado para DOM (89g-glhud.js) some junto; o canvas 2D volta a desenhar os blocos 12..16
  try{if(typeof glHudShow==='function')glHudShow(0)}catch(e){}
+ // M3: a camada de entrada volta para o canvas 2D (#c)
+ try{if(typeof glInp==='function')glInp(0)}catch(e){}
 }
 function glInit(){
  if(glLive||GLBAD||!glOn||typeof THREE=='undefined')return glLive;
@@ -63,6 +65,8 @@ function glInit(){
   const dl=new THREE.DirectionalLight(0xffffff,.2);dl.position.set(-.35,1,.55);GLSCN.add(dl);
   cv.addEventListener('webglcontextlost',function(e){e.preventDefault();glKill()},false);
   glLive=1;
+  // M3: clique/toque passam a ir para #inp (cobre a tela, z acima de #c; #c fica sem ponteiro)
+  try{if(typeof glInp==='function')glInp(1)}catch(e){}
  }catch(e){glKill()}
  return glLive;
 }

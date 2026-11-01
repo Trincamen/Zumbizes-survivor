@@ -33,15 +33,20 @@ function pushMove(){if(!snap||snap.ph!=1)return;let x=0,y=0;
  if(!x&&!y){x=(KS.KeyD||KS.ArrowRight?1:0)-(KS.KeyA||KS.ArrowLeft?1:0);y=(KS.KeyS||KS.ArrowDown?1:0)-(KS.KeyW||KS.ArrowUp?1:0);const L=Math.hypot(x,y);if(L>1){x/=L;y/=L}}
  const now=Date.now(),ch=Math.abs(x-mvLast[0])>.06||Math.abs(y-mvLast[1])>.06;
  if(ch||((x||y)&&now-mvT0>200)){mvLast=[x,y];mvT0=now;send({t:'m',id,x:+x.toFixed(2),y:+y.toFixed(2)})}}
-C.onpointerdown=e=>{if(!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});
+// M3: handlers de ponteiro em funções nomeadas, usados pelo canvas 2D (#c) E pela camada #inp do modo GL
+function onPD(e){if(!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});
  if(!snap||snap.ph!=1)return;const[_wx,_wy]=s2w(e.clientX,e.clientY),wx=_wx,wy=_wy;
  if(PILL&&Date.now()-PILL.t<250&&wx>PILL.x-16&&wx<PILL.x+PILL.w+16&&wy>PILL.y-26&&wy<PILL.y+PILL.h+26){send({t:'r',id});return}
  if(ctl=='tap'){send({t:'i',id,x:wx,y:wy});return}
- if(wantJoy(e)&&e.clientY>innerHeight*.5&&!joy){joy={id:e.pointerId,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,t0:Date.now(),mx:0};try{C.setPointerCapture(e.pointerId)}catch(_){}pushMove();return}
- send({t:'i',id,x:wx,y:wy,f:1})};
-C.onpointermove=e=>{if(ctl=='tap'){if(e.buttons||e.pressure>0){const n=Date.now();if(n-lastTap>80){lastTap=n;if(snap&&snap.ph==1){const[_tx,_ty]=s2w(e.clientX,e.clientY);send({t:'i',id,x:_tx,y:_ty})}}}return}
- if(joy&&e.pointerId==joy.id){joy.x=e.clientX;joy.y=e.clientY;joy.mx=Math.max(joy.mx,Math.hypot(joy.x-joy.x0,joy.y-joy.y0));pushMove()}};
-C.onpointerup=C.onpointercancel=e=>{if(joy&&e.pointerId==joy.id){const j=joy;joy=null;pushMove();if(e.type=='pointerup'&&Date.now()-j.t0<260&&j.mx<12){const[_jx,_jy]=s2w(j.x0,j.y0);send({t:'i',id,x:_jx,y:_jy,f:1})}}};
+ if(wantJoy(e)&&e.clientY>innerHeight*.5&&!joy){joy={id:e.pointerId,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,t0:Date.now(),mx:0};try{e.currentTarget.setPointerCapture(e.pointerId)}catch(_){}pushMove();return}
+ send({t:'i',id,x:wx,y:wy,f:1})}
+function onPM(e){if(ctl=='tap'){if(e.buttons||e.pressure>0){const n=Date.now();if(n-lastTap>80){lastTap=n;if(snap&&snap.ph==1){const[_tx,_ty]=s2w(e.clientX,e.clientY);send({t:'i',id,x:_tx,y:_ty})}}}return}
+ if(joy&&e.pointerId==joy.id){joy.x=e.clientX;joy.y=e.clientY;joy.mx=Math.max(joy.mx,Math.hypot(joy.x-joy.x0,joy.y-joy.y0));pushMove()}}
+function onPU(e){if(joy&&e.pointerId==joy.id){const j=joy;joy=null;pushMove();if(e.type=='pointerup'&&Date.now()-j.t0<260&&j.mx<12){const[_jx,_jy]=s2w(j.x0,j.y0);send({t:'i',id,x:_jx,y:_jy,f:1})}}}
+C.onpointerdown=onPD;C.onpointermove=onPM;C.onpointerup=C.onpointercancel=onPU;
+{const I=$('inp');if(I){I.onpointerdown=onPD;I.onpointermove=onPM;I.onpointerup=I.onpointercancel=onPU}}
+// com glLive a entrada vai para #inp (cobre a tela); o canvas 2D pode ficar 1x1 (c2d=0) sem perder clique/toque
+function glInp(v){try{const I=$('inp');if(I)I.style.display=v?'block':'none';C.style.pointerEvents=v?'none':''}catch(e){}}
 const MK=['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'];
 addEventListener('keydown',e=>{if(e.target.tagName=='INPUT'||!snap||snap.ph!=1)return;if(e.key=='Escape'){optOpen();return}
  if(me&&me[23]&&(e.code=='Enter'||e.code=='NumpadEnter')){e.preventDefault();ofr(1);return}
@@ -52,7 +57,8 @@ addEventListener('keydown',e=>{if(e.target.tagName=='INPUT'||!snap||snap.ph!=1)r
  if(!MK.includes(e.code))return;e.preventDefault();KS[e.code]=1;pushMove()});
 addEventListener('keyup',e=>{if(KS[e.code]){KS[e.code]=0;pushMove()}});addEventListener('blur',()=>{for(const k in KS)KS[k]=0;joy=null;pushMove()});
 setInterval(pushMove,100);
-function drawJoy(){X.setTransform(DPR,0,0,DPR,0,0);const R_=JR();
+function drawJoy(){if(glLive)return; // M3: com GL o joystick e a dica são DOM (ghJoy, 89g-glhud.js)
+ X.setTransform(DPR,0,0,DPR,0,0);const R_=JR();
  if(joy){let dx=joy.x-joy.x0,dy=joy.y-joy.y0;const L=Math.hypot(dx,dy);if(L>R_){dx*=R_/L;dy*=R_/L}
   X.strokeStyle='rgba(255,255,255,.55)';X.lineWidth=3;X.fillStyle='rgba(255,255,255,.12)';X.beginPath();X.arc(joy.x0,joy.y0,R_,0,7);X.fill();X.stroke();
   X.fillStyle='rgba(255,255,255,.45)';X.beginPath();X.arc(joy.x0+dx,joy.y0+dy,R_*.42,0,7);X.fill();X.stroke()}

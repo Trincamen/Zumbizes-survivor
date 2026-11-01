@@ -60,6 +60,15 @@ canvas{display:block;width:100%;height:100%}
 /* ---------- M1 (89g-glhud.js): vinheta/tint + HUD de tela em DOM. Só aparece com glLive ---------- */
 #vig{position:fixed;inset:0;pointer-events:none;z-index:0;display:none;background:var(--vig,none),rgba(20,10,50,.2)}
 #c{position:relative;z-index:0}
+/* M3: camada de entrada (toque/mouse) por cima de #glc/#c e abaixo dos clicáveis do HUD/menu
+   (#wb/#opt/#sk/#shop/#menu têm z-index auto e vêm DEPOIS no DOM → pintam acima). Só existe com glLive. */
+#inp{position:fixed;left:0;top:0;width:100%;height:100%;z-index:0;touch-action:none;display:none}
+/* M3: joystick e dica em DOM (dentro de #glh), posicionados em px CSS reais (coordenadas de tela) */
+#gjoy{position:fixed;left:0;top:0;width:0;height:0;display:none;pointer-events:none;box-sizing:border-box;
+ border-radius:50%;border:3px solid rgba(255,255,255,.55);background:rgba(255,255,255,.12)}
+#gjoy i{position:absolute;left:0;top:0;box-sizing:border-box;border-radius:50%;border:3px solid rgba(255,255,255,.55);background:rgba(255,255,255,.45)}
+#gjh{position:fixed;left:50%;top:78%;transform:translate(-50%,-50%);display:none;pointer-events:none;white-space:nowrap;
+ font:20px sans-serif;color:#fff;text-align:center;text-shadow:0 0 4px #000,0 0 4px #000}
 #glh{position:fixed;inset:0;pointer-events:none;z-index:5;display:none;--hh:calc(var(--hs,1)*var(--zo,1))}
 .mob #glh{--hh:calc(var(--hs,1)*var(--zo,1)*.6)}
 #gh2{position:absolute;left:0;top:0;transform-origin:0 0;transform:scale(calc(var(--hh)*.8));display:none}
@@ -137,7 +146,7 @@ canvas{display:block;width:100%;height:100%}
   linear-gradient(#8a6f35,#8a6f35) right bottom/3px 10px no-repeat}
 
 </style></head><body>
-<canvas id=glc style="position:fixed;left:0;top:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:none"></canvas><div id=vig></div><canvas id=c></canvas>
+<canvas id=glc style="position:fixed;left:0;top:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:none"></canvas><div id=vig></div><canvas id=c></canvas><div id=inp></div>
 <div id=glh>
  <div id=gh2>
   <div id=ghclk></div><i id=ghc1></i><i id=ghc2></i>
@@ -155,6 +164,7 @@ canvas{display:block;width:100%;height:100%}
  <div id=ga1 class=gav></div><div id=gal1 class=gvl></div>
  <div id=ga2 class=gav></div><div id=gal2 class=gvl></div>
  <div id=ga3 class=gav></div><div id=gal3 class=gvl></div>
+ <div id=gjoy><i id=gjoyb></i></div><div id=gjh></div>
 </div><div id=bn></div><div id=fpsb style="position:fixed;left:50%;top:4px;transform:translateX(-50%);display:none;z-index:6;pointer-events:none;white-space:pre;text-align:center;font:700 14px monospace;color:#9f9;text-shadow:0 0 3px #000,0 0 3px #000"></div><button id=opt class=opt onclick=optOpen()>⚙</button><div id=sk></div><div id=shop style="position:fixed;left:10px;top:120px;background:#0a0a0cf2;border:2px solid #3a3226;border-left:6px solid #8a6f35;border-radius:2px;padding:8px;color:#d8d2c0;display:none"><b id=shT></b><div id=shB></div></div><div id=wb></div>
 <div id=cf class=pn style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);display:none;z-index:7;text-align:center"></div><div id=opp class=pn><b>⚙ Opções</b><div id=ctl2 style="margin:6px 0"></div>🔊 Efeitos <input type=range id=vol3 min=0 max=100 oninput="setVol(this.value)" style="width:60%"><br>🎵 Música <input type=range id=mvol3 min=0 max=100 oninput="setMus(this.value)" style="width:60%"><br><div style="margin:8px 0">🎞 Limite de FPS: <select class=fpsl onchange="setFpsLim(this.value)" style="background:#0a0a0c;color:#ddd;border:1px solid #3a3226;padding:3px"><option value=30>30</option><option value=45>45</option><option value=60>60</option><option value=90>90</option><option value=120>120</option><option value=144>144</option><option value=0>Sem limite</option></select></div><div style="margin:8px 0"><label><input type=checkbox class=fpss onchange="setFpsShow(this.checked)"> 📊 Mostrar FPS</label></div><div style="margin:8px 0">🖼 Qualidade gráfica: <select class=gfx onchange="setGfx(this.value)" style="background:#0a0a0c;color:#ddd;border:1px solid #3a3226;padding:3px"><option value=auto>Auto</option><option value=1>Alta</option><option value=.7>Média</option><option value=.55>Baixa</option></select></div><button class=sb onclick=optOpen()>FECHAR</button><button class=sb style="background:#6a5428" onclick=location.reload()>SAIR PARA O MENU</button></div>
 <div id=menu class=ov>
@@ -4346,15 +4356,20 @@ function pushMove(){if(!snap||snap.ph!=1)return;let x=0,y=0;
  if(!x&&!y){x=(KS.KeyD||KS.ArrowRight?1:0)-(KS.KeyA||KS.ArrowLeft?1:0);y=(KS.KeyS||KS.ArrowDown?1:0)-(KS.KeyW||KS.ArrowUp?1:0);const L=Math.hypot(x,y);if(L>1){x/=L;y/=L}}
  const now=Date.now(),ch=Math.abs(x-mvLast[0])>.06||Math.abs(y-mvLast[1])>.06;
  if(ch||((x||y)&&now-mvT0>200)){mvLast=[x,y];mvT0=now;send({t:'m',id,x:+x.toFixed(2),y:+y.toFixed(2)})}}
-C.onpointerdown=e=>{if(!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});
+// M3: handlers de ponteiro em funções nomeadas, usados pelo canvas 2D (#c) E pela camada #inp do modo GL
+function onPD(e){if(!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});
  if(!snap||snap.ph!=1)return;const[_wx,_wy]=s2w(e.clientX,e.clientY),wx=_wx,wy=_wy;
  if(PILL&&Date.now()-PILL.t<250&&wx>PILL.x-16&&wx<PILL.x+PILL.w+16&&wy>PILL.y-26&&wy<PILL.y+PILL.h+26){send({t:'r',id});return}
  if(ctl=='tap'){send({t:'i',id,x:wx,y:wy});return}
- if(wantJoy(e)&&e.clientY>innerHeight*.5&&!joy){joy={id:e.pointerId,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,t0:Date.now(),mx:0};try{C.setPointerCapture(e.pointerId)}catch(_){}pushMove();return}
- send({t:'i',id,x:wx,y:wy,f:1})};
-C.onpointermove=e=>{if(ctl=='tap'){if(e.buttons||e.pressure>0){const n=Date.now();if(n-lastTap>80){lastTap=n;if(snap&&snap.ph==1){const[_tx,_ty]=s2w(e.clientX,e.clientY);send({t:'i',id,x:_tx,y:_ty})}}}return}
- if(joy&&e.pointerId==joy.id){joy.x=e.clientX;joy.y=e.clientY;joy.mx=Math.max(joy.mx,Math.hypot(joy.x-joy.x0,joy.y-joy.y0));pushMove()}};
-C.onpointerup=C.onpointercancel=e=>{if(joy&&e.pointerId==joy.id){const j=joy;joy=null;pushMove();if(e.type=='pointerup'&&Date.now()-j.t0<260&&j.mx<12){const[_jx,_jy]=s2w(j.x0,j.y0);send({t:'i',id,x:_jx,y:_jy,f:1})}}};
+ if(wantJoy(e)&&e.clientY>innerHeight*.5&&!joy){joy={id:e.pointerId,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,t0:Date.now(),mx:0};try{e.currentTarget.setPointerCapture(e.pointerId)}catch(_){}pushMove();return}
+ send({t:'i',id,x:wx,y:wy,f:1})}
+function onPM(e){if(ctl=='tap'){if(e.buttons||e.pressure>0){const n=Date.now();if(n-lastTap>80){lastTap=n;if(snap&&snap.ph==1){const[_tx,_ty]=s2w(e.clientX,e.clientY);send({t:'i',id,x:_tx,y:_ty})}}}return}
+ if(joy&&e.pointerId==joy.id){joy.x=e.clientX;joy.y=e.clientY;joy.mx=Math.max(joy.mx,Math.hypot(joy.x-joy.x0,joy.y-joy.y0));pushMove()}}
+function onPU(e){if(joy&&e.pointerId==joy.id){const j=joy;joy=null;pushMove();if(e.type=='pointerup'&&Date.now()-j.t0<260&&j.mx<12){const[_jx,_jy]=s2w(j.x0,j.y0);send({t:'i',id,x:_jx,y:_jy,f:1})}}}
+C.onpointerdown=onPD;C.onpointermove=onPM;C.onpointerup=C.onpointercancel=onPU;
+{const I=$('inp');if(I){I.onpointerdown=onPD;I.onpointermove=onPM;I.onpointerup=I.onpointercancel=onPU}}
+// com glLive a entrada vai para #inp (cobre a tela); o canvas 2D pode ficar 1x1 (c2d=0) sem perder clique/toque
+function glInp(v){try{const I=$('inp');if(I)I.style.display=v?'block':'none';C.style.pointerEvents=v?'none':''}catch(e){}}
 const MK=['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'];
 addEventListener('keydown',e=>{if(e.target.tagName=='INPUT'||!snap||snap.ph!=1)return;if(e.key=='Escape'){optOpen();return}
  if(me&&me[23]&&(e.code=='Enter'||e.code=='NumpadEnter')){e.preventDefault();ofr(1);return}
@@ -4365,7 +4380,8 @@ addEventListener('keydown',e=>{if(e.target.tagName=='INPUT'||!snap||snap.ph!=1)r
  if(!MK.includes(e.code))return;e.preventDefault();KS[e.code]=1;pushMove()});
 addEventListener('keyup',e=>{if(KS[e.code]){KS[e.code]=0;pushMove()}});addEventListener('blur',()=>{for(const k in KS)KS[k]=0;joy=null;pushMove()});
 setInterval(pushMove,100);
-function drawJoy(){X.setTransform(DPR,0,0,DPR,0,0);const R_=JR();
+function drawJoy(){if(glLive)return; // M3: com GL o joystick e a dica são DOM (ghJoy, 89g-glhud.js)
+ X.setTransform(DPR,0,0,DPR,0,0);const R_=JR();
  if(joy){let dx=joy.x-joy.x0,dy=joy.y-joy.y0;const L=Math.hypot(dx,dy);if(L>R_){dx*=R_/L;dy*=R_/L}
   X.strokeStyle='rgba(255,255,255,.55)';X.lineWidth=3;X.fillStyle='rgba(255,255,255,.12)';X.beginPath();X.arc(joy.x0,joy.y0,R_,0,7);X.fill();X.stroke();
   X.fillStyle='rgba(255,255,255,.45)';X.beginPath();X.arc(joy.x0+dx,joy.y0+dy,R_*.42,0,7);X.fill();X.stroke()}
@@ -5428,6 +5444,8 @@ function glKill(){
  GLBAD=1;glLive=0;try{if(GLCV)GLCV.style.display='none';document.body.style.background=''}catch(e){}
  // M1: o HUD migrado para DOM (89g-glhud.js) some junto; o canvas 2D volta a desenhar os blocos 12..16
  try{if(typeof glHudShow==='function')glHudShow(0)}catch(e){}
+ // M3: a camada de entrada volta para o canvas 2D (#c)
+ try{if(typeof glInp==='function')glInp(0)}catch(e){}
 }
 function glInit(){
  if(glLive||GLBAD||!glOn||typeof THREE=='undefined')return glLive;
@@ -5455,6 +5473,8 @@ function glInit(){
   const dl=new THREE.DirectionalLight(0xffffff,.2);dl.position.set(-.35,1,.55);GLSCN.add(dl);
   cv.addEventListener('webglcontextlost',function(e){e.preventDefault();glKill()},false);
   glLive=1;
+  // M3: clique/toque passam a ir para #inp (cobre a tela, z acima de #c; #c fica sem ponteiro)
+  try{if(typeof glInp==='function')glInp(1)}catch(e){}
  }catch(e){glKill()}
  return glLive;
 }
@@ -6508,6 +6528,8 @@ function glHudShow(v){
  // ao reabrir, força reescrever tudo (o DOM pode ter ficado velho)
  HG.tm='';HG.hp=-9;HG.mx=-9;HG.hc='';HG.low=-1;HG.lv=-9;HG.lvu=-1;HG.xp=-9;HG.nd=-9;HG.xb=-1;HG.bf='';
  HG.cai=-1;HG.cw=-1;HG.ch=-1;HG.bn=-1;HG.bnv=-1;HG.sk='';HG.sh=-1;HG.me=-1;HG.av=['','',''];
+ // M3: ao reabrir, joystick/dica DOM são reescritos por ghJoy()
+ try{if(typeof HJJ!=='undefined'&&HJJ){HJJ.k='';HJJ.hk=''}}catch(e){}
 }
 // F1: vinheta/tint iguais ao vigOverlay(): raio interno H*.35 e externo H*.95 (H em px de tela = innerHeight)
 function ghVig(){
@@ -6632,6 +6654,48 @@ function ghMini(s){
    g.closePath();g.fill()}
   g.globalAlpha=1}
 }
+// ---------- M3: joystick e dica em DOM (dentro de #glh) ----------
+// Mesmos valores do drawJoy() 2D: base JR() px (borda branca 3 px a 55%, fundo 12%), botão JR()*.42 a 45%;
+// dica no mesmo texto/posição/opacidade (innerWidth/2, innerHeight*.78, 9 s). Posição em px CSS de TELA
+// (clientX/clientY), NÃO em --hh. Só escreve quando algo muda (HJJ.k/HJJ.hk).
+var HJJ={ok:0,k:'',hk:'',el:null};
+function ghJoyInit(){
+ if(HJJ.ok)return 1;
+ const h=$('glh');if(!h)return 0;
+ HJJ.el={b:$('gjoy'),k:$('gjoyb'),h:$('gjh')};
+ if(!HJJ.el.b||!HJJ.el.k||!HJJ.el.h)return 0;
+ HJJ.ok=1;return 1;
+}
+function ghJoy(){
+ if(!ghJoyInit())return;
+ const E=HJJ.el,R_=JR();
+ if(joy){
+  let dx=joy.x-joy.x0,dy=joy.y-joy.y0;const L=Math.hypot(dx,dy);if(L>R_){dx*=R_/L;dy*=R_/L}
+  const k=joy.x0.toFixed(1)+','+joy.y0.toFixed(1)+','+(joy.x0+dx).toFixed(1)+','+(joy.y0+dy).toFixed(1)+','+R_.toFixed(1);
+  if(k!==HJJ.k){
+   HJJ.k=k;const d=R_*2,d2=R_*.42*2;
+   E.b.style.display='block';
+   E.b.style.width=d+'px';E.b.style.height=d+'px';
+   E.b.style.transform='translate('+(joy.x0-R_).toFixed(1)+'px,'+(joy.y0-R_).toFixed(1)+'px)';
+   E.k.style.width=d2+'px';E.k.style.height=d2+'px';
+   // o botão é filho de #gjoy (origem em x0-R_, y0-R_): deslocamento local = dx + R_*.58 (R_ - R_*.42)
+   const lf=R_*.58;
+   E.k.style.transform='translate('+(dx+lf).toFixed(1)+'px,'+(dy+lf).toFixed(1)+'px)';
+  }
+ }else if(HJJ.k){HJJ.k='';E.b.style.display='none'}
+ if(hintT&&Date.now()-hintT<9000&&ctl!='tap'){
+  const m=MOB||ctl=='joy',al=Math.max(0,Math.min(1,.9-(Date.now()-hintT)/12000));
+  const k=(m?1:0)+'|'+Math.round(al*100);
+  if(k!==HJJ.hk){
+   HJJ.hk=k;
+   const t=m?'Toque e arraste na metade de baixo da tela para andar':'Use W A S D ou as setas para andar';
+   if(E.h.textContent!==t)E.h.textContent=t;
+   E.h.style.fontSize=(m?14:20)+'px';
+   E.h.style.opacity=al.toFixed(2);
+   E.h.style.display='block';
+  }
+ }else if(HJJ.hk!==''){HJJ.hk='';E.h.style.display='none'}
+}
 // chamado UMA vez por quadro pelo draw() (90-sons.js), só com glLive
 function glHudFrame(s){
  if(!glLive){glHudShow(0);return}
@@ -6719,6 +6783,8 @@ function glHudFrame(s){
  if(key!==HG.sk){HG.sk=key;ghScore(P.slice().sort((a,b)=>b[18]-a[18]))}
  // ---- F4 (M2): minimapa DOM ----
  ghMini(s);
+ // ---- M3: joystick + dica em DOM ----
+ ghJoy();
 }
 // diagnóstico (leitura) para o teste de aceitação
 if(typeof window!=='undefined')window.__glhud=()=>({vis:HG.vis,zo:ZO,rows:HG.el&&HG.el.scl?HG.el.scl.children.length:0});

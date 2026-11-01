@@ -28,6 +28,8 @@ function glHudShow(v){
  // ao reabrir, força reescrever tudo (o DOM pode ter ficado velho)
  HG.tm='';HG.hp=-9;HG.mx=-9;HG.hc='';HG.low=-1;HG.lv=-9;HG.lvu=-1;HG.xp=-9;HG.nd=-9;HG.xb=-1;HG.bf='';
  HG.cai=-1;HG.cw=-1;HG.ch=-1;HG.bn=-1;HG.bnv=-1;HG.sk='';HG.sh=-1;HG.me=-1;HG.av=['','',''];
+ // M3: ao reabrir, joystick/dica DOM são reescritos por ghJoy()
+ try{if(typeof HJJ!=='undefined'&&HJJ){HJJ.k='';HJJ.hk=''}}catch(e){}
 }
 // F1: vinheta/tint iguais ao vigOverlay(): raio interno H*.35 e externo H*.95 (H em px de tela = innerHeight)
 function ghVig(){
@@ -152,6 +154,48 @@ function ghMini(s){
    g.closePath();g.fill()}
   g.globalAlpha=1}
 }
+// ---------- M3: joystick e dica em DOM (dentro de #glh) ----------
+// Mesmos valores do drawJoy() 2D: base JR() px (borda branca 3 px a 55%, fundo 12%), botão JR()*.42 a 45%;
+// dica no mesmo texto/posição/opacidade (innerWidth/2, innerHeight*.78, 9 s). Posição em px CSS de TELA
+// (clientX/clientY), NÃO em --hh. Só escreve quando algo muda (HJJ.k/HJJ.hk).
+var HJJ={ok:0,k:'',hk:'',el:null};
+function ghJoyInit(){
+ if(HJJ.ok)return 1;
+ const h=$('glh');if(!h)return 0;
+ HJJ.el={b:$('gjoy'),k:$('gjoyb'),h:$('gjh')};
+ if(!HJJ.el.b||!HJJ.el.k||!HJJ.el.h)return 0;
+ HJJ.ok=1;return 1;
+}
+function ghJoy(){
+ if(!ghJoyInit())return;
+ const E=HJJ.el,R_=JR();
+ if(joy){
+  let dx=joy.x-joy.x0,dy=joy.y-joy.y0;const L=Math.hypot(dx,dy);if(L>R_){dx*=R_/L;dy*=R_/L}
+  const k=joy.x0.toFixed(1)+','+joy.y0.toFixed(1)+','+(joy.x0+dx).toFixed(1)+','+(joy.y0+dy).toFixed(1)+','+R_.toFixed(1);
+  if(k!==HJJ.k){
+   HJJ.k=k;const d=R_*2,d2=R_*.42*2;
+   E.b.style.display='block';
+   E.b.style.width=d+'px';E.b.style.height=d+'px';
+   E.b.style.transform='translate('+(joy.x0-R_).toFixed(1)+'px,'+(joy.y0-R_).toFixed(1)+'px)';
+   E.k.style.width=d2+'px';E.k.style.height=d2+'px';
+   // o botão é filho de #gjoy (origem em x0-R_, y0-R_): deslocamento local = dx + R_*.58 (R_ - R_*.42)
+   const lf=R_*.58;
+   E.k.style.transform='translate('+(dx+lf).toFixed(1)+'px,'+(dy+lf).toFixed(1)+'px)';
+  }
+ }else if(HJJ.k){HJJ.k='';E.b.style.display='none'}
+ if(hintT&&Date.now()-hintT<9000&&ctl!='tap'){
+  const m=MOB||ctl=='joy',al=Math.max(0,Math.min(1,.9-(Date.now()-hintT)/12000));
+  const k=(m?1:0)+'|'+Math.round(al*100);
+  if(k!==HJJ.hk){
+   HJJ.hk=k;
+   const t=m?'Toque e arraste na metade de baixo da tela para andar':'Use W A S D ou as setas para andar';
+   if(E.h.textContent!==t)E.h.textContent=t;
+   E.h.style.fontSize=(m?14:20)+'px';
+   E.h.style.opacity=al.toFixed(2);
+   E.h.style.display='block';
+  }
+ }else if(HJJ.hk!==''){HJJ.hk='';E.h.style.display='none'}
+}
 // chamado UMA vez por quadro pelo draw() (90-sons.js), só com glLive
 function glHudFrame(s){
  if(!glLive){glHudShow(0);return}
@@ -239,6 +283,8 @@ function glHudFrame(s){
  if(key!==HG.sk){HG.sk=key;ghScore(P.slice().sort((a,b)=>b[18]-a[18]))}
  // ---- F4 (M2): minimapa DOM ----
  ghMini(s);
+ // ---- M3: joystick + dica em DOM ----
+ ghJoy();
 }
 // diagnóstico (leitura) para o teste de aceitação
 if(typeof window!=='undefined')window.__glhud=()=>({vis:HG.vis,zo:ZO,rows:HG.el&&HG.el.scl?HG.el.scl.children.length:0});
