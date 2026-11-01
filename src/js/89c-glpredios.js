@@ -68,6 +68,7 @@ function grBldGlb(b,key){
  grp.scale.set(kX,kY,kZ);
  const roof=[],low=[];
  for(const nm of nodes){
+  if(T=='c8'&&GR_ROOF.test(nm))continue; // casa_09 (queimada): o telhado é um bloco preto opaco que cobria metade da casa; sem ele vira uma ruína aberta
   const me=new THREE.Mesh(geo[nm],/glass/.test(nm)?grGlass():grMat());
   me.name=nm;grp.add(me); // matrixAutoUpdate fica ligado: as paredes sul/internas mudam de scale ao entrar
   if(GR_ROOF.test(nm))roof.push(me);

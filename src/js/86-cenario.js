@@ -395,13 +395,19 @@ function decorObs(){
  for(const d of DECOR){const c=CEN_COL[d.s];if(!c)continue;const odd=CEN_ORI[d.s]&&(d.r&1);
   const w=odd?c[1]:c[0],h=odd?c[0]:c[1],x=d.x-w/2,y=d.y-h;
   if(x<8||y<8||x+w>MW-8||y+h>MH-8)continue;
-  let bad=0;
+  let bad=0,X0=x,Y0=y,X1=x+w,Y1=y+h;
   for(const b of BLD){
-   // bolsão: prop colado em fachada (ou na esquina dela) prendia o jogador
-   if(x<b.x+b.w+40&&x+w>b.x-40&&y<b.y+b.h+40&&y+h>b.y-40){bad=1;break}
+   // prop colado em fachada (ou na esquina dela): antes o collider era descartado (prop sem collider). Agora ele é ESTICADO
+   // até a fachada, tampando o bolsão onde o jogador ficaria preso (pedido do usuário: caçamba/ponto/cerca sem collider)
+   if(x<b.x+b.w+40&&x+w>b.x-40&&y<b.y+b.h+40&&y+h>b.y-40){
+    if(x<b.x+b.w&&x+w>b.x&&y<b.y+b.h&&y+h>b.y){bad=1;break}
+    if(x+w<=b.x)X1=Math.max(X1,b.x);else if(x>=b.x+b.w)X0=Math.min(X0,b.x+b.w);
+    if(y+h<=b.y)Y1=Math.max(Y1,b.y);else if(y>=b.y+b.h)Y0=Math.min(Y0,b.y+b.h)}}
+  if(!bad)for(const b of BLD){
    // não tampar a entrada (vão dx..dx+56 na fachada sul)
-   const yb=b.y+b.h;if(x<b.dx+80&&x+w>b.dx-24&&y<yb+24&&y+h>yb-24){bad=1;break}}
+   const yb=b.y+b.h;if(X0<b.dx+80&&X1>b.dx-24&&Y0<yb+24&&Y1>yb-24){bad=1;break}}
   if(bad)continue;
-  O.push({t:7,x,y,w,h,i:O.length});n++}
+  const fx=X0,fy=Y0,fw=X1-X0,fh=Y1-Y0;
+  O.push({t:7,x:fx,y:fy,w:fw,h:fh,i:O.length});n++}
  return n}
 

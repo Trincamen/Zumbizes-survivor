@@ -4,7 +4,7 @@ function addP(i,n){if(PL[i]||Object.keys(PL).length>=8)return;const k=Object.key
  PL[i]={id:i,n:n.replace(/</g,'&lt;'),c:`hsl(${k*47+200},90%,60%)`,x:2000+R(-60,60),y:4500+R(-60,60),hp:100,mx:100,xp:0,lv:1,dead:0,sl:[{c:0,l:0,a:7}],cs:0,cw:0,tx:null,ty:null,tz:null,sp:1,pr:0,bk:0,rc:0,aim:1.57,ls:0,bkf:0,arT:0,arF:0,rz:[.5,.7],pend:0,o:null,cd:0,fa:1.57,k:0,money:0,da:20,bt:0,rl:0,dd:0,jx:0,jy:0,jt:0}}
 function rmSlot(p,n){p.sl.splice(n,1);if(n<p.cs)p.cs--;p.cw=p.sl[p.cs].c}
 function spawnLoot(){if(IT.length>260)return;const n=Object.keys(PL).length,put=(k,c,f,v)=>{for(let i=0;i<c;i++){const[x,y]=f();IT.push({x,y,k,v})}},
-  inB=T=>()=>inPos(BLD.filter(b=>b.T==T)),anyH=()=>inPos(BLD.filter(b=>b.T=='x'||b.W)),out=()=>freePos(),wk=()=>[2,3,4,5,2,3,11,4][Math.random()*8|0],cv=()=>20+(Math.random()*3|0)*10,LC=()=>{const r=Math.random();return r<.66?inB('p')():r<.76?inB('h')():r<.96?anyH():out()};
+  inB=T=>()=>inPos(BLD.filter(b=>b.T==T)),anyH=()=>inPos(BLD.filter(b=>b.T=='x'&&!b.sm)),out=()=>freePos(),wk=()=>[2,3,4,5,2,3,11,4][Math.random()*8|0],cv=()=>20+(Math.random()*3|0)*10,LC=()=>{const r=Math.random();return r<.66?inB('p')():r<.76?inB('h')():r<.96?anyH():out()};
  put(0,1+Math.ceil(n/2),inB('h'));put(1,Math.max(1,Math.ceil(n/3)),inB('h'));put(9,3,inB('h'));put(10,1,inB('h'));put(0,1,out);
  for(let i=0;i<n+2;i++)put(wk(),1,LC);put(6,n+1,LC);
  put(9,8,inB('m'));put(10,4,inB('m'));put(8,4,inB('m'),0);for(const it of IT)if(it.k==8&&!it.v)it.v=cv();

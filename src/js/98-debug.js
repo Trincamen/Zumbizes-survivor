@@ -4,7 +4,7 @@
  const OK=location.protocol=='file:'||location.hostname=='localhost'||location.hostname=='127.0.0.1'||/^192\.168\./.test(location.hostname)||/[?&]debug/.test(location.search);
  if(!OK)return;
 
- const D={god:0,ammo:0,spd:0,fr:0,na:0,coll:0,hit:0,cnt:0,prof:0,pause:0,tab:'Jogador'};
+ const D={god:0,ammo:0,spd:0,fr:0,na:0,coll:0,hit:0,cnt:0,prof:0,pause:0,tab:'Jogador'};window.__D=D;
  const ORIGZ=new Map();let spBase=null;
 
  // ---------- ganchos: embrulha step() e draw() (nada fora deste arquivo) ----------
