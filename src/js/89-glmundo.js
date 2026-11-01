@@ -19,6 +19,14 @@ const GM_T={},GM_TG={},GM_CH=new Map();
 const GM_ST={load:0,rdy:0};
 let GM_MAT=null;
 function gmMat(){return GM_MAT||(GM_MAT=new THREE.MeshLambertMaterial({vertexColors:true}))}
+// materiais COMPARTILHADOS dos pilares/cabos das pontes (criados uma vez; as geometrias é que são do chunk)
+let GM_PMAT=null;
+function gmPMat(){
+ if(GM_PMAT)return GM_PMAT;
+ GM_PMAT=[new THREE.MeshLambertMaterial({color:0x5d616a}),new THREE.MeshLambertMaterial({color:0xaeb2ba}),
+  new THREE.MeshLambertMaterial({color:0xc9ccd2}),new THREE.LineBasicMaterial({color:0xd7dae0,transparent:true,opacity:.85})];
+ return GM_PMAT;
+}
 function gmBuf(b64){const s=atob(b64),n=s.length,u=new Uint8Array(n);for(let i=0;i<n;i++)u[i]=s.charCodeAt(i);return u.buffer}
 // GLB (Y-up, metros) -> triângulos em px do mundo (x/z), com cor por vértice e normal. Cache por tipo.
 function gmGrab(ti,g){
@@ -142,6 +150,7 @@ function gmBuild(ci,cj){
  const K=ci+','+cj,X0=ci*GM_CHS,Y0=cj*GM_CHS,X1=Math.min(MW,X0+GM_CHS),Y1=Math.min(MH,Y0+GM_CHS);
  if(X1<=X0||Y1<=Y0){GM_CH.set(K,null);return}
  const P=[],C=[],N=[];
+ const PY=[];
  const rect=(ax,az,bx,bz,y,col)=>{
   ax=Math.max(ax,X0);bx=Math.min(bx,X1);az=Math.max(az,Y0);bz=Math.min(bz,Y1);
   if(bx<=ax||bz<=az)return;
@@ -189,6 +198,13 @@ function gmBuild(ci,cj){
   rect(bx+71,2500,bx+74,3500,GM_Y.br2,GM_C.brl);
   for(let yy=2500;yy<3500;yy+=60)rect(bx-1.5,yy,bx+1.5,yy+30,GM_Y.br2,GM_C.brd);
  }
+ // 4c) pilares/cabos das DUAS pontes (no 2D é pylon(), tipo 7 da lista D — que não desenha mais com o #c oculto).
+ // Mesmas posições/cores do 2D; ALTURAS: o 2D mede em px de TELA e a câmera 3D encurta por sin(55°), então
+ // px de mundo na vertical = px de tela / GLSIN. Peças em BoxGeometry (faces já corretas) + cabos em LineSegments.
+ for(const bx of[1000,3000])for(const yy of[2850,3150])for(const sd of[-1,1]){
+  const px=bx+sd*88;if(px<X0-40||px>X1+40||yy<Y0-40||yy>Y1+40)continue;
+  PY.push([px,yy,sd]);
+ }
  // 5) quarteirões (depois das ruas)
  for(const j of ROWS)for(let i=0;i<8;i++){const bx=i*500+60,by=j*500+60;
   rect(bx-10,by-10,bx+390,by+390,GM_Y.sw,GM_C.sw);
@@ -200,6 +216,21 @@ function gmBuild(ci,cj){
  ge.setAttribute('normal',new THREE.BufferAttribute(new Float32Array(N),3));
  const me=new THREE.Mesh(ge,gmMat());me.frustumCulled=false;
  const grp=new THREE.Group();grp.add(me);GLW.add(grp);
+ // pilares/cabos das pontes deste chunk (poucos por chunk; geometrias descartadas pelo gmDrop)
+ if(PY.length){
+  const HI=1/GLSIN,MB=gmPMat();
+  const gb=new THREE.BoxGeometry(18,10*HI,16),gc=new THREE.BoxGeometry(12,96*HI,12),gk=new THREE.BoxGeometry(18,9*HI,18);
+  const cab=[];
+  for(const[px,py,sd]of PY){
+   const b1=new THREE.Mesh(gb,MB[0]);b1.position.set(px,5*HI,py);grp.add(b1);
+   const c1=new THREE.Mesh(gc,MB[1]);c1.position.set(px,58*HI,py);grp.add(c1);
+   const c2=new THREE.Mesh(gk,MB[2]);c2.position.set(px,110.5*HI,py);grp.add(c2);
+   for(const k of[-200,-140,-80,80,140,200])cab.push(px,106*HI,py,px-sd*8,0,py+k);
+  }
+  const lg=new THREE.BufferGeometry();
+  lg.setAttribute('position',new THREE.BufferAttribute(new Float32Array(cab),3));
+  const ls=new THREE.LineSegments(lg,MB[3]);ls.frustumCulled=false;grp.add(ls);
+ }
  // centro do chunk em px do MUNDO (x,z) — o mesmo espaço de cx,cy usado no descarte; sem isto Math.hypot=NaN
  // e nem o raio de 2500 px nem o teto de 12 chunks disparam (vazamento de chunks/geometrias).
  grp.userData={x:(X0+X1)/2,z:(Y0+Y1)/2};

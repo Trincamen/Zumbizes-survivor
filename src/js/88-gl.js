@@ -14,8 +14,8 @@ let GL_SOFT=0,GL_GPU='',GLR=null,GLSCN=null,GLCAM=null,GLW=null,GLCV=null,GLBAD=
 let GL_SHX=0,GL_SHY=0;
 // GQ (declarado em 00-base.js) = interruptores de QUALIDADE: blob = sombra em disco dos zumbis (89e);
 // esfera = esfera translúcida dos itens no chão e halo = brilho aditivo (89f; sem eles o item continua visível);
-// scale = passo de resolução aplicado ao DPR (O1-2). M5: fx = efeitos de combate em 3D (0 = volta o 2D) e
-// fxP = fração de partículas/chamas/fumaça (celular usa menos).
+// scale = passo de resolução aplicado ao DPR (O1-2). M5: fxP = fração de partículas/chamas/fumaça (celular usa
+// menos); fx não desliga mais os efeitos 3D desde o M7a (o canvas 2D não é mais fallback na partida).
 GQ.fx=1;GQ.fxP=1;
 const _gv=new THREE.Vector3(),_gp=new THREE.Vector3(),_gq=new THREE.Vector3();
 // mundo -> tela CSS (px). Em 2D: idêntico a (x+ox, y+oy)*ZO.
@@ -34,8 +34,24 @@ function s2w(sx,sy){
  const t=-_gp.y/_gq.y;
  return[_gp.x+_gq.x*t,(_gp.z+_gq.z*t)*GLCOS];
 }
+// M7a: esconde/mostra o canvas 2D (#c) conforme a fase. Com glLive e partida em andamento (ph==1) TUDO é 3D+DOM:
+// display:none tira a camada da composição e o draw() para de chamar X.* (sem clearRect de tela cheia por quadro).
+// No menu (ph==0) e fora da partida o #c volta (redimensionado por rs() se a janela mudou enquanto estava oculto).
+let C2D_ON=-1;
+function glC2D(on){
+ if(!glLive)return;
+ on=on?1:0;if(C2D_ON===on)return;C2D_ON=on;
+ try{
+  if(on){
+   if(!NOC2D&&(C.width!==(innerWidth*DPR|0)||C.height!==(innerHeight*DPR|0)))rs();
+   C.style.display='block';
+  }else C.style.display='none';
+ }catch(e){}
+}
 function glKill(){
  GLBAD=1;glLive=0;try{if(GLCV)GLCV.style.display='none';document.body.style.background=''}catch(e){}
+ // M7a: o canvas 2D volta a aparecer (ele é o único desenhista sem glLive)
+ try{C.style.display='block';C2D_ON=-1}catch(e){}
  // M1: o HUD migrado para DOM (89g-glhud.js) some junto; o canvas 2D volta a desenhar os blocos 12..16
  try{if(typeof glHudShow==='function')glHudShow(0)}catch(e){}
  // M3: a camada de entrada volta para o canvas 2D (#c)

@@ -90,8 +90,8 @@ function drawPlayerGL(x,y,o){
    0,0,0,1);
   m.matrixWorldNeedsUpdate=true;
  }
- // sombra/anel continuam no canvas 2D (por cima), como no drawPlayer 2D; nome, barra e pílula vêm do chamador
- ell(x,y,13*s,5*s,'rgba(0,0,0,.4)');if(o.ring)ell(x,y,18*s,7*s,o.ring,1);
+ // M7a: a sombra dos pés e o anel da cor do jogador (antes dois ell() aqui no canvas 2D) passaram para o
+ // DOM (gwPlayer em 89i), porque na partida o #c fica oculto. Nome, barra e pílula já vinham do chamador.
 }
 // diagnóstico (leitura): jogadores/malhas/triângulos do quadro e stats do renderer
 function gljInfo(){let m=0,tri=0;

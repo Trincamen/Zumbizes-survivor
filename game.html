@@ -151,6 +151,8 @@ canvas{display:block;width:100%;height:100%}
 .gwT{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-family:sans-serif;line-height:1;text-align:center}
 .gwEl{position:absolute;border-radius:50%}
 .gwR{position:absolute;border-radius:50%;box-sizing:border-box}
+.gwRect{position:absolute;box-sizing:border-box;border-radius:0}
+.gwCh{position:absolute;width:0;height:0;border-style:solid;border-width:14px 0 14px 28px;border-color:transparent;border-left-color:#f66}
 .gwB{position:absolute;background:rgba(0,0,0,.67)}
 .gwBf{position:absolute;left:0;top:0;height:100%}
 .gwC{position:absolute;display:block}
@@ -5441,8 +5443,8 @@ let GL_SOFT=0,GL_GPU='',GLR=null,GLSCN=null,GLCAM=null,GLW=null,GLCV=null,GLBAD=
 let GL_SHX=0,GL_SHY=0;
 // GQ (declarado em 00-base.js) = interruptores de QUALIDADE: blob = sombra em disco dos zumbis (89e);
 // esfera = esfera translúcida dos itens no chão e halo = brilho aditivo (89f; sem eles o item continua visível);
-// scale = passo de resolução aplicado ao DPR (O1-2). M5: fx = efeitos de combate em 3D (0 = volta o 2D) e
-// fxP = fração de partículas/chamas/fumaça (celular usa menos).
+// scale = passo de resolução aplicado ao DPR (O1-2). M5: fxP = fração de partículas/chamas/fumaça (celular usa
+// menos); fx não desliga mais os efeitos 3D desde o M7a (o canvas 2D não é mais fallback na partida).
 GQ.fx=1;GQ.fxP=1;
 const _gv=new THREE.Vector3(),_gp=new THREE.Vector3(),_gq=new THREE.Vector3();
 // mundo -> tela CSS (px). Em 2D: idêntico a (x+ox, y+oy)*ZO.
@@ -5461,8 +5463,24 @@ function s2w(sx,sy){
  const t=-_gp.y/_gq.y;
  return[_gp.x+_gq.x*t,(_gp.z+_gq.z*t)*GLCOS];
 }
+// M7a: esconde/mostra o canvas 2D (#c) conforme a fase. Com glLive e partida em andamento (ph==1) TUDO é 3D+DOM:
+// display:none tira a camada da composição e o draw() para de chamar X.* (sem clearRect de tela cheia por quadro).
+// No menu (ph==0) e fora da partida o #c volta (redimensionado por rs() se a janela mudou enquanto estava oculto).
+let C2D_ON=-1;
+function glC2D(on){
+ if(!glLive)return;
+ on=on?1:0;if(C2D_ON===on)return;C2D_ON=on;
+ try{
+  if(on){
+   if(!NOC2D&&(C.width!==(innerWidth*DPR|0)||C.height!==(innerHeight*DPR|0)))rs();
+   C.style.display='block';
+  }else C.style.display='none';
+ }catch(e){}
+}
 function glKill(){
  GLBAD=1;glLive=0;try{if(GLCV)GLCV.style.display='none';document.body.style.background=''}catch(e){}
+ // M7a: o canvas 2D volta a aparecer (ele é o único desenhista sem glLive)
+ try{C.style.display='block';C2D_ON=-1}catch(e){}
  // M1: o HUD migrado para DOM (89g-glhud.js) some junto; o canvas 2D volta a desenhar os blocos 12..16
  try{if(typeof glHudShow==='function')glHudShow(0)}catch(e){}
  // M3: a camada de entrada volta para o canvas 2D (#c)
@@ -5553,6 +5571,14 @@ const GM_T={},GM_TG={},GM_CH=new Map();
 const GM_ST={load:0,rdy:0};
 let GM_MAT=null;
 function gmMat(){return GM_MAT||(GM_MAT=new THREE.MeshLambertMaterial({vertexColors:true}))}
+// materiais COMPARTILHADOS dos pilares/cabos das pontes (criados uma vez; as geometrias é que são do chunk)
+let GM_PMAT=null;
+function gmPMat(){
+ if(GM_PMAT)return GM_PMAT;
+ GM_PMAT=[new THREE.MeshLambertMaterial({color:0x5d616a}),new THREE.MeshLambertMaterial({color:0xaeb2ba}),
+  new THREE.MeshLambertMaterial({color:0xc9ccd2}),new THREE.LineBasicMaterial({color:0xd7dae0,transparent:true,opacity:.85})];
+ return GM_PMAT;
+}
 function gmBuf(b64){const s=atob(b64),n=s.length,u=new Uint8Array(n);for(let i=0;i<n;i++)u[i]=s.charCodeAt(i);return u.buffer}
 // GLB (Y-up, metros) -> triângulos em px do mundo (x/z), com cor por vértice e normal. Cache por tipo.
 function gmGrab(ti,g){
@@ -5676,6 +5702,7 @@ function gmBuild(ci,cj){
  const K=ci+','+cj,X0=ci*GM_CHS,Y0=cj*GM_CHS,X1=Math.min(MW,X0+GM_CHS),Y1=Math.min(MH,Y0+GM_CHS);
  if(X1<=X0||Y1<=Y0){GM_CH.set(K,null);return}
  const P=[],C=[],N=[];
+ const PY=[];
  const rect=(ax,az,bx,bz,y,col)=>{
   ax=Math.max(ax,X0);bx=Math.min(bx,X1);az=Math.max(az,Y0);bz=Math.min(bz,Y1);
   if(bx<=ax||bz<=az)return;
@@ -5723,6 +5750,13 @@ function gmBuild(ci,cj){
   rect(bx+71,2500,bx+74,3500,GM_Y.br2,GM_C.brl);
   for(let yy=2500;yy<3500;yy+=60)rect(bx-1.5,yy,bx+1.5,yy+30,GM_Y.br2,GM_C.brd);
  }
+ // 4c) pilares/cabos das DUAS pontes (no 2D é pylon(), tipo 7 da lista D — que não desenha mais com o #c oculto).
+ // Mesmas posições/cores do 2D; ALTURAS: o 2D mede em px de TELA e a câmera 3D encurta por sin(55°), então
+ // px de mundo na vertical = px de tela / GLSIN. Peças em BoxGeometry (faces já corretas) + cabos em LineSegments.
+ for(const bx of[1000,3000])for(const yy of[2850,3150])for(const sd of[-1,1]){
+  const px=bx+sd*88;if(px<X0-40||px>X1+40||yy<Y0-40||yy>Y1+40)continue;
+  PY.push([px,yy,sd]);
+ }
  // 5) quarteirões (depois das ruas)
  for(const j of ROWS)for(let i=0;i<8;i++){const bx=i*500+60,by=j*500+60;
   rect(bx-10,by-10,bx+390,by+390,GM_Y.sw,GM_C.sw);
@@ -5734,6 +5768,21 @@ function gmBuild(ci,cj){
  ge.setAttribute('normal',new THREE.BufferAttribute(new Float32Array(N),3));
  const me=new THREE.Mesh(ge,gmMat());me.frustumCulled=false;
  const grp=new THREE.Group();grp.add(me);GLW.add(grp);
+ // pilares/cabos das pontes deste chunk (poucos por chunk; geometrias descartadas pelo gmDrop)
+ if(PY.length){
+  const HI=1/GLSIN,MB=gmPMat();
+  const gb=new THREE.BoxGeometry(18,10*HI,16),gc=new THREE.BoxGeometry(12,96*HI,12),gk=new THREE.BoxGeometry(18,9*HI,18);
+  const cab=[];
+  for(const[px,py,sd]of PY){
+   const b1=new THREE.Mesh(gb,MB[0]);b1.position.set(px,5*HI,py);grp.add(b1);
+   const c1=new THREE.Mesh(gc,MB[1]);c1.position.set(px,58*HI,py);grp.add(c1);
+   const c2=new THREE.Mesh(gk,MB[2]);c2.position.set(px,110.5*HI,py);grp.add(c2);
+   for(const k of[-200,-140,-80,80,140,200])cab.push(px,106*HI,py,px-sd*8,0,py+k);
+  }
+  const lg=new THREE.BufferGeometry();
+  lg.setAttribute('position',new THREE.BufferAttribute(new Float32Array(cab),3));
+  const ls=new THREE.LineSegments(lg,MB[3]);ls.frustumCulled=false;grp.add(ls);
+ }
  // centro do chunk em px do MUNDO (x,z) — o mesmo espaço de cx,cy usado no descarte; sem isto Math.hypot=NaN
  // e nem o raio de 2500 px nem o teto de 12 chunks disparam (vazamento de chunks/geometrias).
  grp.userData={x:(X0+X1)/2,z:(Y0+Y1)/2};
@@ -6196,8 +6245,8 @@ function drawPlayerGL(x,y,o){
    0,0,0,1);
   m.matrixWorldNeedsUpdate=true;
  }
- // sombra/anel continuam no canvas 2D (por cima), como no drawPlayer 2D; nome, barra e pílula vêm do chamador
- ell(x,y,13*s,5*s,'rgba(0,0,0,.4)');if(o.ring)ell(x,y,18*s,7*s,o.ring,1);
+ // M7a: a sombra dos pés e o anel da cor do jogador (antes dois ell() aqui no canvas 2D) passaram para o
+ // DOM (gwPlayer em 89i), porque na partida o #c fica oculto. Nome, barra e pílula já vinham do chamador.
 }
 // diagnóstico (leitura): jogadores/malhas/triângulos do quadro e stats do renderer
 function gljInfo(){let m=0,tri=0;
@@ -6947,7 +6996,7 @@ if(typeof window!=='undefined')window.__glb=bgInfo;
 // PILL em coordenadas de MUNDO (#inp, 50-cliente.js). O DOM fica por cima do telhado (imperfeição aceita no M4).
 // Cada elemento é: #gw > .gwE (posição de tela, translate3d) > .gwI (scale ZO, conteúdo em px de MUNDO).
 // A câmera é ortográfica, então a altura h de um ponto sobe a tela por h*sin(55°)*ZO — os filhos usam esse fator.
-const GWU={ok:0,zo:-1,stamp:0,pl:{},zl:[],zln:0,boss:null,sel:null,shop:null,lab:[],labn:0,arc:null,pill:null};
+const GWU={ok:0,zo:-1,stamp:0,pl:{},zl:[],zln:0,boss:null,sel:null,shop:null,lab:[],labn:0,arc:null,pill:null,mk:null,dhn:0,krn:0};
 const GWSIN=GLSIN; // sin(55°)
 const GWZB=60;     // teto de barras de zumbi simultâneas (limite pedido no M4)
 function gwInit(){
@@ -7001,11 +7050,18 @@ function gwPlayer(pid,x,y,o){
  const P=gwPl(pid);if(!P)return;
  gwPut(P,x,y);
  const d=o.dead;
- gwDisp(P.sh,d);gwDisp(P.bl,d);gwDisp(P.xm,d);gwDisp(P.cn,d);
+ // M7a: sombra dos pés e anel da cor do jogador eram desenhados no canvas 2D pelo drawPlayerGL (ell);
+ // com o #c oculto passam a ser estes dois elementos, com os MESMOS tamanhos do 2D (vivo 26×10 e 36×14;
+ // caído 40×18 e 68×28). A altura leva GWSIN, como o resto do #gw.
+ if(P.sz!==(d?0:1)){P.sz=d?0:1;
+  const w=P.sz?26:40,h=(P.sz?10:18)*GWSIN,bw=P.sz?36:68,bh=(P.sz?14:28)*GWSIN;
+  P.sh.style.left=(-w/2)+'px';P.sh.style.top=(-h/2)+'px';P.sh.style.width=w+'px';P.sh.style.height=h+'px';
+  P.bl.style.left=(-bw/2)+'px';P.bl.style.top=(-bh/2)+'px';P.bl.style.width=bw+'px';P.bl.style.height=bh+'px'}
+ gwDisp(P.sh,1);gwDisp(P.bl,1);gwDisp(P.xm,d);gwDisp(P.cn,d);
  gwDisp(P.bb,!d);gwDisp(P.nm,!d);gwDisp(P.dv,!d&&!!o.self);gwDisp(P.buf,!d&&o.buff>0);
  gwDisp(P.rc,!d&&o.rlf>0);
+ if(P.blc!==o.c){P.blc=o.c;P.bl.style.border='3px solid '+o.c}
   if(d){
-  if(P.blc!==o.c){P.blc=o.c;P.bl.style.border='3px solid '+o.c}
   const tt=o.n+' (caído)';if(P.cnt!==tt){P.cnt=tt;P.cn.textContent=tt}
   return;
  }
@@ -7189,6 +7245,88 @@ function gwPill(x,y,rlf,t,zs,ze,fail,own){
  }
  if(own)PILL={x:x-P.w/2,y:py,w:P.w,h:P.h,t:Date.now()}; // coords de MUNDO, iguais às do 2D
 }
+// ---------- M7a: alvo marcado (drawMark), telegrafia do dash (s.Dh) e anéis do agarre do boss (s.K) ----------
+// Eram os ÚLTIMOS desenhos 2D que sobravam na partida com glLive (90-sons.js); com o #c oculto viram DOM:
+// alvo = canvas pequeno (mesmos traços do 2D), dash = div girada, anel = div com borda.
+// telegrafias do CHÃO (dash do boss, anéis do agarre) ficam ATRÁS do resto do #gw, como no 2D
+// (lá eram desenhadas antes da lista D: por baixo de jogadores/zumbis/itens)
+function gwBack(s){try{if(GWU.el&&GWU.el.firstChild)GWU.el.insertBefore(s.g,GWU.el.firstChild);s.g.style.zIndex='0'}catch(e){}}
+function gwSlot(n,idx,build){const A=GWU[n]||(GWU[n]=[]);let o=A[idx];if(!o&&idx<24)o=A[idx]=build();return o||null}
+function gwPutR(o,x,y,rad){
+ if(!o)return;
+ const p=w2s(x,y),k=p[0].toFixed(1)+','+p[1].toFixed(1)+','+rad.toFixed(3);
+ if(k!==o.kr){o.kr=k;o.g.style.transform='translate3d('+p[0].toFixed(1)+'px,'+p[1].toFixed(1)+'px,0) rotate('+rad.toFixed(3)+'rad)'}
+ gwDisp(o.g,1);o.u=GWU.stamp;
+}
+function gwMarkNew(){
+ const s=gwNew();if(!s)return null;
+ const c=document.createElement('canvas');c.className='gwC';c.width=280;c.height=280;
+ c.style.left='-70px';c.style.top='-70px';c.style.width='140px';c.style.height='140px';
+ s.i.appendChild(c);s.cv=c;s.cx=c.getContext('2d');s.k='';s.lh=-1;
+ return s;
+}
+// mesmo desenho do drawMark 2D (80-jogador.js:199): anel vermelho pulsando + 4 traços girando + ponto no centro
+function gwMark(s,t){
+ if(!glLive||!me||!me[26]||typeof ZSS==='undefined')return;
+ const z=s.Z.find(q=>q[6]==me[26]);if(!z)return;
+ const r=ZSS.get(z[6]);if(!r)return;
+ const k=z[2],R_=k==3?52:k==2?26:18,hh=k==3?60:k==2?22:18,p=1+Math.sin(t/110)*.08;
+ const o=gwSlot('mk',0,gwMarkNew);if(!o||!o.cx)return;
+ gwPut(o,r.x,r.y);
+ const key=(R_*p).toFixed(2)+'|'+(t/900*20|0);
+ if(o.k===key&&o.lh===hh)return;
+ o.k=key;
+ if(o.lh!==hh){o.lh=hh;o.cv.style.top=(-70-hh*GWSIN)+'px'}
+ const g=o.cx;g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,280,280);g.setTransform(2,0,0,2,140,140);
+ g.save();g.rotate(t/900);g.strokeStyle='#ff3b3b';g.lineWidth=2.5;g.beginPath();g.arc(0,0,R_*p,0,7);g.stroke();
+ g.beginPath();for(let i=0;i<4;i++){const a=i*1.5708;g.moveTo(Math.cos(a)*(R_*p-6),Math.sin(a)*(R_*p-6));g.lineTo(Math.cos(a)*(R_*p+8),Math.sin(a)*(R_*p+8))}g.stroke();g.restore();
+ g.fillStyle='#ff3b3b';g.beginPath();g.arc(0,0,2.5,0,7);g.fill();
+}
+function gwDashNew(){
+ const s=gwNew();if(!s)return null;gwBack(s);
+ s.i.style.transformOrigin='0 0';
+ s.r=gwD(s.i,'gwRect',0,-50,750,100);s.r.style.border='3px solid #f44';
+ s.ch=[];for(let i=0;i<10;i++){const c=document.createElement('div');c.className='gwCh';
+  c.style.left=(60+i*90-14)+'px';c.style.top='-14px';c.style.display='none';s.i.appendChild(c);s.ch.push(c)}
+ s.k='';return s;
+}
+// mesmo retângulo de aviso do dash do boss que o 2D desenha em coordenadas de mundo (rotação = an)
+function gwDash(x,y,an,len,tt){
+ if(!glLive)return;
+ const o=gwSlot('dh',GWU.dhn++,gwDashNew);if(!o)return;
+ gwPutR(o,x,y,an);
+ const fl=tt<1;
+ o.r.style.background=fl?'rgba(255,40,40,'+(.12+tt*.25).toFixed(3)+')':'rgba(255,90,40,.35)';
+ const k=(fl?'1|':'0|')+len;
+ if(o.k!==k){o.k=k;
+  if(o.r.style.width!==len+'px')o.r.style.width=len+'px';
+  for(let i=0;i<o.ch.length;i++)o.ch[i].style.display=(fl&&60+i*90<len)?'block':'none';
+ }
+}
+function gwRingNew(){
+ const s=gwNew();if(!s)return null;gwBack(s);
+ s.f=gwD(s.i,'gwRect',-70,-70,140,140);s.f.style.borderRadius='50%';
+ s.b=gwD(s.i,'gwR',-70,-70,140,140);s.b.style.border='3px solid #f88';
+ s.p=gwD(s.i,'gwR',-70,-70,140,140);s.p.style.border='3px solid #f22';
+ s.k='';return s;
+}
+// mesmo anel do agarre do boss (90-sons.js, s.K): fechando (pg<1) ou estourando (pg>=1)
+function gwRing(x,y,pg){
+ if(!glLive)return;
+ const o=gwSlot('kr',GWU.krn++,gwRingNew);if(!o)return;
+ gwPut(o,x,y);
+ const k=pg.toFixed(3);if(o.k===k)return;o.k=k;
+ const r=(pg<1?70*pg:40+(pg-1)*50).toFixed(1);
+ o.p.style.display='block';o.p.style.width=r+'px';o.p.style.height=r+'px';
+ o.p.style.left='-'+r+'px';o.p.style.top='-'+r+'px';
+ if(pg<1){
+  o.f.style.background='rgba(255,40,40,'+(.12+pg*.25).toFixed(3)+')';
+  o.b.style.display='block';o.p.style.borderColor='#f22';
+ }else{
+  o.f.style.background='transparent';o.b.style.display='none';
+  o.p.style.borderColor='rgba(210,185,140,'+Math.max(0,1-(pg-1)).toFixed(2)+')';
+ }
+}
 // ---------- fim do quadro: esconde quem não foi usado e rearma os contadores ----------
 function gwEnd(s){
  if(!glLive||!gwInit())return;
@@ -7196,10 +7334,11 @@ function gwEnd(s){
  if(GWU.zo!==ZO){GWU.zo=ZO;GWU.el.style.setProperty('--gwzo',String(ZO))}
  for(const k in GWU.pl){const o=GWU.pl[k];if(o&&o.u!==GWU.stamp)gwDisp(o.g,0)}
  for(let i=0;i<GWU.zl.length;i++){const o=GWU.zl[i];if(o&&o.u!==GWU.stamp)gwDisp(o.g,0)}
- const one=[GWU.boss,GWU.sel,GWU.shop,GWU.arc,GWU.pill];
+ const one=[GWU.boss,GWU.sel,GWU.shop,GWU.arc,GWU.pill,GWU.mk];
  for(let i=0;i<one.length;i++){const o=one[i];if(o&&o.u!==GWU.stamp)gwDisp(o.g,0)}
+ for(const nm of['dh','kr']){const A=GWU[nm];if(A)for(let i=0;i<A.length;i++){const o=A[i];if(o&&o.u!==GWU.stamp)gwDisp(o.g,0)}}
  for(let i=0;i<GWU.lab.length;i++){const o=GWU.lab[i];if(o&&o.u!==GWU.stamp)gwDisp(o.g,0)}
- GWU.lz=GWU.zln;GWU.stamp++;GWU.zln=0;GWU.labn=0;
+ GWU.lz=GWU.zln;GWU.stamp++;GWU.zln=0;GWU.labn=0;GWU.dhn=0;GWU.krn=0;
  pfAdd('gwm',t0);
 }
 if(typeof window!=='undefined')window.__glw=()=>({ok:GWU.ok,zo:GWU.zo,stamp:GWU.stamp,
@@ -7216,7 +7355,8 @@ if(typeof window!=='undefined')window.__glw=()=>({ok:GWU.ok,zo:GWU.zo,stamp:GWU.
 // nada alocado por quadro; as contagens são publicadas no glFxEnd() (glRenderNow, 88-gl.js).
 // Deslocamento de TELA (dx,dy em px de mundo, dy>0 = para BAIXO) vira altura `hp - dy/GLSIN`, porque na câmera
 // 3D a altura h de um ponto sobe a tela h*sin(55°)*ZO — mesma conta do 89f-glitens.js.
-// Qualidade: GQ.fx (0 = volta o efeito 2D) e GQ.fxP (fração de partículas/chamas/fumaça; 1 = tudo).
+// Qualidade: GQ.fxP (fração de partículas/chamas/fumaça; 1 = tudo). M7a: o canvas 2D fica OCULTO na partida,
+// então NÃO existe mais fallback 2D dos efeitos — eles são sempre 3D com glLive (GQ.fx não desliga mais).
 const FX_MAX=1500,FX_BMAX=120,FX_KY=GLSIN*GLSIN+GLCOS;
 const FXPK={2:[46,14,26],11:[22,22,20],12:[8,26,8],13:[22,6,16],0:[20,10,14]};
 const FXPC={2:'#2a3040',11:'#2d5a27',12:'#6a4a2a',13:'#b8843a'};
@@ -7422,7 +7562,7 @@ function fxTexts(t){
   for(let k=0;k<3;k++)fxDom(x+42,y-52-k*15-u*26,labs[k][0],labs[k][1],12,al)}}
 // ---------- ganchos ----------
 function glFxFrame(s,t,dtf){
- if(!glLive||!GQ.fx||!GLW)return 0;
+ if(!glLive||!GLW)return 0;
  if(!fxInit())return 0;
  const t0=performance.now();FX_FR++;
  FX_Q.copy(GLCAM.quaternion);
@@ -7914,11 +8054,16 @@ function draw(){requestAnimationFrame(draw);const _n=performance.now();
  if(FPS_DT){if(_n<FPS_NF-1)return;FPS_NF=_n-FPS_NF>100?_n+FPS_DT:FPS_NF+FPS_DT}
  gfxTick(_n);
  if(FPSSHOW){FPS_C++;if(!FPS_T0)FPS_T0=_n;else if(_n-FPS_T0>=500){const b=$('fpsb');if(b)b.textContent=fpsText(FPS_C*1000/(_n-FPS_T0));FPS_C=0;FPS_T0=_n}}
- const _p0=pfStart();ZBUD=0;const s=snap,t=Date.now(),dtf=Math.min(.1,(t-LT)/1000);LT=t;FR++;DT_=dtf;X.setTransform(ZO*DPR,0,0,ZO*DPR,0,0);if(glLive)X.clearRect(0,0,W,H);else{X.fillStyle='#000';X.fillRect(0,0,W,H)}if(!s||s.ph==0){if(glLive)glHudShow(0);menuScene(t);{const _d=performance.now()-_n;DRAW_MS=DRAW_MS?DRAW_MS*.9+_d*.1:_d}return}
+ const _p0=pfStart();ZBUD=0;const s=snap,t=Date.now(),dtf=Math.min(.1,(t-LT)/1000);LT=t;FR++;DT_=dtf;
+ // M7a: com glLive e partida em andamento (ph==1) o canvas 2D (#c) fica OCULTO e NADA de 2D é desenhado —
+ // só 3D (glFrame/glRenderNow) e DOM (glHudFrame/89i). No menu (ph==0) e fora da partida o #c reaparece e desenha.
+ const G3=!!(glLive&&s&&s.ph==1);if(glLive)glC2D(G3?0:1);
+ if(!G3){X.setTransform(ZO*DPR,0,0,ZO*DPR,0,0);if(glLive)X.clearRect(0,0,W,H);else{X.fillStyle='#000';X.fillRect(0,0,W,H)}}
+ if(!s||s.ph==0){if(glLive)glHudShow(0);menuScene(t);{const _d=performance.now()-_n;DRAW_MS=DRAW_MS?DRAW_MS*.9+_d*.1:_d}return}
  if(FR%180==0){for(const k in RP)if(RP[k].u<FR-120)delete RP[k];zsClean()}
  const mr=me?sm('p'+id,me[3],me[4],dtf):null;if(mr){cx=mr.x;cy=mr.y}meB=bAt(cx,cy);audioFrame(s,t,mr);ox=Math.round(W/2-cx);oy=Math.round(H/2-cy);
  const shx=(Math.random()-.5)*QK*14,shy=(Math.random()-.5)*QK*14;GL_SHX=shx;GL_SHY=shy;
- if(glOn)glFrame();if(glLive)hudShake(shx,shy);QK=Math.max(0,QK-dtf*1.6);X.save();X.translate(ox+shx,oy+shy);
+ if(glOn)glFrame();if(glLive)hudShake(shx,shy);QK=Math.max(0,QK-dtf*1.6);if(!G3){X.save();X.translate(ox+shx,oy+shy)}
  const v=(x,y,m=90)=>Math.abs(x-cx)<W/2+m&&Math.abs(y-cy)<H/2+m;
  if(!glLive){X.fillStyle='#1b2e16';X.fillRect(cx-W/2-60,cy-H/2-60,W+120,H+120);
  let pt=pfStart();groundChunks();pfAdd('chao',pt);
@@ -7927,18 +8072,18 @@ function draw(){requestAnimationFrame(draw);const _n=performance.now();
  X.strokeStyle='#ca4';X.lineWidth=3;X.setLineDash([30,30]);X.beginPath();
  if(!(CEN_RUA.v&&CEN_RUA.h&&CEN_RUA.x)){for(let k=0;k<=8;k++){X.moveTo(k*500,0);X.lineTo(k*500,2500);X.moveTo(k*500,3500);X.lineTo(k*500,6000)}for(const k of[1,2,3,4,5,7,8,9,10,11]){X.moveTo(0,k*500);X.lineTo(MW,k*500)}}
  for(const bx of[1000,3000]){X.moveTo(bx,2500);X.lineTo(bx,3500)}X.stroke();X.setLineDash([]);}
- let pe=pfStart();edges('tlr');pfAdd('edges',pe);
+ if(!glLive){const pe=pfStart();edges('tlr');pfAdd('edges',pe)}
  let pb=pfStart();
  for(const b of BLD)if(!glLive&&v(b.x+b.w/2,b.y+b.h/2,b.w)){const si=b===meB?cenBldSpr(b,1):null;
   if(!cenDraw(X,si,b.x+b.w/2,b.y+b.h/2)){X.fillStyle=b.T=='h'?'#cfd6da':b.T=='p'?'#7b7b84':b.T=='m'?'#cdb994':'#6b573f';X.fillRect(b.x,b.y,b.w,b.h);X.strokeStyle='rgba(0,0,0,.18)';X.lineWidth=2;X.beginPath();for(let u=b.x+24;u<b.x+b.w;u+=24){X.moveTo(u,b.y);X.lineTo(u,b.y+b.h)}X.stroke()}}
  pfAdd('predios',pb);
- if(s.bp&&v(s.bp[0],s.bp[1],150)){const bx=s.bp[0],by=s.bp[1],pl=(t%1000)/1000;X.strokeStyle='rgba(255,50,50,'+(1-pl)+')';X.lineWidth=4;X.beginPath();X.arc(bx,by,30+pl*70,0,7);X.stroke();X.fillStyle='rgba(255,40,40,.2)';X.beginPath();X.arc(bx,by,60,0,7);X.fill();txt('!',bx,by-30-Math.abs(Math.sin(t/150))*10,44,'#f33');if(FR%6==0)pts(2,bx+(Math.random()-.5)*90,by+(Math.random()-.5)*40,'#3f8a35',140,220,6,1)}
- for(const[x,y,an,len,tt]of s.Dh||[]){X.save();X.translate(x,y);X.rotate(an/100);const fl=tt<1;X.fillStyle=fl?'rgba(255,40,40,'+(.12+tt*.25)+')':'rgba(255,90,40,.35)';X.fillRect(0,-50,len,100);X.strokeStyle='#f44';X.lineWidth=3;X.strokeRect(0,-50,len,100);if(fl){X.fillStyle='#f66';for(let u=60;u<len;u+=90){X.beginPath();X.moveTo(u,-14);X.lineTo(u+28,0);X.lineTo(u,14);X.closePath();X.fill()}}X.restore()}
+ if(!glLive&&s.bp&&v(s.bp[0],s.bp[1],150)){const bx=s.bp[0],by=s.bp[1],pl=(t%1000)/1000;X.strokeStyle='rgba(255,50,50,'+(1-pl)+')';X.lineWidth=4;X.beginPath();X.arc(bx,by,30+pl*70,0,7);X.stroke();X.fillStyle='rgba(255,40,40,.2)';X.beginPath();X.arc(bx,by,60,0,7);X.fill();txt('!',bx,by-30-Math.abs(Math.sin(t/150))*10,44,'#f33');if(FR%6==0)pts(2,bx+(Math.random()-.5)*90,by+(Math.random()-.5)*40,'#3f8a35',140,220,6,1)}
+ for(const[x,y,an,len,tt]of s.Dh||[]){if(glLive){gwDash(x,y,an/100,len,tt);continue}X.save();X.translate(x,y);X.rotate(an/100);const fl=tt<1;X.fillStyle=fl?'rgba(255,40,40,'+(.12+tt*.25)+')':'rgba(255,90,40,.35)';X.fillRect(0,-50,len,100);X.strokeStyle='#f44';X.lineWidth=3;X.strokeRect(0,-50,len,100);if(fl){X.fillStyle='#f66';for(let u=60;u<len;u+=90){X.beginPath();X.moveTo(u,-14);X.lineTo(u+28,0);X.lineTo(u,14);X.closePath();X.fill()}}X.restore()}
  for(const[x,y,k,vv]of IL){if(!v(x,y))continue;const ib=bAt(x,y);if(ib&&ib!==meB)continue;const bb=Math.sin(t/250+x)*3;
   if(glLive){glItemPush(x,y,k,vv,t,bb);if(k==8&&!igTxtHide(x,y))gwItemTxt(x,y,vv)}else drawPickup(x,y,k,vv,t,bb)}
 let pl=pfStart();
 const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!(glLive&&(o.t==5||o.t==1||o.t==2||o.t==3))&&!DD[o.i]&&v(o.x+o.w/2,o.y+o.h/2,o.w+80))D.push([o.y+o.h,0,o]);
- for(const b of BLD)if(!glLive&&b!==meB&&v(b.x+b.w/2,b.y+b.h/2,b.w))D.push([b.y+b.h+1,3,b]);for(const f of FIRES)if((!glLive||!GQ.fx)&&v(f[0],f[1],120)&&!(f[4]&&f[4]===meB)&&!(f[5]&&DD[f[5].i]))D.push([f[3],5,f]);
+ for(const b of BLD)if(!glLive&&b!==meB&&v(b.x+b.w/2,b.y+b.h/2,b.w))D.push([b.y+b.h+1,3,b]);for(const f of FIRES)if(!glLive&&v(f[0],f[1],120)&&!(f[4]&&f[4]===meB)&&!(f[5]&&DD[f[5].i]))D.push([f[3],5,f]);
  if(s.sh)D.push([s.sh[1]+14,4,s.sh]);
  for(const b of BLD)if(!glLive&&v(b.x+b.w/2,b.y+b.h/2,b.w))D.push([b.y+b.h+.5,6,b]);for(const bx of[1000,3000])for(const yy of[2850,3150])for(const sd of[-1,1])if(v(bx,yy,300))D.push([yy,7,[bx+sd*88,yy,sd]]);
  for(const z of s.Z){if(!v(z[0],z[1]))continue;const r=zSmooth(z[6],z[0],z[1],dtf);D.push([r.y,1,z,r])}
@@ -7949,7 +8094,7 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!(glLive&&(o.t==5||o.t==1||o.t==2
  let po=pfStart();
  let arc=null;
  for(const[,ty,e,r]of D){
-  if(ty==0){const pu=POP[e.i];if(pu&&t-pu<500){const u=(t-pu)/500,sc=u<.7?.3+u/.7*.85:1.15-(u-.7)/.3*.15;X.save();X.translate(e.x+e.w/2,e.y+e.h);X.scale(sc,sc);X.translate(-(e.x+e.w/2),-(e.y+e.h));obst(e);X.restore()}else obst(e)}else if(ty==3)roof(e);else if(ty==4){if(glLive)gwSeller(e[0],e[1]);else seller(e)}else if(ty==5)fireFx(e[0],e[1],e[2],t);else if(ty==6)facade(e);else if(ty==7)pylon(e);
+  if(ty==0){if(!glLive){const pu=POP[e.i];if(pu&&t-pu<500){const u=(t-pu)/500,sc=u<.7?.3+u/.7*.85:1.15-(u-.7)/.3*.15;X.save();X.translate(e.x+e.w/2,e.y+e.h);X.scale(sc,sc);X.translate(-(e.x+e.w/2),-(e.y+e.h));obst(e);X.restore()}else obst(e)}}else if(ty==3)roof(e);else if(ty==4){if(glLive)gwSeller(e[0],e[1]);else seller(e)}else if(ty==5)fireFx(e[0],e[1],e[2],t);else if(ty==6)facade(e);else if(ty==7){if(!glLive)pylon(e)}
    else if(ty==8){let sp=CEN_SPR[e.s];if(sp&&e.r&&CEN_SPRV[e.s])sp=CEN_SPRV[e.s][e.r];if(sp){ell(e.x+3,e.y+3,Math.max(7,Math.min(26,sp.w*.38)),Math.max(2.5,sp.h*.05),'rgba(0,0,0,.22)');
      if(e.f){X.save();X.translate(2*e.x,0);X.scale(-1,1);cenDraw(X,sp,e.x,e.y);X.restore()}else cenDraw(X,sp,e.x,e.y)}}
   else if(ty==1){const[,,k,h,vv,fz]=e,x=r.x,y=r.y,ph_=t/(k==1?80:130)+x*.05;
@@ -7971,17 +8116,18 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!(glLive&&(o.t==5||o.t==1||o.t==2
     if(!glLive){bar(x-18,y-56,36,hp/mx,'#3e3');txt(n,x,y-66,14,pid==id?'#ff0':'#fff');if(pid==id)txt('▼',x,y-80,14,'#ff0');if(rlf>0)reloadPill(x,y,rlf,t,e[27]|0,e[28]|0,e[29]|0,pid==id)}else if(rlf>0)gwPill(x,y,rlf,t,e[27]|0,e[28]|0,e[29]|0,pid==id)}}}
  if(arc){if(glLive)gwArc(arc[0],arc[1],arc[2],arc[3],arc[4]);else{const ga=X.globalAlpha;X.globalAlpha=.6*(1-arc[3]/220)+.15;X.strokeStyle=itCol(arc[4]);X.lineWidth=3;X.beginPath();X.ellipse(arc[0],arc[1],34,13,0,arc[2]-.61,arc[2]+.61);X.stroke();X.globalAlpha=ga}}
  pfAdd('objetos',po);
- let px=pfStart();drawMark(s,t);edges('b');if(glLive&&GQ.fx)glFxFrame(s,t,dtf);else{drawFX();drawProj(s,dtf)}pfAdd('fx',px);if(s.sh){const b=bAt(s.sh[0],s.sh[1]);if(b&&b!==meB){if(glLive)gwShop(b,t);else txt('🛒 LOJA',b.x+b.w/2,b.y-b.H-22+Math.sin(t/200)*4,26,'#fc3')}}
- for(const[x,y,pg]of s.K){if(pg<1){X.fillStyle='rgba(255,40,40,'+(.12+pg*.25)+')';X.beginPath();X.arc(x,y,70,0,7);X.fill();X.strokeStyle='#f88';X.lineWidth=3;X.beginPath();X.arc(x,y,70,0,7);X.stroke();X.strokeStyle='#f22';X.beginPath();X.arc(x,y,70*pg,0,7);X.stroke();}
+ let px=pfStart();if(glLive)gwMark(s,t);else{drawMark(s,t);edges('b')}if(glLive)glFxFrame(s,t,dtf);else{drawFX();drawProj(s,dtf)}pfAdd('fx',px);if(s.sh){const b=bAt(s.sh[0],s.sh[1]);if(b&&b!==meB){if(glLive)gwShop(b,t);else txt('🛒 LOJA',b.x+b.w/2,b.y-b.H-22+Math.sin(t/200)*4,26,'#fc3')}}
+ if(glLive){for(const q of s.K)gwRing(q[0],q[1],q[2])}
+ else for(const[x,y,pg]of s.K){if(pg<1){X.fillStyle='rgba(255,40,40,'+(.12+pg*.25)+')';X.beginPath();X.arc(x,y,70,0,7);X.fill();X.strokeStyle='#f88';X.lineWidth=3;X.beginPath();X.arc(x,y,70,0,7);X.stroke();X.strokeStyle='#f22';X.beginPath();X.arc(x,y,70*pg,0,7);X.stroke();}
   else{const q=pg-1;X.strokeStyle='rgba(210,185,140,'+(1-q)+')';X.lineWidth=8;X.beginPath();X.arc(x,y,40+q*50,0,7);X.stroke()}}
- X.restore();
+ if(!G3)X.restore();
  let ph_=pfStart();
  // M1/F1: com glLive a vinheta/tint é o #vig (CSS) e os blocos 13/14 são DOM (89g-glhud.js)
  if(!glLive){X.save();X.setTransform(1,0,0,1,0,0);X.drawImage(vigOverlay(),0,0);X.restore();
  const arrow=(tx,ty,col,lb)=>{const dx=tx-cx,dy=ty-cy;if(Math.abs(dx)>W/2||Math.abs(dy)>H/2){const a=Math.atan2(dy,dx),q=Math.min(W,H)/2-90;X.fillStyle=col;poly(W/2+Math.cos(a)*q,H/2+Math.sin(a)*q,22,3,a);if(lb)txt(lb,W/2+Math.cos(a)*(q-32),H/2+Math.sin(a)*(q-32),16,col)}};
  const bz=s.Z.find(z=>z[2]==3);if(bz&&me)arrow(bz[0],bz[1],'#f0f');if(s.sh&&me)arrow(s.sh[0],s.sh[1],'#fc3','LOJA');if(s.bp&&me)arrow(s.bp[0],s.bp[1],'#f33','BOSS');
  if(s.bp){const pu=1+Math.sin(t/110)*.08;txt('⚠ KRAID CHEGANDO EM '+s.bp[2]+'s ⚠',W/2,MOB?26:44,(MOB?18:30)*pu,'#ff4040')}}
- const hk=hkF(),WW=W/hk,MMW=170,f=MMW/MW,MMH=MH*f,mx0=WW-MMW-10;X.save();X.scale(hk,hk);
+ const hk=hkF(),WW=W/hk,MMW=170,f=MMW/MW,MMH=MH*f,mx0=WW-MMW-10;if(!G3){X.save();X.scale(hk,hk)}
  if(!glLive){X.save();X.translate(WW,MMH+20);X.scale(.8,.8);X.translate(-WW,-(MMH+20));const L=s.P.slice().sort((a,b)=>b[18]-a[18]),ry=MMH+20,RH=34,ph=34+L.length*RH,px=WW-214,pw=204,top=Math.max(1,L[0]?L[0][18]:1),MD=['#e0b84a','#b8b8c0','#b0703a'];
   rr(px,ry,pw,ph,2);const gk_=px+'|'+ry+'|'+ph+'|'+hk;if(SGGK!==gk_){SGG=X.createLinearGradient(px,ry,px,ry+ph);SGG.addColorStop(0,'rgba(10,10,12,.88)');SGG.addColorStop(1,'rgba(26,22,18,.85)');SGGK=gk_}const g_=SGG;X.fillStyle=g_;X.fill();X.strokeStyle='#3a3226';X.lineWidth=2;X.stroke();X.fillStyle='#8a6f35';X.fillRect(px,ry,5,ph);
   X.fillStyle='rgba(138,111,53,.35)';X.fillRect(px+5,ry,pw-5,24);X.fillStyle='#3a3226';X.fillRect(px+5,ry+24,pw-5,1);txt('☠ ABATES',px+pw/2+2,ry+13,15,'#c9a54a');
@@ -8053,7 +8199,7 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!(glLive&&(o.t==5||o.t==1||o.t==2
    X.strokeStyle='rgba(255,255,255,'+(.55+.3*Math.sin(t/170))+')';X.lineWidth=1.4;X.beginPath();X.arc(px,py-2,6.5*pl,0,7);X.stroke();
    const a=(p[17]|0)/10;X.fillStyle='#fff';poly(px+Math.cos(a)*8.5,py-2+Math.sin(a)*8.5,2.8,3,a)}
   X.globalAlpha=1}}
- X.restore();if(glLive)glHudFrame(s);drawJoy();pfAdd('hud',ph_);pfEnd(_p0);if(glLive)glRenderNow();{const _d=performance.now()-_n;DRAW_MS=DRAW_MS?DRAW_MS*.9+_d*.1:_d}}
+ if(!G3)X.restore();if(glLive)glHudFrame(s);drawJoy();pfAdd('hud',ph_);pfEnd(_p0);if(glLive)glRenderNow();{const _d=performance.now()-_n;DRAW_MS=DRAW_MS?DRAW_MS*.9+_d*.1:_d}}
 // ---------- MÚSICA: playlist de gameplay (HTMLAudioElement, sem WebAudio por elemento) ----------
 // Tabela de faixas e ganho de normalização (dB, ajustável de ouvido; alvo RMS de fundo ~ -27 dBFS).
 // Os arquivos ficam em music/ ao lado de game.html; nada é baixado antes da partida.

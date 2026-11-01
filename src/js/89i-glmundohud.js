@@ -7,7 +7,7 @@
 // PILL em coordenadas de MUNDO (#inp, 50-cliente.js). O DOM fica por cima do telhado (imperfeição aceita no M4).
 // Cada elemento é: #gw > .gwE (posição de tela, translate3d) > .gwI (scale ZO, conteúdo em px de MUNDO).
 // A câmera é ortográfica, então a altura h de um ponto sobe a tela por h*sin(55°)*ZO — os filhos usam esse fator.
-const GWU={ok:0,zo:-1,stamp:0,pl:{},zl:[],zln:0,boss:null,sel:null,shop:null,lab:[],labn:0,arc:null,pill:null};
+const GWU={ok:0,zo:-1,stamp:0,pl:{},zl:[],zln:0,boss:null,sel:null,shop:null,lab:[],labn:0,arc:null,pill:null,mk:null,dhn:0,krn:0};
 const GWSIN=GLSIN; // sin(55°)
 const GWZB=60;     // teto de barras de zumbi simultâneas (limite pedido no M4)
 function gwInit(){
@@ -61,11 +61,18 @@ function gwPlayer(pid,x,y,o){
  const P=gwPl(pid);if(!P)return;
  gwPut(P,x,y);
  const d=o.dead;
- gwDisp(P.sh,d);gwDisp(P.bl,d);gwDisp(P.xm,d);gwDisp(P.cn,d);
+ // M7a: sombra dos pés e anel da cor do jogador eram desenhados no canvas 2D pelo drawPlayerGL (ell);
+ // com o #c oculto passam a ser estes dois elementos, com os MESMOS tamanhos do 2D (vivo 26×10 e 36×14;
+ // caído 40×18 e 68×28). A altura leva GWSIN, como o resto do #gw.
+ if(P.sz!==(d?0:1)){P.sz=d?0:1;
+  const w=P.sz?26:40,h=(P.sz?10:18)*GWSIN,bw=P.sz?36:68,bh=(P.sz?14:28)*GWSIN;
+  P.sh.style.left=(-w/2)+'px';P.sh.style.top=(-h/2)+'px';P.sh.style.width=w+'px';P.sh.style.height=h+'px';
+  P.bl.style.left=(-bw/2)+'px';P.bl.style.top=(-bh/2)+'px';P.bl.style.width=bw+'px';P.bl.style.height=bh+'px'}
+ gwDisp(P.sh,1);gwDisp(P.bl,1);gwDisp(P.xm,d);gwDisp(P.cn,d);
  gwDisp(P.bb,!d);gwDisp(P.nm,!d);gwDisp(P.dv,!d&&!!o.self);gwDisp(P.buf,!d&&o.buff>0);
  gwDisp(P.rc,!d&&o.rlf>0);
+ if(P.blc!==o.c){P.blc=o.c;P.bl.style.border='3px solid '+o.c}
   if(d){
-  if(P.blc!==o.c){P.blc=o.c;P.bl.style.border='3px solid '+o.c}
   const tt=o.n+' (caído)';if(P.cnt!==tt){P.cnt=tt;P.cn.textContent=tt}
   return;
  }
@@ -249,6 +256,88 @@ function gwPill(x,y,rlf,t,zs,ze,fail,own){
  }
  if(own)PILL={x:x-P.w/2,y:py,w:P.w,h:P.h,t:Date.now()}; // coords de MUNDO, iguais às do 2D
 }
+// ---------- M7a: alvo marcado (drawMark), telegrafia do dash (s.Dh) e anéis do agarre do boss (s.K) ----------
+// Eram os ÚLTIMOS desenhos 2D que sobravam na partida com glLive (90-sons.js); com o #c oculto viram DOM:
+// alvo = canvas pequeno (mesmos traços do 2D), dash = div girada, anel = div com borda.
+// telegrafias do CHÃO (dash do boss, anéis do agarre) ficam ATRÁS do resto do #gw, como no 2D
+// (lá eram desenhadas antes da lista D: por baixo de jogadores/zumbis/itens)
+function gwBack(s){try{if(GWU.el&&GWU.el.firstChild)GWU.el.insertBefore(s.g,GWU.el.firstChild);s.g.style.zIndex='0'}catch(e){}}
+function gwSlot(n,idx,build){const A=GWU[n]||(GWU[n]=[]);let o=A[idx];if(!o&&idx<24)o=A[idx]=build();return o||null}
+function gwPutR(o,x,y,rad){
+ if(!o)return;
+ const p=w2s(x,y),k=p[0].toFixed(1)+','+p[1].toFixed(1)+','+rad.toFixed(3);
+ if(k!==o.kr){o.kr=k;o.g.style.transform='translate3d('+p[0].toFixed(1)+'px,'+p[1].toFixed(1)+'px,0) rotate('+rad.toFixed(3)+'rad)'}
+ gwDisp(o.g,1);o.u=GWU.stamp;
+}
+function gwMarkNew(){
+ const s=gwNew();if(!s)return null;
+ const c=document.createElement('canvas');c.className='gwC';c.width=280;c.height=280;
+ c.style.left='-70px';c.style.top='-70px';c.style.width='140px';c.style.height='140px';
+ s.i.appendChild(c);s.cv=c;s.cx=c.getContext('2d');s.k='';s.lh=-1;
+ return s;
+}
+// mesmo desenho do drawMark 2D (80-jogador.js:199): anel vermelho pulsando + 4 traços girando + ponto no centro
+function gwMark(s,t){
+ if(!glLive||!me||!me[26]||typeof ZSS==='undefined')return;
+ const z=s.Z.find(q=>q[6]==me[26]);if(!z)return;
+ const r=ZSS.get(z[6]);if(!r)return;
+ const k=z[2],R_=k==3?52:k==2?26:18,hh=k==3?60:k==2?22:18,p=1+Math.sin(t/110)*.08;
+ const o=gwSlot('mk',0,gwMarkNew);if(!o||!o.cx)return;
+ gwPut(o,r.x,r.y);
+ const key=(R_*p).toFixed(2)+'|'+(t/900*20|0);
+ if(o.k===key&&o.lh===hh)return;
+ o.k=key;
+ if(o.lh!==hh){o.lh=hh;o.cv.style.top=(-70-hh*GWSIN)+'px'}
+ const g=o.cx;g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,280,280);g.setTransform(2,0,0,2,140,140);
+ g.save();g.rotate(t/900);g.strokeStyle='#ff3b3b';g.lineWidth=2.5;g.beginPath();g.arc(0,0,R_*p,0,7);g.stroke();
+ g.beginPath();for(let i=0;i<4;i++){const a=i*1.5708;g.moveTo(Math.cos(a)*(R_*p-6),Math.sin(a)*(R_*p-6));g.lineTo(Math.cos(a)*(R_*p+8),Math.sin(a)*(R_*p+8))}g.stroke();g.restore();
+ g.fillStyle='#ff3b3b';g.beginPath();g.arc(0,0,2.5,0,7);g.fill();
+}
+function gwDashNew(){
+ const s=gwNew();if(!s)return null;gwBack(s);
+ s.i.style.transformOrigin='0 0';
+ s.r=gwD(s.i,'gwRect',0,-50,750,100);s.r.style.border='3px solid #f44';
+ s.ch=[];for(let i=0;i<10;i++){const c=document.createElement('div');c.className='gwCh';
+  c.style.left=(60+i*90-14)+'px';c.style.top='-14px';c.style.display='none';s.i.appendChild(c);s.ch.push(c)}
+ s.k='';return s;
+}
+// mesmo retângulo de aviso do dash do boss que o 2D desenha em coordenadas de mundo (rotação = an)
+function gwDash(x,y,an,len,tt){
+ if(!glLive)return;
+ const o=gwSlot('dh',GWU.dhn++,gwDashNew);if(!o)return;
+ gwPutR(o,x,y,an);
+ const fl=tt<1;
+ o.r.style.background=fl?'rgba(255,40,40,'+(.12+tt*.25).toFixed(3)+')':'rgba(255,90,40,.35)';
+ const k=(fl?'1|':'0|')+len;
+ if(o.k!==k){o.k=k;
+  if(o.r.style.width!==len+'px')o.r.style.width=len+'px';
+  for(let i=0;i<o.ch.length;i++)o.ch[i].style.display=(fl&&60+i*90<len)?'block':'none';
+ }
+}
+function gwRingNew(){
+ const s=gwNew();if(!s)return null;gwBack(s);
+ s.f=gwD(s.i,'gwRect',-70,-70,140,140);s.f.style.borderRadius='50%';
+ s.b=gwD(s.i,'gwR',-70,-70,140,140);s.b.style.border='3px solid #f88';
+ s.p=gwD(s.i,'gwR',-70,-70,140,140);s.p.style.border='3px solid #f22';
+ s.k='';return s;
+}
+// mesmo anel do agarre do boss (90-sons.js, s.K): fechando (pg<1) ou estourando (pg>=1)
+function gwRing(x,y,pg){
+ if(!glLive)return;
+ const o=gwSlot('kr',GWU.krn++,gwRingNew);if(!o)return;
+ gwPut(o,x,y);
+ const k=pg.toFixed(3);if(o.k===k)return;o.k=k;
+ const r=(pg<1?70*pg:40+(pg-1)*50).toFixed(1);
+ o.p.style.display='block';o.p.style.width=r+'px';o.p.style.height=r+'px';
+ o.p.style.left='-'+r+'px';o.p.style.top='-'+r+'px';
+ if(pg<1){
+  o.f.style.background='rgba(255,40,40,'+(.12+pg*.25).toFixed(3)+')';
+  o.b.style.display='block';o.p.style.borderColor='#f22';
+ }else{
+  o.f.style.background='transparent';o.b.style.display='none';
+  o.p.style.borderColor='rgba(210,185,140,'+Math.max(0,1-(pg-1)).toFixed(2)+')';
+ }
+}
 // ---------- fim do quadro: esconde quem não foi usado e rearma os contadores ----------
 function gwEnd(s){
  if(!glLive||!gwInit())return;
@@ -256,10 +345,11 @@ function gwEnd(s){
  if(GWU.zo!==ZO){GWU.zo=ZO;GWU.el.style.setProperty('--gwzo',String(ZO))}
  for(const k in GWU.pl){const o=GWU.pl[k];if(o&&o.u!==GWU.stamp)gwDisp(o.g,0)}
  for(let i=0;i<GWU.zl.length;i++){const o=GWU.zl[i];if(o&&o.u!==GWU.stamp)gwDisp(o.g,0)}
- const one=[GWU.boss,GWU.sel,GWU.shop,GWU.arc,GWU.pill];
+ const one=[GWU.boss,GWU.sel,GWU.shop,GWU.arc,GWU.pill,GWU.mk];
  for(let i=0;i<one.length;i++){const o=one[i];if(o&&o.u!==GWU.stamp)gwDisp(o.g,0)}
+ for(const nm of['dh','kr']){const A=GWU[nm];if(A)for(let i=0;i<A.length;i++){const o=A[i];if(o&&o.u!==GWU.stamp)gwDisp(o.g,0)}}
  for(let i=0;i<GWU.lab.length;i++){const o=GWU.lab[i];if(o&&o.u!==GWU.stamp)gwDisp(o.g,0)}
- GWU.lz=GWU.zln;GWU.stamp++;GWU.zln=0;GWU.labn=0;
+ GWU.lz=GWU.zln;GWU.stamp++;GWU.zln=0;GWU.labn=0;GWU.dhn=0;GWU.krn=0;
  pfAdd('gwm',t0);
 }
 if(typeof window!=='undefined')window.__glw=()=>({ok:GWU.ok,zo:GWU.zo,stamp:GWU.stamp,

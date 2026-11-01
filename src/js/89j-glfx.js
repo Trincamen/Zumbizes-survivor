@@ -9,7 +9,8 @@
 // nada alocado por quadro; as contagens são publicadas no glFxEnd() (glRenderNow, 88-gl.js).
 // Deslocamento de TELA (dx,dy em px de mundo, dy>0 = para BAIXO) vira altura `hp - dy/GLSIN`, porque na câmera
 // 3D a altura h de um ponto sobe a tela h*sin(55°)*ZO — mesma conta do 89f-glitens.js.
-// Qualidade: GQ.fx (0 = volta o efeito 2D) e GQ.fxP (fração de partículas/chamas/fumaça; 1 = tudo).
+// Qualidade: GQ.fxP (fração de partículas/chamas/fumaça; 1 = tudo). M7a: o canvas 2D fica OCULTO na partida,
+// então NÃO existe mais fallback 2D dos efeitos — eles são sempre 3D com glLive (GQ.fx não desliga mais).
 const FX_MAX=1500,FX_BMAX=120,FX_KY=GLSIN*GLSIN+GLCOS;
 const FXPK={2:[46,14,26],11:[22,22,20],12:[8,26,8],13:[22,6,16],0:[20,10,14]};
 const FXPC={2:'#2a3040',11:'#2d5a27',12:'#6a4a2a',13:'#b8843a'};
@@ -215,7 +216,7 @@ function fxTexts(t){
   for(let k=0;k<3;k++)fxDom(x+42,y-52-k*15-u*26,labs[k][0],labs[k][1],12,al)}}
 // ---------- ganchos ----------
 function glFxFrame(s,t,dtf){
- if(!glLive||!GQ.fx||!GLW)return 0;
+ if(!glLive||!GLW)return 0;
  if(!fxInit())return 0;
  const t0=performance.now();FX_FR++;
  FX_Q.copy(GLCAM.quaternion);
