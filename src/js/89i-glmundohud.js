@@ -47,9 +47,13 @@ function gwPl(pid){
  const rc=document.createElement('canvas');rc.className='gwC';rc.width=240;rc.height=96;
  rc.style.left='-40px';rc.style.top='-16px';rc.style.width='80px';rc.style.height='32px';
  o.i.appendChild(rc);o.rc=rc;o.rx=rc.getContext('2d');o.rk='';
- o.bb=gwD(o.i,'gwB',-18,-56*GWSIN,36,6);
- o.bf=gwD(o.bb,'gwBf',0,0,36,6);o.bf.style.background='#3e3';
- o.nm=gwT(o.i,14,0,-66*GWSIN);
+ // nome (com NÍVEL na frente) e barra de vida ficam ABAIXO dos pés, grandes e com contorno preto
+ o.bb=gwD(o.i,'gwB',-32,32*GWSIN,64,9);o.bb.style.background='rgba(0,0,0,.85)';o.bb.style.boxShadow='0 0 0 2px #000,0 1px 5px rgba(0,0,0,.9)';
+ o.bf=gwD(o.bb,'gwBf',0,0,64,9);o.bf.style.background='#3e3';o.bf.style.width='100%';
+ o.nm=gwT(o.i,17,0,22*GWSIN);o.nm.style.fontWeight='700';o.nm.style.letterSpacing='.5px';
+ o.nm.style.textShadow='-2px 0 #000,2px 0 #000,0 -2px #000,0 2px #000,-2px -2px #000,2px -2px #000,-2px 2px #000,2px 2px #000,0 0 6px #000';
+ o.nlv=document.createElement('span');o.nlv.style.color='#ff9a1a';o.nlv.style.marginRight='.4em';o.ntx=document.createTextNode('');
+ o.nm.appendChild(o.nlv);o.nm.appendChild(o.ntx);
  o.dv=gwT(o.i,14,0,-80*GWSIN);o.dv.textContent='▼';o.dv.style.color='#ff0';
  o.xm=gwT(o.i,24,0,-26*GWSIN);o.xm.textContent='X';o.xm.style.color='#ddd';
  o.cn=gwT(o.i,14,0,-48*GWSIN);o.cn.style.color='#bbb';
@@ -77,10 +81,11 @@ function gwPlayer(pid,x,y,o){
   return;
  }
  const nm=String(o.n||''),nc=o.self?'#ff0':'#fff';
- if(P.nmt!==nm){P.nmt=nm;P.nm.textContent=nm}
+ if(P.nmt!==nm){P.nmt=nm;P.ntx.nodeValue=nm}
+ const lvs=o.lv>0?'NV '+o.lv:'';if(P.nlt!==lvs){P.nlt=lvs;P.nlv.textContent=lvs}
  if(P.nmc!==nc){P.nmc=nc;P.nm.style.color=nc}
  const hf=o.mx>0?Math.max(0,Math.min(1,o.hp/o.mx)):0;
- if(P.hf!==hf){P.hf=hf;P.bf.style.width=(hf*100).toFixed(1)+'%'}
+ if(P.hf!==hf){P.hf=hf;P.bf.style.width=(hf*100).toFixed(1)+'%';P.bf.style.background=hf>.6?'#3e3':hf>.3?'#ec3':'#f33'}
  if(o.rlf>0){
   const p=1-o.rlf/100,rk=p.toFixed(3);
   if(P.rk!==rk){P.rk=rk;const g=P.rx;

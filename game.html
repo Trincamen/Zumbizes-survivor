@@ -7086,9 +7086,13 @@ function gwPl(pid){
  const rc=document.createElement('canvas');rc.className='gwC';rc.width=240;rc.height=96;
  rc.style.left='-40px';rc.style.top='-16px';rc.style.width='80px';rc.style.height='32px';
  o.i.appendChild(rc);o.rc=rc;o.rx=rc.getContext('2d');o.rk='';
- o.bb=gwD(o.i,'gwB',-18,-56*GWSIN,36,6);
- o.bf=gwD(o.bb,'gwBf',0,0,36,6);o.bf.style.background='#3e3';
- o.nm=gwT(o.i,14,0,-66*GWSIN);
+ // nome (com NÍVEL na frente) e barra de vida ficam ABAIXO dos pés, grandes e com contorno preto
+ o.bb=gwD(o.i,'gwB',-32,32*GWSIN,64,9);o.bb.style.background='rgba(0,0,0,.85)';o.bb.style.boxShadow='0 0 0 2px #000,0 1px 5px rgba(0,0,0,.9)';
+ o.bf=gwD(o.bb,'gwBf',0,0,64,9);o.bf.style.background='#3e3';o.bf.style.width='100%';
+ o.nm=gwT(o.i,17,0,22*GWSIN);o.nm.style.fontWeight='700';o.nm.style.letterSpacing='.5px';
+ o.nm.style.textShadow='-2px 0 #000,2px 0 #000,0 -2px #000,0 2px #000,-2px -2px #000,2px -2px #000,-2px 2px #000,2px 2px #000,0 0 6px #000';
+ o.nlv=document.createElement('span');o.nlv.style.color='#ff9a1a';o.nlv.style.marginRight='.4em';o.ntx=document.createTextNode('');
+ o.nm.appendChild(o.nlv);o.nm.appendChild(o.ntx);
  o.dv=gwT(o.i,14,0,-80*GWSIN);o.dv.textContent='▼';o.dv.style.color='#ff0';
  o.xm=gwT(o.i,24,0,-26*GWSIN);o.xm.textContent='X';o.xm.style.color='#ddd';
  o.cn=gwT(o.i,14,0,-48*GWSIN);o.cn.style.color='#bbb';
@@ -7116,10 +7120,11 @@ function gwPlayer(pid,x,y,o){
   return;
  }
  const nm=String(o.n||''),nc=o.self?'#ff0':'#fff';
- if(P.nmt!==nm){P.nmt=nm;P.nm.textContent=nm}
+ if(P.nmt!==nm){P.nmt=nm;P.ntx.nodeValue=nm}
+ const lvs=o.lv>0?'NV '+o.lv:'';if(P.nlt!==lvs){P.nlt=lvs;P.nlv.textContent=lvs}
  if(P.nmc!==nc){P.nmc=nc;P.nm.style.color=nc}
  const hf=o.mx>0?Math.max(0,Math.min(1,o.hp/o.mx)):0;
- if(P.hf!==hf){P.hf=hf;P.bf.style.width=(hf*100).toFixed(1)+'%'}
+ if(P.hf!==hf){P.hf=hf;P.bf.style.width=(hf*100).toFixed(1)+'%';P.bf.style.background=hf>.6?'#3e3':hf>.3?'#ec3':'#f33'}
  if(o.rlf>0){
   const p=1-o.rlf/100,rk=p.toFixed(3);
   if(P.rk!==rk){P.rk=rk;const g=P.rx;
@@ -8229,14 +8234,14 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!(glLive&&(o.t==5||o.t==1||o.t==2
     else{ell(x,y,53+Math.sin(t/150)*5,18,bs==5?'rgba(255,220,60,.28)':'rgba(190,10,30,.4)');drawBoss(x,y,{t,fa:fz/10,bs,arm:(e[8]|0)/100});if(bs==5)stars(x,y,t);if(em>0)bushFront(x,y,em);bar(x-40,y-190,80,h/100,'#c0152a');X.textAlign='center';X.textBaseline='middle';X.font='bold 20px Dracutaz,sans-serif';X.lineWidth=4;X.strokeStyle='#000';X.strokeText('KRAID',x,y-206);X.fillStyle='#ff4a4a';X.fillText('KRAID',x,y-206);txt(bs==5?'ATORDOADO '+st5.toFixed(1)+'s':'BOSS',x,y-222,12,bs==5?'#ffe45a':'#d9a0a0')}}
    else{if(glLive)glZumbiPush(x,y,k,vv,fz/10,e[6],t,s);else zumbiSpr(X,x,y,k,vv,fz/10,e[6],t,s);const bs_=k==2?1.5:k==1?.9:1;
     if(h<100||k==2){if(glLive)gwZBar(x,y,k,h);else bar(x-14*bs_,y-(ZH*bs_+6),28*bs_,h/100,'#e33')}}}
-  else{const[pid,n,c,,,hp,mx,dead,cw]=e,x=r.x,y=r.y,hh=pid.charCodeAt(0)%3,rlf=e[22]|0;
+  else{const[pid,n,c,,,hp,mx,dead,cw,lv_]=e,x=r.x,y=r.y,hh=pid.charCodeAt(0)%3,rlf=e[22]|0;
    if(dead){if(!glLive)ell(x,y,20,9,'rgba(0,0,0,.4)');(glLive?drawPlayerGL:drawPlayer)(x,y,{k:pid,fa:e[17]/10,aim:null,c:c,gun:'#222',ring:null,shot:0,dead:true,t:t,w:cw});
     if(glLive)gwPlayer(pid,x,y,{dead:1,c:c,n:n});
     else{txt('X',x,y-26,24,'#ddd');ell(x,y,34,14,c,1);txt(n+' (caído)',x,y-48,14,'#bbb')}}
    else{if(pid==id&&IL.length){const L=[];
      for(const[qx,qy,qk]of IL){const dd=Math.hypot(qx-x,qy-y);if(dd<220)L.push([Math.atan2((qy-y)/13,(qx-x)/34),dd,qk])}
      if(L.length){L.sort((u,v)=>u[1]-v[1]);L.length=Math.min(3,L.length);arc=[x,y,L[0][0],L[0][1],L[0][2],L]}}
-    if(glLive)gwPlayer(pid,x,y,{dead:0,hp:hp,mx:mx,c:c,n:n,self:pid==id,rlf:rlf,buff:e[30]|0});
+    if(glLive)gwPlayer(pid,x,y,{dead:0,lv:lv_,hp:hp,mx:mx,c:c,n:n,self:pid==id,rlf:rlf,buff:e[30]|0});
     else{if((e[30]|0)>0)ell(x,y,30+Math.sin(t/160)*2,11,'rgba(80,170,255,.6)',1);if(rlf>0)reloadRing(x,y,rlf)}
     (glLive?drawPlayerGL:drawPlayer)(x,y,{k:pid,fa:e[17]/10,aim:e[25]>0?e[24]/10:null,c:c,gun:WC[cw],ring:c,shot:LSH[pid]||0,dead:false,fast:(e[21]|0)>0||(e[30]|0)>0,t:t,w:cw});
     if(!glLive){bar(x-18,y-56,36,hp/mx,'#3e3');txt(n,x,y-66,14,pid==id?'#ff0':'#fff');if(pid==id)txt('▼',x,y-80,14,'#ff0');if(rlf>0)reloadPill(x,y,rlf,t,e[27]|0,e[28]|0,e[29]|0,pid==id)}else if(rlf>0||(RLH[pid]||0)>Date.now())gwPill(x,y,rlf,t,e[27]|0,e[28]|0,e[29]|0,pid==id,pid,e[32]|0)}}}
