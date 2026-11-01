@@ -7087,9 +7087,9 @@ function gwPl(pid){
  rc.style.left='-40px';rc.style.top='-16px';rc.style.width='80px';rc.style.height='32px';
  o.i.appendChild(rc);o.rc=rc;o.rx=rc.getContext('2d');o.rk='';
  // nome (com NÍVEL na frente) e barra de vida ficam ABAIXO dos pés, grandes e com contorno preto
- o.bb=gwD(o.i,'gwB',-32,32*GWSIN,64,9);o.bb.style.background='rgba(0,0,0,.85)';o.bb.style.boxShadow='0 0 0 2px #000,0 1px 5px rgba(0,0,0,.9)';
- o.bf=gwD(o.bb,'gwBf',0,0,64,9);o.bf.style.background='#3e3';o.bf.style.width='100%';
- o.nm=gwT(o.i,17,0,22*GWSIN);o.nm.style.fontWeight='700';o.nm.style.letterSpacing='.5px';
+ o.bb=gwD(o.i,'gwB',-27,30*GWSIN,54,8);o.bb.style.background='rgba(0,0,0,.85)';o.bb.style.boxShadow='0 0 0 2px #000,0 1px 5px rgba(0,0,0,.9)';
+ o.bf=gwD(o.bb,'gwBf',0,0,54,8);o.bf.style.background='#3e3';o.bf.style.width='100%';
+ o.nm=gwT(o.i,14.5,0,21*GWSIN);o.nm.style.fontWeight='700';o.nm.style.letterSpacing='.5px';
  o.nm.style.textShadow='-2px 0 #000,2px 0 #000,0 -2px #000,0 2px #000,-2px -2px #000,2px -2px #000,-2px 2px #000,2px 2px #000,0 0 6px #000';
  o.nlv=document.createElement('span');o.nlv.style.color='#ff9a1a';o.nlv.style.marginRight='.4em';o.ntx=document.createTextNode('');
  o.nm.appendChild(o.nlv);o.nm.appendChild(o.ntx);
@@ -7112,7 +7112,7 @@ function gwPlayer(pid,x,y,o){
   P.sh.style.left=(-w/2)+'px';P.sh.style.top=(-h/2)+'px';P.sh.style.width=w+'px';P.sh.style.height=h+'px';
   P.bl.style.left=(-bw/2)+'px';P.bl.style.top=(-bh/2)+'px';P.bl.style.width=bw+'px';P.bl.style.height=bh+'px'}
  gwDisp(P.sh,1);gwDisp(P.bl,d);gwDisp(P.xm,d);gwDisp(P.cn,d);
- gwDisp(P.bb,!d);gwDisp(P.nm,!d);gwDisp(P.dv,!d&&!!o.self);gwDisp(P.buf,!d&&o.buff>0);
+ gwDisp(P.bb,!d);gwDisp(P.nm,!d);gwDisp(P.dv,0);gwDisp(P.buf,!d&&o.buff>0);
  gwDisp(P.rc,!d&&o.rlf>0);
  if(P.blc!==o.c){P.blc=o.c;P.bl.style.border='3px solid '+o.c}
   if(d){
