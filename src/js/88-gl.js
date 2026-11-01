@@ -88,6 +88,7 @@ function glFrame(){
  if(typeof glJogFrame=='function')glJogFrame(); // 89d-gljogador.js: novo token; esconde quem nao for desenhado
  if(typeof glZumbiFrame=='function')glZumbiFrame(); // 89e-glzumbis.js: zera as instancias do quadro
  if(typeof glItemFrame=='function')glItemFrame(); // 89f-glitens.js: zera as instancias dos itens do quadro
+ if(typeof glBossFrame==='function')glBossFrame(); // 89h-glboss.js: esconde o boss (so o push do quadro o mostra)
 }
 // 1c: o render do quadro e ADIADO para o fim de draw() (90-sons.js) porque o jogador 3D so recebe a pose
 // DEPOIS de glFrame (drawPlayerGL roda na lista D do 2D). Assim pose, camera e chao sao do mesmo quadro.
@@ -96,6 +97,7 @@ function glRenderNow(){
  if(typeof glJogEnd=='function')glJogEnd(); // esconde os jogadores nao desenhados neste quadro
  if(typeof glZumbiEnd=='function')glZumbiEnd(); // 89e-glzumbis.js: publica as instancias do quadro
  if(typeof glItemEnd=='function')glItemEnd(); // 89f-glitens.js: publica as instancias dos itens do quadro
+ if(typeof glBossEnd==='function')glBossEnd(); // 89h-glboss.js: fecha o boss do quadro
  GLR.render(GLSCN,GLCAM);
 }
 if(glOn)glInit();
