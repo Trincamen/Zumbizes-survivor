@@ -1,3 +1,15 @@
+# TAREFA_atual.md — EXECUTAR AGORA: M3 (entrada de toque/mouse + joystick + dica em DOM, só com `glLive`)
+
+> Testes: SÓ Chrome (`tools/teste/lib.py`). Edite `src/`, rode `node build.js` e `node build.js --check`. NÃO mexer em `server.js`, Dockerfile, workflows, `package*.json`, host. Sem `glLive` tudo continua EXATAMENTE como hoje (2D). Se travar 2×, pare e reporte.
+> **Problema:** os handlers de ponteiro estão em `C` (`#c`, canvas 2D) em `src/js/50-cliente.js:36,40,42,44` (`C.onpointerdown/move/up/cancel`, `C.setPointerCapture`). Com `?c2d=0` (e no M7, sem canvas 2D) `#c` vira 1×1 e o jogo para de receber cliques/toques. Além disso `drawJoy()` (`50-cliente.js:55`) desenha joystick e a dica "Use W A S D…" no canvas 2D.
+> **Fazer:**
+> 1. Novo `<div id=inp>` em `src/index.html` (e CSS em `style.css`): `position:fixed;inset:0;z-index:` acima de `#glc`/`#c` e ABAIXO dos elementos DOM clicáveis do HUD/menu (conferir `z-index` de `#wb`, `#opt`, `#opp`, `#menu`, `#glh`; `touch-action:none`), `display:none` por padrão; com `glLive` fica `display:block` e `#c` ganha `pointer-events:none`.
+> 2. Os handlers viram funções nomeadas (`onPD,onPM,onPU`) atribuídas a `C` E a `$('inp')` (mesmo código, mesma lógica de `s2w`/joystick/arrastar-slot). `C.setPointerCapture` → `e.currentTarget.setPointerCapture`. Nada mais muda na lógica.
+> 3. Joystick e dica em DOM (dentro de `#glh`, em `89g-glhud.js`, função `ghJoy()` chamada de `glHudFrame`): base (círculo `JR()` px, borda branca 3px a 55%, fundo 12%) e botão (raio `JR()*.42`, 45%) posicionados com `transform:translate` em px CSS (coordenadas de tela, NÃO usar `--hh`); dica com o mesmo texto/posição/opacidade de hoje. `drawJoy()` passa a retornar logo se `glLive`. Só mexe no DOM quando algo muda (`HG`).
+> 4. Mouse e toque devem continuar funcionando com `?gl=1` e com `?gl=1&c2d=0`: clique no chão move (`ctl=='tap'`/auto), clique em zumbi ataca, arrastar slot da barra para fora solta item, joystick na metade de baixo, WASD.
+> **Pronto quando:** (a) build `--check` e `node --check` ok; (b) em Chrome headless `?gl=1&c2d=0` + `solo()`: dispare via CDP `Input.dispatchMouseEvent` um clique em ponto livre do chão e confirme que o alvo `snap`/posição do jogador muda (ou que `send({t:'i'...})` é chamado); simule `pointerdown`+`pointermove` na metade de baixo com `pointerType:'touch'` e confirme `joy` não nulo, `#gjoy` visível e, ao soltar, `joy==null` e `pushMove` chamado; (c) `window.__err` vazio; print do joystick ativo e da dica; (d) sem `glLive` (`game.html` sem `?gl=1`) nada mudou; (e) devolva ≤8 linhas: arquivos, `git diff --stat`, resultados (a)–(d), caminho dos prints.
+> Estado do restante (M4–M7) em `RETOMADA.md`. Regra do usuário (2026-11-01): onde migrar para DOM/3D não compensar, MANTER em 2D e avisar no relatório em vez de forçar.
+
 # TAREFA_atual.md — EXECUTAR AGORA: M2 (minimapa em DOM, só no modo `glLive`)
 
 > Testes: SÓ Chrome (`tools/teste/lib.py`, Chrome headless; Firefox abandonado). Edite `src/`, rode `node build.js` e `node build.js --check`. NÃO mexer em `server.js`, Dockerfile, workflows, `package*.json`, simulação do host. Se um passo travar 2×, pare e reporte.
