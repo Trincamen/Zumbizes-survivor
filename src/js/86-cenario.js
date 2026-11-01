@@ -384,6 +384,21 @@ function genDecor(sd){
   // galões soltos na calçada
   if(ci%11==5){const xy=edge(bx,by,rnd()*4|0,q(40,340));add(xy[0],xy[1],11,0)}
  }
+ // ---------- obstáculos de RUA por semente: barricadas que FECHAM a rua (rua sem saída) e postes CAÍDOS atravessados ----------
+ {const rr=cenRng((sd^0x2f9be6c1)>>>0),qq=(m,n)=>m+rr()*(n-m);
+  const roadPt=()=>{if(rr()<.5){const k=1+(rr()*7|0),y=rr()<.5?qq(250,2250):qq(3750,5750);if(CEN_HV.some(h=>Math.abs(y-h*500)<170))return null;return{vert:1,x:k*500,y}}
+   const h=CEN_HV[rr()*CEN_HV.length|0],x=qq(250,3750);if(Math.abs(x-Math.round(x/500)*500)<170)return null;return{vert:0,x,y:h*500}};
+  const okp=(x,y,r)=>x>30&&y>30&&x<MW-30&&y<MH-30&&!inRiv(y)&&Math.hypot(x-2000,y-4500)>=330&&!blk(x,y,r)&&!out.some(d=>Math.abs(d.x-x)<46&&Math.abs(d.y-y)<46);
+  let nb=0,np=0;
+  for(let t=0;t<60&&(nb<5||np<7);t++){const p=roadPt();if(!p)continue;
+   if(nb<5&&rr()<.45){
+    const pcs=p.vert?[[p.x-32,p.y,20,0],[p.x+32,p.y,20,0],[p.x-14,p.y+34,19,0],[p.x+16,p.y+36,24,0],[p.x,p.y-34,25,0]]:[[p.x,p.y-32,20,1],[p.x,p.y+32,20,1],[p.x+34,p.y-14,19,0],[p.x+36,p.y+16,24,0],[p.x-34,p.y,25,0]];
+    if(!pcs.every(c=>okp(c[0],c[1],10)))continue;
+    for(const c of pcs)out.push({x:Math.round(c[0]),y:Math.round(c[1]),s:c[2],f:0,r:c[3]});nb++}
+   else if(np<7){
+    const o=qq(-18,18),bx=p.vert?p.x-47+o:p.x+o,by=p.vert?p.y+o:p.y-47+o,pr=p.vert?0:3;
+    if(!okp(bx,by,8)||!okp(bx+(p.vert?47:0),by+(p.vert?0:47),8))continue;
+    out.push({x:Math.round(bx),y:Math.round(by),s:9,f:0,r:pr,v:1});np++}}}
  console.log('DECOR',out.length);return out;
 }
 // ---------- COLISÃO dos props de decoração (t:7) ----------
@@ -392,7 +407,10 @@ function genDecor(sd){
 const CEN_COL={5:[14,14],6:[48,48],7:[73,73],8:[14,14],9:[14,14],10:[14,14],14:[30,30],15:[130,54],16:[80,22],17:[25,25],18:[90,47],20:[90,26],21:[14,14],22:[14,14],23:[18,18],24:[24,24],25:[60,35],26:[100,10]};
 function decorObs(){
  let n=0;
- for(const d of DECOR){const c=CEN_COL[d.s];if(!c)continue;const odd=CEN_ORI[d.s]&&(d.r&1);
+ for(const d of DECOR){
+  if(d.v){const L=95,t=10,r=d.r&3,bx=r==0?d.x:r==2?d.x-L:d.x-t/2,by=r==1?d.y-L:r==3?d.y:d.y-t/2;
+   O.push({t:7,x:bx,y:by,w:r&1?t:L,h:r&1?L:t,i:O.length});n++;continue} // poste caído: collider longo e fino
+  const c=CEN_COL[d.s];if(!c)continue;const odd=CEN_ORI[d.s]&&(d.r&1);
   const w=odd?c[1]:c[0],h=odd?c[0]:c[1],x=d.x-w/2,y=d.y-h;
   if(x<8||y<8||x+w>MW-8||y+h>MH-8)continue;
   let bad=0,X0=x,Y0=y,X1=x+w,Y1=y+h;

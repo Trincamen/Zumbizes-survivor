@@ -110,7 +110,7 @@ function gpBuild(sn){
  // 1) DECOR (pe do objeto no ponto)
  for(const d of DECOR){
   const t=d.s|0;if(t<0||t>=CENGLB.length||!GPR.geo[t])continue;
-  lst[t].push({x:d.x,z:d.y,y:gpH(d.x,d.y),yaw:CEN_ORI[t]?d.r*Math.PI/2:.6,fl:d.f?1:0,px:GPR.pxm[t],oi:-1});
+  lst[t].push({x:d.x,z:d.y,y:gpH(d.x,d.y)+(d.v?3:0),yaw:CEN_ORI[t]||d.v?d.r*Math.PI/2:.6,fl:d.f?1:0,px:d.v?GPR.pxm[t]*.45:GPR.pxm[t],v:d.v?1:0,oi:-1});
  }
  // 2) árvores/carros/caixas de O (t:1/2/3) — posição/giro idênticos ao obst/vehDraw 2D
  for(const o of O){
@@ -135,7 +135,7 @@ function gpBuild(sn){
   const im=new THREE.InstancedMesh(GPR.geo[t],gpMat(),a.length);
   im.frustumCulled=false;im.matrixAutoUpdate=false;
   for(let k=0;k<a.length;k++){const e=a[k];e.k=k;e.hid=0;e.m=im;
-   q.setFromAxisAngle(Y,e.yaw);
+   q.setFromAxisAngle(Y,e.yaw);if(e.v)q.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),-Math.PI/2)); // poste caído: deitado
    m.compose(p.set(e.x,e.y,e.z),q,s.set(e.fl?-e.px:e.px,e.px,e.px));
    im.setMatrixAt(k,m)}
   im.instanceMatrix.needsUpdate=true;GLW.add(im);
