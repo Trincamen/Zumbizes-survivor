@@ -1,3 +1,16 @@
+# TAREFA_atual.md — EXECUTAR AGORA: M2 (minimapa em DOM, só no modo `glLive`)
+
+> Testes: SÓ Chrome (`tools/teste/lib.py`, Chrome headless; Firefox abandonado). Edite `src/`, rode `node build.js` e `node build.js --check`. NÃO mexer em `server.js`, Dockerfile, workflows, `package*.json`, simulação do host. Se um passo travar 2×, pare e reporte.
+> **Objetivo:** com `glLive`, o minimapa deixa de ser desenhado no canvas 2D `#c` (`src/js/90-sons.js` ~linhas 519–600, bloco entre `X.fillStyle='#0f140f';X.fillRect(mx0,10,MMW,MMH)` e o `X.restore();if(glLive)glHudFrame(s)`). Sem `glLive` o código 2D fica EXATAMENTE como está (fallback; será apagado só no M7).
+> **Desenho (visual idêntico ao de hoje, mesma posição: canto sup. direito, `MMW=170` css px × `hkF()`/escala do HUD como o resto do HUD DOM em `89g-glhud.js`):**
+> 1. Camada estática: o canvas `MMCV` que `mmBuild(MMW,f)` já gera (cache `MMCK`) vira um `<canvas>`/`<img>` DOM dentro de `#glh` (criado em `ghInit()`), atualizado só quando a chave `MMCK` muda. Moldura (borda `#3a3226` 2px + cantos `#8a6f35`) em CSS.
+> 2. Rótulos HOSPITAL/POLÍCIA/MERCADO (cálculo anti-colisão `lbs/done` do código atual) como `<span>` DOM em pool, recalculados só quando `MMCK` muda (são estáticos). No celular (`MOB`) o ponto colorido com a inicial, como hoje.
+> 3. Camada dinâmica: UM `<canvas>` pequeno (tamanho `MMW×MMH` × DPR ≤2) sobreposto, limpo e redesenhado todo quadro com os mesmos desenhos de hoje (itens `IL` com `lighter`, zumbis `ZMM`, boss `s.Z` k==3 e `s.bp` pulsando, loja `s.sh`, jogadores `s.P` com anel/seta do local). Copiar a lógica do bloco atual trocando `X` por um contexto próprio (`MMX`) e coordenadas locais (`mx0→0`, `10→0`). Só `pointer-events:none`.
+> 4. Com `glLive` o bloco do minimapa em `draw()` é pulado (`if(!glLive){...}`); a chamada nova (`ghMini(s)` em `89g-glhud.js`, chamada de `glHudFrame(s)`) faz tudo. Deve respeitar `HG` (só mexe no DOM quando algo mudou: tamanho/posição/`MMCK`); o canvas dinâmico redesenha todo quadro mas só se o HUD estiver visível (`glHudShow`).
+> 5. Posição/tamanho respeitam o mesmo fator do resto do HUD (`--hh`/`--zo` já usados em `#glh`); o placar "ABATES" fica logo abaixo do minimapa como hoje (conferir que não sobrepõe).
+> **Pronto quando:** (a) `node build.js --check` ok e `node --check` do script; (b) sem `glLive` o `game.html` desenha o minimapa como antes (diff do bloco 2D vazio); (c) em Chrome `?gl=1` + `solo()`: print do canto sup. direito mostra o minimapa igual ao de antes (mapa, rótulos, ponto do jogador), `window.__err` vazio, e com `?gl=1&c2d=0` o minimapa continua aparecendo; (d) pegar o itens/zumbis: `t.ev` forçando `ZMM`/`IL` não gera erro; (e) devolva só: arquivos alterados, `git diff --stat`, resultado de (a)–(d) em ≤8 linhas, e o caminho do print.
+> Estado do restante (M3–M7) em `RETOMADA.md` → "PRÓXIMOS PASSOS".
+
 # TAREFA_atual.md — 3D real (WebGL), ETAPA 1: infraestrutura + chão/ruas/prédios/props + jogador
 
 > STATUS: MU2 commitada (WIP, sincronia pendente). **EXECUTAR AGORA: só a seção "Música MU2b — ajuste fino da sincronia"** (abaixo). Use o harness `tools/teste/lib.py` (README ali) para MEDIR você mesmo (sem prints). (Texto antigo da 1a:)
