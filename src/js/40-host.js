@@ -35,6 +35,7 @@ function skill(p,k){[()=>p.dd*=1.02,()=>p.sp*=1.05,()=>{p.mx*=1.25;p.hp=p.mx},()
 function hurt(z,d,p){if(z.hp<=0)return;z.hp-=d;if(z.k==3)z.h[p.id]=1;if(z.hp<=0)kill(z,p)}
 function cash(z){if(z.k==3){for(let i=0;i<6;i++)IT.push({x:z.x+R(-70,70),y:z.y+R(-70,70),k:8,v:80,ex:Date.now()+90000})}else{const c=[[.35,8],[.4,10],[1,30]][z.k];if(Math.random()<c[0])IT.push({x:z.x,y:z.y,k:8,v:c[1],ex:Date.now()+60000})}}
 const isW=k=>k==7||k==11||(k>=2&&k<=5),wiOf=k=>k==7?0:k==11?5:k-1,needsConf=(p,it)=>isW(it.k)&&p.sl.length>=6&&!p.sl.some(q=>q.c==wiOf(it.k));
+const MAGR=110;let MAGMV=0;
 function give(p,it){const cu=p.sl[p.cs];
  if(it.k==6){if(cu.l>=6)return 0;cu.l++;cu.a=magOf(cu.c,cu.l)}else if(it.k==8)p.money+=it.v;
  else if(it.k<2||it.k==9||it.k==10){if(p.sl.length>=6)return 0;p.sl.push({c:it.k==0?10:it.k==1?11:it.k==9?12:13,l:0})}
@@ -116,6 +117,10 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
     else{const ux=Math.cos(aim),uy=Math.sin(aim),off=(Math.random()<.5?-1:1)*R(26,55);ex=s.x-uy*off+ux*30;ey=s.y+ux*off+uy*30}
     FX.push([p.x|0,p.y|0,ex|0,ey|0,p.cw,++fid,p.id,hit?1:0])}
    for(let i=IT.length-1;i>=0;i--){const it=IT[i];if(Math.hypot(it.x-p.x,it.y-p.y)>50||it.nt>Date.now())continue;if(needsConf(p,it)){if(p.skip!==it&&(!p.of||p.of.it!==it))p.of={it};continue}if(give(p,it))IT.splice(i,1)}
+   // ÍMÃ leve: itens que o jogador PODE pegar, dentro de MAGR px, deslizam até ele (mais rápido quanto mais perto)
+   {const cu_=p.sl[p.cs];for(const it of IT){if(it.nt>Date.now())continue;const dx=p.x-it.x,dy=p.y-it.y,d=Math.hypot(dx,dy);if(d>=MAGR||d<=30)continue;
+     const k=it.k;if((k<2||k==9||k==10)&&p.sl.length>=6)continue;if(k==6&&(!cu_||cu_.l>=6))continue;
+     const m=Math.min((70+(1-d/MAGR)*170)*dt,d-28),nx=it.x+dx/d*m,ny=it.y+dy/d*m;if(!blk(nx,ny,6)){it.x=nx;it.y=ny;MAGMV=1}}}
    if(p.of&&(IT.indexOf(p.of.it)<0||Math.hypot(p.of.it.x-p.x,p.of.it.y-p.y)>45))p.of=null;if(p.skip&&(IT.indexOf(p.skip)<0||Math.hypot(p.skip.x-p.x,p.skip.y-p.y)>90))p.skip=null}
   for(const z of Z){if(z.hp<=0)continue;if(z.k==3&&bossAct(z,dt,all))continue;let n=null,bd=1e9;for(const p of all){if(p.dead)continue;const d=Math.hypot(p.x-z.x,p.y-z.y);if(d<bd){bd=d;n=p}}
    if(!n)break;if(bd>z.r+12||!los(z,n))pathTo(z,'z'+n.id,n.x,n.y,z.s*dt,z.k==3?16:z.r*.7);else{z.fa=Math.atan2(n.y-z.y,n.x-z.x);n.hp-=z.d*dt;if(n.hp<=0){n.hp=0;n.dead=1;n.tz=null}}}
@@ -126,7 +131,7 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
   Z=Z.filter(z=>z.hp>0)}
  const base={t:'S',ph,gt:gt|0,bn,sd,left:Z.length,sh:shopOn?[shopX|0,shopY|0,shopT|0]:0,bp:bossPend?[bossPend.x|0,bossPend.y|0,Math.ceil(Math.max(0,bossPend.t)),+Math.max(0,bossPend.t).toFixed(3)]:0,F:FX,K:RK.map(r=>[r.x|0,r.y|0,r.t<r.dur?r.t/r.dur:1+(r.t-r.dur)/.4]),Pj:PJ.map(j=>[j.k,j.c,j.x|0,j.y|0,j.h|0,j.rot*100|0]),EV,Dh:Z.filter(z=>z.dash).map(z=>[z.dash.x0|0,z.dash.y0|0,z.dash.a*100|0,750,z.dash.t]),
   P:all.map(p=>[p.id,p.n,p.c,p.x|0,p.y|0,p.hp|0,p.mx|0,p.dead,p.cw,p.lv,p.xp|0,need(p.lv),p.sl.filter(q=>q.c==11).length,p.o,p.sl.map(q=>[q.c,q.l,q.a]),p.sl[p.cs].l,p.cs,p.fa*10|0,p.k,p.money|0,p.da,Math.ceil(Math.max(0,p.bt)),p.rl>0?p.rl/(p.rlt||RT[p.cw])*100|0:0,p.of?[wiOf(p.of.it.k),p.of.it.l||0,p.sl[p.cs].c,p.sl[p.cs].l]:0,p.aim*10|0,(p.ls&&Date.now()-p.ls<450)?(p.bkf>.4?2:1):0,p.tz&&p.tz.hp>0?p.tz.i:0,p.rl>0&&p.rz?p.rz[0]*100|0:0,p.rl>0&&p.rz?p.rz[1]*100|0:0,p.arF?1:0,Math.ceil(Math.max(0,p.bDm||0,p.bCd||0,p.bSp||0)),Math.ceil(Math.max(0,p.arD||0)*10),Math.round((p.rlt||0)*1000),Math.ceil(Math.max(0,p.bDm||0)*10),Math.ceil(Math.max(0,p.bCd||0)*10),Math.ceil(Math.max(0,p.bSp||0)*10)])};
- if(tick%6==0){base.I=IT.map(i=>[i.x|0,i.y|0,i.k,i.v|0]);base.ZM=Z.map(z=>[z.x/30|0,z.y/30|0,z.k]);base.DS=DEADL.map(o=>o.i)}
+ if(tick%6==0||(MAGMV&&tick%2==0)){MAGMV=0;base.I=IT.map(i=>[i.x|0,i.y|0,i.k,i.v|0]);base.ZM=Z.map(z=>[z.x/30|0,z.y/30|0,z.k]);base.DS=DEADL.map(o=>o.i)}
  const zA=Z.map(z=>[z.x|0,z.y|0,z.k,z.hp/z.mx*100|0,z.v,z.fa*10|0,z.i].concat(z.k==3?[z.bs|0,z.arm*100|0,Math.ceil(Math.max(0,z.stun||0)*10),Math.ceil(Math.max(0,z.em||0)*10)]:[]));
  onSnap(Object.assign({},base,{Z:zA}));
  if(ws&&ws.bufferedAmount<3e6)for(const q of all)if(q.id!=id)ws.send('@'+q.id+'|'+JSON.stringify(Object.assign({},base,{Z:zA.filter(z=>z[2]==3||Math.abs(z[0]-q.x)<1500&&Math.abs(z[1]-q.y)<950)})));
