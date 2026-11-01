@@ -134,7 +134,7 @@ function gwBoss(x,y,o,t){
  gwPut(B,x,y);
  // altura de MUNDO do modelo 3D (89h) para o HUD ficar sempre acima da cabeça, em qualquer janela
  let bh=210;
- try{if(typeof BGR!=='undefined'&&BGR&&BGR.msh&&BGR.h>0&&BGR.S>0)bh=BGR.h*BGR.S}catch(e){}
+ try{if(typeof BGR!=='undefined'&&BGR&&BGR.msh&&BGR.h>0&&BGR.S>0)bh=BGR.h*BGR.S+24}catch(e){}
  const bhq=bh.toFixed(1);
  if(B.bo!==bhq){B.bo=bhq;
   B.bb.style.top=(-(bh+22)*GWSIN)+'px';

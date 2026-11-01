@@ -11,7 +11,7 @@
 // altura de tela do drawBoss 2D (~285 px).
 // O RENDER é adiado como nos zumbis: glBossFrame() (no glFrame) esconde o modelo, o laço de draw() empurra
 // (só se o boss passou no cull v()) e o render acontece em glRenderNow().
-const BGLB='@@GLB:assets/zumbis/zumbi_boss.glb@@';
+const BGLB='@@GLB:assets/zumbis/zumbi_boss_v4.glb@@';
 // estado do host (bs) → clipe do GLB. `ms` = duração de UMA volta do clipe em ms (fácil de editar).
 // bs: 0 anda · 1/2 agarrando (attack) · 3 prepara investida (roar) · 4 investida (walk acelerado)
 //     5 atordoado (idle + corpo girando/cabeça bamba, como o 2D) · 6 emergindo (roar, sobe do chão por `em`)
@@ -76,7 +76,7 @@ function bgBuild(){
 function bgRec(){
  if(BGR!==undefined)return BGR;
  BGR=bgBuild();
- if(!BGR&&!BG_WARN){BG_WARN=1;console.warn('glboss: falha ao carregar zumbi_boss.glb; fica no 2D')}
+ if(!BGR&&!BG_WARN){BG_WARN=1;console.warn('glboss: falha ao carregar zumbi_boss_v4.glb; fica no 2D')}
  return BGR;
 }
 // por quadro (chamado no glFrame): esconde o modelo; só o glBossPush do quadro o mostra

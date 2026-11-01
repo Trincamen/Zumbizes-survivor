@@ -13,16 +13,16 @@ function zParse(b64){
  for(let i=0;i<NN;i++){const nd=j.nodes[i];CH[i]=nd.children||[];const tr=nd.translation||[0,0,0],ro=nd.rotation||[0,0,0,1];
   RT[i*3]=tr[0];RT[i*3+1]=tr[1];RT[i*3+2]=tr[2];RR[i*4]=ro[0];RR[i*4+1]=ro[1];RR[i*4+2]=ro[2];RR[i*4+3]=ro[3]}
  for(let i=0;i<NN;i++)for(const c of CH[i])PAR[c]=i;
- const ORD=[],qu=[0],seen=new Uint8Array(NN);
+ const ORD=[],qu=[],seen=new Uint8Array(NN);for(let i=0;i<NN;i++)if(PAR[i]<0)qu.push(i); // raiz = nós sem pai (no boss v4 a raiz é o último nó)
  while(qu.length){const i=qu.shift();if(seen[i])continue;seen[i]=1;ORD.push(i);for(const c of CH[i])qu.push(c)}
  for(let i=0;i<NN;i++)if(!seen[i]){seen[i]=1;ORD.push(i)}
  const GEO=new Array(NN).fill(null);let TOT=0;
  for(let i=0;i<NN;i++){const nd=j.nodes[i];if(nd.mesh==null)continue;
   const pr=j.meshes[nd.mesh].primitives[0],P=acc(pr.attributes.POSITION),C=pr.attributes.COLOR_0!=null?acc(pr.attributes.COLOR_0):null,ID=acc(pr.indices),nt=ID.length/3|0,TP=new Float32Array(nt*9),TC=new Uint8Array(nt*3);
-  const cs=(C&&C.length&&C[0]<=1)?255:1;
+  const cs=(C&&C.length&&C[0]<=1)?255:1,cn=C?Math.round(C.length/(P.length/3)):4; // cn = componentes da cor (4 RGBA no boss antigo, 3 RGB float no v4)
   for(let f=0;f<nt;f++){let r=0,g=0,bb=0;
    for(let k=0;k<3;k++){const vi=ID[f*3+k]|0;TP[f*9+k*3]=P[vi*3];TP[f*9+k*3+1]=P[vi*3+1];TP[f*9+k*3+2]=P[vi*3+2];
-    r+=C?C[vi*4]*cs:200;g+=C?C[vi*4+1]*cs:200;bb+=C?C[vi*4+2]*cs:200}
+    r+=C?C[vi*cn]*cs:200;g+=C?C[vi*cn+1]*cs:200;bb+=C?C[vi*cn+2]*cs:200}
    TC[f*3]=r/3|0;TC[f*3+1]=g/3|0;TC[f*3+2]=bb/3|0}
   GEO[i]={P:TP,C:TC,n:nt};TOT+=nt}
  const CLP={};
