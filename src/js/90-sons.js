@@ -16,15 +16,16 @@ function tn(f1,f2,d,ty,v,pan,vib,lpf){const c=AU.c;if(!c||c.state!='running')ret
  o.connect(lp);lp.connect(g);aOut(g,pan);o.start(t);o.stop(t+d+.05)}
 const SND={
  shot(w,v,p){if(!lim('s'+w,w==3?55:w==4?90:20))return;
+  if(w!=4&&smp('t'+w,v,p))return;
   if(w==0){nz(.14,'bandpass',2600,500,.55*v,p,.8);tn(190,60,.1,'square',.12*v,p)}
   else if(w==1){nz(.4,'lowpass',3500,180,.95*v,p);tn(110,35,.28,'sawtooth',.32*v,p)}
   else if(w==2){nz(.2,'bandpass',3200,400,.6*v,p,.7);tn(210,50,.12,'square',.14*v,p)}
   else if(w==3)nz(.08,'bandpass',2300,600,.38*v,p,.9);
-  else if(w==4)nz(.22,'bandpass',500,1500,.3*v,p,.6);
+  else if(w==4)flameSnd(v,p);
   else{nz(.8,'lowpass',5200,140,v,p);tn(95,28,.55,'sawtooth',.4*v,p)}},
  rlS(){nz(.05,'highpass',3000,3000,.4,0);tn(900,500,.06,'square',.1,0)},
  rlE(){nz(.07,'bandpass',1800,800,.55,0,1);tn(420,180,.09,'square',.16,0)},
- step(){nz(.08,'lowpass',520,140,.22,0)},
+ step(){if(smp('passo',.4,0))return;nz(.08,'lowpass',520,140,.22,0)},
  groan(k,v,p){if(!lim('g',120))return;const b=[100,150,58][k]||100,d=.6+Math.random()*.6,f=b*(.85+Math.random()*.3);tn(f*1.1,f*.7,d,'sawtooth',.2*v,p,5+Math.random()*3,k==2?300:700);nz(d*.8,'lowpass',500,200,.06*v,p)},
  roar(v,p){tn(62,34,1.6,'sawtooth',.55*v,p,7,500);tn(125,60,1.4,'square',.2*v,p,9,600);nz(1.4,'lowpass',900,120,.35*v,p)},
  dash(v,p){nz(.9,'bandpass',300,1800,.5*v,p,.7);tn(70,38,.9,'sawtooth',.3*v,p,0,300)},
@@ -38,6 +39,12 @@ const SND={
  car(v,p){nz(.5,'bandpass',900,200,.8*v,p,.8);tn(140,40,.4,'square',.3*v,p);nz(.3,'highpass',3000,2000,.3*v,p)},
  tree(v,p){nz(.3,'highpass',1500,700,.5*v,p);tn(300,90,.18,'sawtooth',.2*v,p)},
  crate(v,p){nz(.25,'bandpass',800,300,.5*v,p)},
+ fatBoom(v,p){if(!lim('fb',80))return;if(smp('gordo',Math.min(1.4,v*1.1),p))return;v=Math.min(1.2,v*1.3);
+  nz(.09,'highpass',4200,900,1.1*v,p,.7);                 // estalo seco do estouro
+  nz(.75,'lowpass',2600,160,1.5*v,p);                      // corpo da explosão
+  nz(1.2,'lowpass',520,55,1.3*v,p);                        // estrondo grave que some
+  tn(130,38,.28,'sine',.8*v,p);                            // pancada curta
+  for(let i=0;i<9;i++)setTimeout(()=>{nz(.11,'bandpass',700+Math.random()*1500,250,.5*v,p,2.5);if(i%2==0)tn(520+Math.random()*300,120,.09,'sine',.18*v,p)},90+i*55+Math.random()*70)}, // respingos de gosma
  bump(v,p){tn(70,22,.9,'sine',v,p);nz(.7,'lowpass',900,80,.9*v,p);[0,1,2].forEach(i=>setTimeout(()=>tn(1800+i*200,1800+i*200,.25,'sine',.1*v,0),500+i*220))},
  grab(v,p){tn(85,50,.55,'sawtooth',.4*v,p,6,400);nz(.4,'bandpass',500,250,.25*v,p)},
  throwW(v,p){nz(.55,'bandpass',300,1500,.45*v,p,.7);tn(120,60,.4,'sawtooth',.25*v,p,0,400)},
@@ -417,7 +424,7 @@ let FPSL=+(LS.get('fpslim')||60);if(!(FPSL>=0&&FPSL<=360))FPSL=60;
 let FPS_NF=0,FPS_DT=FPSL?1000/FPSL:0,FPSSHOW=LS.get('fpsshow')=='1',FPS_C=0,FPS_T0=0;
 // DRAW_MS = tempo de JS do draw() (CPU). Se o FPS está baixo e DRAW_MS é pequeno, o gargalo é GPU/compositor (não o código do jogo).
 let DRAW_MS=0;
-function fpsText(f){let s=Math.round(f)+' FPS · '+Math.round(GQ.scale*100)+'% · draw '+DRAW_MS.toFixed(1)+' ms';if(host&&STEP_MS>0)s+=' · sim '+STEP_MS.toFixed(1)+' ms (máx '+STEP_MAX.toFixed(1)+')';
+function fpsText(f){let s=Math.round(f)+' FPS · '+Math.round(GQ.scale*100)+'% · draw '+DRAW_MS.toFixed(1)+' ms';if(typeof GLLITE!=='undefined'&&GLLITE)s+=' · LITE';if(typeof PING!=='undefined'&&!host&&PING>=0)s+=' · ping '+PING+' ms';else if(host&&ws&&ws.readyState===1)s+=' · host';if(host&&STEP_MS>0)s+=' · sim '+STEP_MS.toFixed(1)+' ms (máx '+STEP_MAX.toFixed(1)+')';
  if(glLive)s+='\n'+(GL_SOFT?'WebGL por SOFTWARE (sem GPU) · ':'')+String(GL_GPU||'').slice(0,40);return s}
 function fpsUi(){for(const e of document.querySelectorAll('.fpsl'))e.value=String(FPSL);for(const e of document.querySelectorAll('.fpss'))e.checked=FPSSHOW;const b=$('fpsb');if(b)b.style.display=FPSSHOW?'block':'none'}
 function setFpsLim(v){FPSL=+v||0;FPS_DT=FPSL?1000/FPSL:0;FPS_NF=0;LS.set('fpslim',String(FPSL));fpsUi()}
@@ -501,9 +508,9 @@ const D=[];for(const o of O)if(o.t!=6&&o.t!=7&&!(glLive&&(o.t==5||o.t==1||o.t==2
      if(e.f){X.save();X.translate(2*e.x,0);X.scale(-1,1);cenDraw(X,sp,e.x,e.y);X.restore()}else cenDraw(X,sp,e.x,e.y)}}
   else if(ty==1){const[,,k,h,vv,fz]=e,x=r.x,y=r.y,ph_=t/(k==1?80:130)+x*.05;
    if(k==3){const bs=e[7]|0,st5=(e[9]|0)/10,em=(e[10]|0)/10;
-    if(glLive){glBossPush(x,y,fz/10,bs,(e[8]|0)/100,t,s,em);gwBoss(x,y,{bs:bs,st5:st5,em:em,h:h},t)}
+    if(glLive){glBossPush(x,y,fz/10,bs,(e[8]|0)/100,t,s,em,(e[11]|0)/100);gwBoss(x,y,{bs:bs,st5:st5,em:em,h:h},t)}
     else{ell(x,y,53+Math.sin(t/150)*5,18,bs==5?'rgba(255,220,60,.28)':'rgba(190,10,30,.4)');drawBoss(x,y,{t,fa:fz/10,bs,arm:(e[8]|0)/100});if(bs==5)stars(x,y,t);if(em>0)bushFront(x,y,em);bar(x-40,y-190,80,h/100,'#c0152a');X.textAlign='center';X.textBaseline='middle';X.font='bold 20px Dracutaz,sans-serif';X.lineWidth=4;X.strokeStyle='#000';X.strokeText('KRAID',x,y-206);X.fillStyle='#ff4a4a';X.fillText('KRAID',x,y-206);txt(bs==5?'ATORDOADO '+st5.toFixed(1)+'s':'BOSS',x,y-222,12,bs==5?'#ffe45a':'#d9a0a0')}}
-   else{if(glLive){if(k==4)glCacPush(x,y,fz/10,e[6],t,e);else glZumbiPush(x,y,k,vv,fz/10,e[6],t,s)}else zumbiSpr(X,x,y,k==4?0:k,vv,fz/10,e[6],t,s);const bs_=k==2?1.5:k==1?.9:1;
+   else{if(glLive){if(k==4)glCacPush(x,y,fz/10,e[6],t,e);else glZumbiPush(x,y,k,vv,fz/10,e[6],t,s,e[7])}else zumbiSpr(X,x,y,k==4?0:k,vv,fz/10,e[6],t,s);const bs_=k==2?1.5:k==1?.9:1;
     if(h<100||k==2){if(glLive)gwZBar(x,y,k,h);else bar(x-14*bs_,y-(ZH*bs_+6),28*bs_,h/100,'#e33')}}}
   else{const[pid,n,c,,,hp,mx,dead,cw,lv_]=e,x=r.x,y=r.y,hh=pid.charCodeAt(0)%3,rlf=e[22]|0;
    if(dead){if(!glLive)ell(x,y,20,9,'rgba(0,0,0,.4)');(glLive?drawPlayerGL:drawPlayer)(x,y,{k:pid,fa:e[17]/10,aim:null,c:c,gun:'#222',ring:null,shot:0,dead:true,t:t,w:cw});

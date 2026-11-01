@@ -14,6 +14,21 @@ function pathTo(e,key,tx,ty,st,r){const F=getF(key,tx,ty),a=Math.min(GW-1,Math.m
  if(!(d>=0&&d<=2)){let bd=d>=0?d:1e9,bk=-1;for(let k=0;k<8;k++){const nx=a+DX[k],ny=b+DY[k];if(nx<0||ny<0||nx>=GW||ny>=GH)continue;const dj=F[ny*GW+nx];if(dj<0||dj>=bd)continue;if(k>=4&&(GB[b*GW+nx]||GB[ny*GW+a]))continue;bd=dj;bk=k}
   if(bk>=0){gx=(a+DX[bk])*CS+CS/2;gy=(b+DY[bk])*CS+CS/2}}
  e.fa=Math.atan2(gy-e.y,gx-e.x);mvT(e,gx,gy,st,r)}
+// Perseguição dos zumbis comuns: mesmo campo de distância do pathTo, mas cada zumbi tem "personalidade" (z.wa/z.wf/z.wp/z.fl):
+// desvio lateral fixo (flanqueia de longe), ondulação senoidal do rumo e ~22% que vão retos. Perto do alvo o desvio some.
+function zChase(z,key,tx,ty,st,r){const F=getF(key,tx,ty),a=Math.min(GW-1,Math.max(0,z.x/CS|0)),b=Math.min(GH-1,Math.max(0,z.y/CS|0)),d=F[b*GW+a];let gx=tx,gy=ty;
+ if(!(d>=0&&d<=2)){let bd=d>=0?d:1e9,bk=-1;for(let k=0;k<8;k++){const nx=a+DX[k],ny=b+DY[k];if(nx<0||ny<0||nx>=GW||ny>=GH)continue;const dj=F[ny*GW+nx];if(dj<0||dj>=bd)continue;if(k>=4&&(GB[b*GW+nx]||GB[ny*GW+a]))continue;bd=dj;bk=k}
+  if(bk>=0){gx=(a+DX[bk])*CS+CS/2;gy=(b+DY[bk])*CS+CS/2}}
+ if(z.wa==null){z.wa=Math.random()<.22?0:.35+Math.random()*.6;z.wf=.8+Math.random()*1.3;z.wp=Math.random()*6.28;z.fl=z.wa?(Math.random()<.5?-1:1)*(.15+Math.random()*.45):0}
+ const de=Math.hypot(tx-z.x,ty-z.y),fk=Math.max(0,Math.min(1,(de-110)/320)),wk=Math.max(0,Math.min(1,(de-55)/200));
+ let dx=gx-z.x,dy=gy-z.y;const L=Math.hypot(dx,dy)||1,rot=z.fl*fk+z.wa*Math.sin(performance.now()/1000*z.wf+z.wp)*wk,c=Math.cos(rot),sn=Math.sin(rot);
+ const ux=(dx*c-dy*sn)/L,uy=(dx*sn+dy*c)/L,Lm=Math.max(L,CS);
+ z.fa=Math.atan2(uy,ux);mvT(z,z.x+ux*Lm,z.y+uy*Lm,st,r)}
+// afasta zumbis sobrepostos (grade espacial) para não andarem empilhados em fila
+function zSep(Z,dt){const G=new Map(),cs=48;for(const z of Z){if(z.hp<=0||z.k==3||z.k==4)continue;const k=(z.x/cs|0)*1000+(z.y/cs|0);let l=G.get(k);if(!l)G.set(k,l=[]);l.push(z)}
+ for(const l of G.values())for(const z of l){const cx=z.x/cs|0,cy=z.y/cs|0;let px=0,py=0;
+  for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++){const m=G.get((cx+i)*1000+(cy+j));if(!m)continue;for(const o of m){if(o===z)continue;const ddx=z.x-o.x,ddy=z.y-o.y,dd=Math.hypot(ddx,ddy)||.01,mn=(z.r+o.r)*1.05;if(dd<mn){const f=(mn-dd)/mn;px+=ddx/dd*f;py+=ddy/dd*f}}}
+  if(px||py){const sp=Math.min(1,Math.hypot(px,py)),k=70*dt*sp/(Math.hypot(px,py)||1),nx=z.x+px*k,ny=z.y+py*k;if(!blk(nx,z.y,z.r*.7))z.x=nx;if(!blk(z.x,ny,z.r*.7))z.y=ny}}}
 const hitW=(x,y)=>{if(x<0||y<0||x>=MW||y>=MH)return 1;const L=OB[(y/200|0)*20+(x/200|0)];if(L)for(const o of L)if(!o.dead&&o.t==5&&x>o.x&&x<o.x+o.w&&y>o.y&&y<o.y+o.h)return 1;return 0};
 function rayW(x,y,ux,uy,mx){for(let d=8;d<=mx;d+=8)if(hitW(x+ux*d,y+uy*d))return d;return mx}
 const clear=(a,b)=>{const d=Math.hypot(b.x-a.x,b.y-a.y)||1;return rayW(a.x,a.y,(b.x-a.x)/d,(b.y-a.y)/d,d)>=d};

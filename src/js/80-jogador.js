@@ -181,7 +181,7 @@ function objBreak(k,c,x,y,a,imp){const R_=Math.random,ca=Math.cos(a),sa=Math.sin
 function handleEv(e){const[t,oid,x,y,a,k,c]=e,ang=a/100,d=Math.hypot(x-cx,y-cy),v=Math.max(.15,1-d/1400),p=(x-cx)/600;
  if(t==0){DD[oid]=1;objBreak(k,c,x,y,ang,0);SND[k==2?'car':k==1?'tree':'crate'](v,p)}
  else if(t==5){objBreak(k,c,x,y,0,1);QK=Math.max(QK,.5*v)}
- else if(t==1){pts(26,x,y,'#999',320,260,10,1.4);pts(10,x,y,'#caa',260,380,6,1);QK=Math.max(QK,v);SND.bump(v,p)}
+ else if(t==1){pts(26,x,y,'#999',320,260,10,1.4);pts(10,x,y,'#caa',260,380,6,1);QK=Math.max(QK,v);SND.bump(v,p);smp('btromba',Math.min(1.4,v*1.2),p)}
  else if(t==3){DD[oid]=1;pts(6,x,y,'#8a7a5a',120,160,6,.7);SND.grab(v,p)}
  else if(t==4){delete DD[oid];POP[oid]=Date.now()}
  else if(t==8){RLH[c]=Date.now()+700;RLH0[c]=performance.now();ftext(x,y-70,'RECARGA PERFEITA!','#7fe3ff',17);pts(14,x,y-20,'#7fd0ff',220,260,5,.7);SND.perfect(c==id?1:.4)}

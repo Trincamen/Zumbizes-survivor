@@ -283,7 +283,10 @@ function glHudFrame(s){
  if(me&&bz)AR(bz[0],bz[1],0,'#f0f','');
  if(me&&s.sh)AR(s.sh[0],s.sh[1],1,'#fc3','LOJA');
  if(me&&s.bp)AR(s.bp[0],s.bp[1],2,'#f33','BOSS');
- if(!me){for(let i=0;i<3;i++)if(HG.av[i]!=='x'){HG.av[i]='x';E.av[i][0].style.opacity='0';E.av[i][1].style.opacity='0'}}
+ // seta sem alvo = escondida (antes a vermelha do boss pendente e a rosa do boss vivo ficavam presas na tela depois que o alvo sumia)
+ const AH=i=>{if(HG.av[i]!=='x'){HG.av[i]='x';E.av[i][0].style.opacity='0';E.av[i][1].style.opacity='0'}};
+ if(!(me&&bz))AH(0);if(!(me&&s.sh))AH(1);if(!(me&&s.bp))AH(2);
+
  // ---- F3: placar (bloco 15) ----
  const P=s.P||[];
  let key='';

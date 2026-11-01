@@ -8,7 +8,7 @@
 // como h*sin(GTLT)*ZO (o 2D usa h*ZO; os 18% de diferença de altura ficam para as sub-etapas 1b/1c).
 const glOn=!(/[?&]gl=0(?:&|$)/.test(location.search||'')||LS.get('gl')=='0'); // 3D é o PADRÃO (2026-11-01); ?gl=0 ou LS 'gl'=0 força o 2D legado (tag git legado-2d)
 const GTLT=55*Math.PI/180,GLCOS=Math.cos(GTLT),GLSIN=Math.sin(GTLT),GCAMR=30000;
-let GL_SOFT=0,GL_GPU='',GLR=null,GLSCN=null,GLCAM=null,GLW=null,GLCV=null,GLBAD=0,glLive=0;
+let GL_SOFT=0,GL_GPU='',GLR=null,GLMZ=null,GLHEMI=null,GLDIR=null,GLPL=[],GLSCN=null,GLCAM=null,GLW=null,GLCV=null,GLBAD=0,glLive=0;
 // MU2-3: tremor (QK) compartilhado — 90-sons.js calcula shx/shy ANTES de glFrame e a camera 3D usa o mesmo
 // deslocamento em px de mundo do canvas 2D (sem isso so a camada 2D tremia).
 let GL_SHX=0,GL_SHY=0;
@@ -79,8 +79,10 @@ function glInit(){
   gr.rotation.x=-Math.PI/2;gr.position.set(MW/2,0,MH/2);GLW.add(gr);
   // 1b-i (correção 5): luz NEUTRA para o chão 3D bater com o 2D — fator ≈1,0 em faces para cima
   // (hemi .8 com céu=chão branco + dir .2) e sem tingir; o tom frio vem do tint/vinheta 2D por cima. Sem sombra.
-  GLSCN.add(new THREE.HemisphereLight(0xffffff,0xffffff,.8));
-  const dl=new THREE.DirectionalLight(0xffffff,.2);dl.position.set(-.35,1,.55);GLSCN.add(dl);
+  GLHEMI=new THREE.HemisphereLight(0xffffff,0xffffff,.8);GLSCN.add(GLHEMI);
+  const dl=new THREE.DirectionalLight(0xffffff,.2);dl.position.set(-.35,1,.55);GLSCN.add(dl);GLDIR=dl;
+  GLMZ=new THREE.PointLight(0xffb060,0,320,1.5);GLW.add(GLMZ); // luz do disparo (89j-glfx.js)
+  GLPL=[];for(let i=0;i<4;i++){const L=new THREE.PointLight(0xffd29a,0,420,1.4);GLW.add(L);GLPL.push(L)} // luz dos postes (89m-gldia.js); intensidade 0 de dia
   cv.addEventListener('webglcontextlost',function(e){e.preventDefault();glKill()},false);
   glLive=1;
   // M3: clique/toque passam a ir para #inp (cobre a tela, z acima de #c; #c fica sem ponteiro)
@@ -100,6 +102,8 @@ function glFrame(){
  GLCAM.position.set(gx,GCAMR*GLCOS,cyS+GCAMR*GLSIN);
  GLCAM.lookAt(gx,0,cyS);
  GLCAM.updateMatrixWorld(true);
+ if(typeof glDiaFrame=='function')glDiaFrame(); // 89m-gldia.js: ciclo dia/tarde/noite + luz dos postes
+ if(typeof glMontFrame=='function')glMontFrame(); // 89p-glmontanhas.js: montanhas em volta do mapa
  if(typeof glMundoFrame=='function')glMundoFrame(); // 89-glmundo.js: chão/ruas/rio/quarteirões por chunk
  if(typeof glPropsFrame=='function')glPropsFrame(); // 89b-glprops.js: props/árvores/carros/caixas instanciados
  if(typeof glPrediosFrame=='function')glPrediosFrame(); // 89c-glpredios.js: prédios h/p/m e galpões 'W'
@@ -117,6 +121,7 @@ function glRenderNow(){
  if(typeof glItemEnd=='function')glItemEnd(); // 89f-glitens.js: publica as instancias dos itens do quadro
  if(typeof glBossEnd==='function')glBossEnd(); // 89h-glboss.js: fecha o boss do quadro
  if(typeof glFxEnd==='function')glFxEnd(); // 89j-glfx.js: publica as instâncias dos efeitos do quadro
- GLR.render(GLSCN,GLCAM);
+ if(typeof glLiteCheck=='function')glLiteCheck();
+ if(!(typeof glBloomRender=='function'&&glBloomRender()))GLR.render(GLSCN,GLCAM);
 }
 if(glOn)glInit();

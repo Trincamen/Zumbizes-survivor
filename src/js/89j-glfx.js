@@ -95,6 +95,7 @@ function fxBox(x,y,h,sx,sy,sz,ang,c){
  FX_M.compose(FX_P,FX_RT,FX_S);
  const i=FX_BXN++;FX_BX.setMatrixAt(i,FX_M);FX_BX.setColorAt(i,FX_C.setRGB(q[0],q[1],q[2]))}
 // ---------- (1) tiro: clarão, rastro, fagulhas, fumaça, cartucho e lança-chamas ----------
+let W4N={},W4S={},FX_MZB={i:0,x:0,h:0,y:0};
 function fxShot(q,now){
  const f=q.f,w=f[4];
  const age=(now-q.t)/1000;if(age<0)return;
@@ -105,46 +106,75 @@ function fxShot(q,now){
  if(f[6]===-1)hp=TUR_H; // torreta da Área Segura (telhado)
  const sx=wx,sy=wy-hp*GLSIN,ex=f[2],ey=f[3]-18;
  const L0=Math.hypot(ex-sx,ey-sy)||1,ux=(ex-sx)/L0,uy=(ey-sy)/L0,ua=Math.atan2(uy,ux),nx=-uy,ny=ux;
- if(w==4){ // lança-chamas: 28 bolhas ao longo do jato (mesma cor/tamanho do 2D)
-  const LL=L0+60,n=Math.max(4,Math.round(28*fxQ()));
-  for(let i=0;i<n;i++){const u=i/(n-1||1),j=Math.abs(Math.sin(i*12.9898+Math.floor(now/70)*78.233)*43758.5453)%1,
-   off=(j-.5)*u*52,r=5+u*20*(.6+j*.7),k=u*LL*(.9+j*.2),c=fxHsl(52-u*44,1,(58-u*14)/100),al=.8-u*.5;
-   fxBbS(wx,wy,hp,ux*k+nx*off,uy*k+ny*off-u*8,r,c[0]*al,c[1]*al,c[2]*al)}
+ if(w==4){ // lança-chamas: jato CONTÍNUO no plano do chão (só o evento mais novo de cada atirador; bolhas fluem do cano ao alvo)
+  const sh=f[6];if(q.t<(W4N[sh]||0))return;
+  const dx=f[2]-wx,dy=f[3]-wy,Lg=Math.hypot(dx,dy)||1,gx=dx/Lg,gy=dy/Lg,px=-gy,py=gx,LL=Lg+60,
+   env=Math.min(1,(now-(W4S[sh]||q.t))/80)*Math.min(1,Math.max(0,(q.t+q.life-now)/160));
+  if(env<=0)return;
+  const n=Math.max(6,Math.round(30*fxQ()));
+  for(let i=0;i<n;i++){const ph=(i/n+now/520)%1,cyc=Math.floor(i+now/520),j=Math.abs(Math.sin(i*12.9898+cyc*78.233)*43758.5453)%1,
+   u=ph,off=(j-.5)*u*52,r=5+u*20*(.6+j*.7),k=u*LL*(.9+j*.2),c=fxHsl(52-u*44,1,(58-u*14)/100),al=(.8-u*.5)*env*Math.min(1,u*8),
+   h=Math.max(10,hp*(1-u*.8)+u*14+(j-.5)*u*20);
+   fxBb(wx+gx*k+px*off,h,wy+gy*k+py*off,r,c[0]*al,c[1]*al,c[2]*al)}
   return}
- const mfd=w==5?.15:.11,mf=age<mfd?1-age/mfd:0,mr=[16,30,20,18,0,26][w]||16;
+ // gx/gy = direção NO CHÃO (do cano ao alvo); anéis de fumaça ficam no plano vertical perpendicular a ela (visíveis de cima)
+ const dgx=f[2]-wx,dgy=f[3]-wy,Lg=Math.hypot(dgx,dgy)||1,gx=dgx/Lg,gy=dgy/Lg,pgx=-gy,pgy=gx;
+ const big=w==1||w==5,mfd=w==5?.26:w==1?.2:.12,mf=age<mfd?1-age/mfd:0,mr=[18,36,22,19,0,44][w]||18;
+ // luz dinâmica do disparo (ilumina o entorno, sobretudo à noite): fica a mais forte do quadro
+ if(mf>0&&typeof FX_MZB!=='undefined'){const it=mf*(big?2.6:1.5);if(it>FX_MZB.i){FX_MZB.i=it;FX_MZB.x=wx;FX_MZB.h=hp+6;FX_MZB.y=wy}}
  if(mf>0){
-  fxBbS(wx,wy,hp,0,0,mr*1.6,.45*mf,.16*mf,.04*mf);      // halo laranja
-  fxBbS(wx,wy,hp,0,0,mr*1.1,.95*mf,.82*mf,.5*mf);       // núcleo
-  const ns=5+((q.t|0)%3),sl=(w==1||w==5?1.7:1)*mr*(1.1+mf*.9);
-  for(let i=0;i<ns;i++){const an=ua+(i/(ns-1||1)-.5)*1.5,r1=mr*.3,r2=sl*(.5+fxr(q.t,i+3)*.8),
+  fxBbS(wx,wy,hp,0,0,mr*(big?3.6:2.6),.2*mf,.08*mf,.02*mf);   // halo grande e fraco (bloom)
+  fxBbS(wx,wy,hp,0,0,mr*1.7,.62*mf,.24*mf,.06*mf);            // halo laranja
+  fxBbS(wx,wy,hp,0,0,mr*1.15,1.0*mf,.9*mf,.62*mf);            // núcleo quente
+  fxBbS(wx,wy,hp,0,0,mr*.55,1*mf,1*mf,.95*mf);                // centro branco
+  const ns=(big?9:5)+((q.t|0)%3),sl=(big?2.2:1.2)*mr*(1.1+mf*.9);
+  for(let i=0;i<ns;i++){const an=ua+(i/(ns-1||1)-.5)*(big?1.9:1.5),r1=mr*.3,r2=sl*(.5+fxr(q.t,i+3)*.8),
    mx=(Math.cos(an)*r1+Math.cos(an)*r2)/2,my=(Math.sin(an)*r1+Math.sin(an)*r2)/2,ln=Math.abs(r2-r1)/2;
-   fxBbSR(wx,wy,hp,mx,my,ln,1.5,an,.7*mf,.67*mf,.52*mf)}
-  if(w==1){const cl=24+mf*60;for(let i=0;i<3;i++){const an=ua+(i-1)*.32;
-   fxBbSR(wx,wy,hp,Math.cos(an)*cl*.55,Math.sin(an)*cl*.55,cl*.5,cl*.3,an,.3*mf,.19*mf,.07*mf)}}}
- const gl=age<.12?1-age/.12:0;
- if(gl>0)fxBbS(wx,wy,hp,0,0,70,.18*gl,.135*gl,.06*gl);
- if(age<.12){const sk=1-age/.12,nsk=4+((q.t>>3)%4);
-  for(let i=0;i<nsk;i++){const an=ua+(fxr(q.t,i+9)-.5)*.87,r1=3,r2=r1+12+fxr(q.t,i+21)*18;
-   fxBbSR(wx,wy,hp,Math.cos(an)*(r1+r2)/2,Math.sin(an)*(r1+r2)/2,(r2-r1)/2,1.1,an,.85*sk,.77*sk,.5*sk)}}
- if(age<.6){const nsm=Math.max(1,Math.round(((w==1||w==5)?3:2)*fxQ())),sa=1-age/.6;
-  for(let i=0;i<nsm;i++){const ph=fxr(q.t,i+31),r=4+age*16*(.7+ph*.6),al=.35*sa*(1-i*.15);
-   fxBbS(wx,wy,hp,nx*(ph-.5)*22+ux*age*30,ny*(ph-.5)*22+uy*age*30-age*40-i*3,r,.83*al,.83*al,.8*al)}}
- if(w!=4&&age<.45){const ct=age/.45,c=fxRgb(w==1?'#c33':'#e8c25a');
-  fxBbSR(wx,wy,hp,nx*(14+ct*70),ny*(14+ct*70)-ct*100+ct*ct*160,2.2,3.2,ct*9,c[0],c[1],c[2])}
- // rastro: mesma velocidade/comprimento do 2D (SPD/ln), traço grosso fraco + fino forte
+   fxBbSR(wx,wy,hp,mx,my,ln,big?2.2:1.6,an,.85*mf,.7*mf,.45*mf)}
+  if(big){ // chama longa do cano (cone): várias camadas para a frente
+   const cl=(w==5?46:38)+mf*(w==5?130:105);
+   for(let i=0;i<(w==1?5:3);i++){const an=ua+(w==1?(i-2)*.3:(i-1)*.12);
+    fxBbSR(wx,wy,hp,Math.cos(an)*cl*.55,Math.sin(an)*cl*.55,cl*.55,w==1?cl*.28:cl*.13,an,.55*mf,.3*mf,.08*mf)}
+   fxBbSR(wx,wy,hp,Math.cos(ua)*cl*.45,Math.sin(ua)*cl*.45,cl*.5,cl*.07,ua,1*mf,.9*mf,.65*mf)}}
+ const gl=age<.2?1-age/.2:0; // clarão no chão em volta
+ if(gl>0)fxBbS(wx,wy,hp,0,0,big?150:90,.24*gl,.17*gl,.07*gl);
+ if(age<.16){const sk=1-age/.16,nsk=(big?10:5)+((q.t>>3)%4);
+  for(let i=0;i<nsk;i++){const an=ua+(fxr(q.t,i+9)-.5)*(big?1.2:.87),r1=3,r2=r1+(big?22:12)+fxr(q.t,i+21)*(big?36:18);
+   fxBbSR(wx,wy,hp,Math.cos(an)*(r1+r2)/2,Math.sin(an)*(r1+r2)/2,(r2-r1)/2,big?1.6:1.2,an,.95*sk,.8*sk,.5*sk)}}
+ // fumaça: nuvem que sobe e se espalha (mais volumosa e duradoura em escopeta/sniper)
+ const sT=big?1.2:.7;
+ if(age<sT){const nsm=Math.max(2,Math.round((w==1?9:w==5?7:3)*fxQ())),sa=1-age/sT;
+  for(let i=0;i<nsm;i++){const ph=fxr(q.t,i+31),r=(big?7:4)+age*(big?34:20)*(.7+ph*.6),al=(big?.5:.36)*sa*(1-i*.06),
+   dd=age*(big?70:34)*(.5+ph);
+   fxBbS(wx,wy,hp,nx*(ph-.5)*(big?44:24)+ux*dd,ny*(ph-.5)*(big?44:24)+uy*dd-age*(big?46:36)-i*2.5,r,.84*al,.84*al,.82*al)}}
+ // anéis de fumaça com FURO no meio saindo do cano (sniper: 3, escopeta: 1 pequeno)
+ if(w==5||w==1){const nr=w==5?3:1;
+  for(let j=0;j<nr;j++){const ra=age-j*.1;if(ra<0||ra>.95)continue;const u=ra/.95,rad=(w==5?7:5)+u*(w==5?46:24),dist=18+ra*(w==5?250:150),al=(1-u)*(w==5?.62:.4),np=14,sz=Math.max(2.4,rad*.34);
+   for(let k=0;k<np;k++){const a=k/np*6.2832+j*.4,cs=Math.cos(a)*rad,sn=Math.sin(a)*rad;
+    fxBbS(wx+gx*dist,wy+gy*dist,hp+u*14,cs,sn*.9,sz,.88*al,.9*al,.95*al)}}} // anel voltado para a câmera (visível em qualquer direção de tiro)
+ if(w!=4&&age<.5){const ct=age/.5,c=fxRgb(w==1?'#c33':'#e8c25a'); // cartucho ejetado
+  fxBbSR(wx,wy,hp,nx*(14+ct*70),ny*(14+ct*70)-ct*100+ct*ct*160,2.4,3.4,ct*9,c[0],c[1],c[2])}
+ // rastro: velocidade/comprimento do 2D (SPD/ln); sniper = risca o ar inteiro até o alvo e deixa ondas de choque
  const spd=SPD[w],pos=age*spd,tc=w==5?[.86,.94,1]:w==1?[1,.59,.2]:[1,.78,.35];
- const n=w==1?6:1,ln=w==5?70:w==2?26:w==1?6:13;
- for(let k=0;k<n;k++){const an=w==1?(k-2.5)*.05:0,ca=Math.cos(an),sa=Math.sin(an),vx=ux*ca-uy*sa,vy=ux*sa+uy*ca,
+ const n=w==1?9:1,ln=w==5?L0:w==2?32:w==1?9:16;
+ for(let k=0;k<n;k++){const an=w==1?(k-4)*.075:0,ca=Math.cos(an),sa=Math.sin(an),vx=ux*ca-uy*sa,vy=ux*sa+uy*ca,
   q0=Math.min(pos,L0),q1=Math.max(pos-ln,0);if(q1>=q0)continue;
-  const q2=Math.max(q0-(q0-q1)*.45,q1),a2=Math.atan2(vy,vx);
-  fxBbSR(wx,wy,hp,vx*(q0+q1)/2,vy*(q0+q1)/2,(q0-q1)/2,w==1?2.6:3.4,a2,tc[0]*.22,tc[1]*.22,tc[2]*.22);
-  fxBbSR(wx,wy,hp,vx*(q0+q2)/2,vy*(q0+q2)/2,(q0-q2)/2,w==1?1.3:2,a2,tc[0]*.85,tc[1]*.85,tc[2]*.85);
-  if(w!=1){fxBbS(wx,wy,hp,vx*q0,vy*q0,w==5?3.2:5,tc[0]*.4,tc[1]*.4,tc[2]*.4);
-   fxBbS(wx,wy,hp,vx*q0,vy*q0,w==5?1.6:2.2,.9,.9,.9)}}
+  const q2=Math.max(q0-(q0-q1)*.45,q1),a2=Math.atan2(vy,vx),fd=w==5?Math.max(0,1-age/.42):1;
+  if(fd<=0&&w==5)continue;
+  fxBbSR(wx,wy,hp,vx*(q0+q1)/2,vy*(q0+q1)/2,(q0-q1)/2,w==5?9:w==1?3.2:4.2,a2,tc[0]*.2*fd,tc[1]*.2*fd,tc[2]*.2*fd); // banda larga suave
+  fxBbSR(wx,wy,hp,vx*(q0+q2)/2,vy*(q0+q2)/2,(q0-q2)/2,w==5?2.6:w==1?1.6:2.3,a2,tc[0]*.95*fd,tc[1]*.95*fd,tc[2]*.95*fd); // fio forte
+  if(w!=1){fxBbS(wx,wy,hp,vx*q0,vy*q0,w==5?7:6,tc[0]*.5,tc[1]*.5,tc[2]*.5);
+   fxBbS(wx,wy,hp,vx*q0,vy*q0,w==5?3:2.4,1,1,1)}
+  else{fxBbS(wx,wy,hp,vx*q0,vy*q0,3.2,1,.7,.3)}}
+ if(w==5){ // ondas de choque ("cortando o som"): anéis finos a cada 64 px do caminho, que se abrem e somem
+  const nR=Math.min(14,Math.floor(Math.min(pos,L0)/64));
+  for(let k=1;k<=nR;k++){const ra=(pos-k*64)/spd;if(ra<0||ra>.4)continue;const u=ra/.4,rad=4+u*34,al=(1-u)*.55,bx=sx+ux*k*64,by=sy+uy*k*64,hgt=hp-(by-wy)/GLSIN*0+0;
+   for(let m=0;m<10;m++){const a=m/10*6.2832,cs=Math.cos(a)*rad,sn=Math.sin(a)*rad;
+    fxBbS(wx+gx*Lg*(k*64/L0),wy+gy*Lg*(k*64/L0),hp-(k*64/L0)*(hp-14),cs,sn*.9,2.6,.7*al,.85*al,1*al)}}}
  if(pos>=L0){const ia=(pos-L0)/spd;
-  if(ia<.16){for(let k=0;k<5;k++){const an=k*1.3+q.t%7,r1=3+ia*120,r2=r1+7;
-   fxBbSR(wx,wy,hp,ex-sx+Math.cos(an)*(r1+r2)/2,ey-sy+Math.sin(an)*(r1+r2)/2,3.5,1.2,an,.9,.66,.28)}}
-  if(ia<.1){const al=1-ia/.1;fxBbS(wx,wy,hp,ex-sx,ey-sy,1+10*al,.85*al,.85*al,.8*al)}}}
+  if(ia<(big?.26:.16)){for(let k=0;k<(big?9:5);k++){const an=k*1.3+q.t%7,r1=3+ia*(big?170:120),r2=r1+(big?11:7);
+   fxBbSR(wx,wy,hp,ex-sx+Math.cos(an)*(r1+r2)/2,ey-sy+Math.sin(an)*(r1+r2)/2,big?5:3.5,1.4,an,.95,.7,.3)}}
+  if(ia<(big?.16:.1)){const al=1-ia/(big?.16:.1);fxBbS(wx,wy,hp,ex-sx,ey-sy,(big?5:1)+(big?18:10)*al,.9*al,.88*al,.8*al)}}}
 // ---------- (2) fogo de carros/barris (FIRES) ----------
 function fxFire(x,y,sz,t){
  if(!(sz>0))return;
@@ -180,10 +210,16 @@ function fxBits(dt){
    fxBbS(p.x,p.y,p.z/GLSIN,0,0,p.s*.8,c[0]*al,c[1]*al,c[2]*al)}}
  PT=PT.filter(p=>p.t<p.l)}
 // ---------- (4) projéteis do boss (Pj) ----------
+// objeto arremessado = o MESMO modelo do cenário (árvore/carro/caixa de GPR.geo), escolhido pelo índice da origem (p[6]); sem modelo cai na caixa colorida
+const FXPM=[];
+function fxProjModel(k,oi){if(typeof GPR==='undefined'||!GPR.geo)return -1;const t=k==1?(oi%3):k==2?27+vehIdx({i:oi}):k==3?cenCrate(oi):-1;return t>=0&&GPR.geo[t]?t:-1}
 function fxProj(s){
- const Pj=s&&s.Pj;if(!Pj)return;
- for(let i=0;i<Pj.length;i++){const p=Pj[i],k=p[0],sz=FXPJ[k]||FXPJ[2];
-  fxBox(p[2],p[3],p[4]/GLSIN,sz[0],sz[1],sz[2],p[5]/100,FXPJC[k]||p[1]||'#b8843a')}}
+ const Pj=s&&s.Pj;let used=0;
+ if(Pj)for(let i=0;i<Pj.length;i++){const p=Pj[i],k=p[0],sz=FXPJ[k]||FXPJ[2],t=fxProjModel(k,p[6]|0);
+  if(t>=0&&GLW){let m=FXPM[used];if(!m){m=FXPM[used]=new THREE.Mesh(GPR.geo[t],gpMat());m.frustumCulled=false;GLW.add(m)}
+   m.geometry=GPR.geo[t];const px=t>=27?VEH_PPM:GPR.pxm[t];m.scale.setScalar(px);m.position.set(p[2],Math.max(0,p[4]/GLSIN-14),p[3]);m.rotation.set(0,p[5]/100,0);m.visible=true;used++}
+  else fxBox(p[2],p[3],p[4]/GLSIN,sz[0],sz[1],sz[2],p[5]/100,FXPJC[k]||p[1]||'#b8843a')}
+ for(let i=used;i<FXPM.length;i++)FXPM[i].visible=false}
 // ---------- (5) texto flutuante (FT), level-up (anéis/faíscas + rótulos) — DOM com w2s ----------
 function fxDom(x,y,txt,col,sz,al){
  if(al<=.02)return;
@@ -284,7 +320,12 @@ function glFxFrame(s,t,dtf){
  FX_Q.copy(GLCAM.quaternion);
  FX_BBN=0;FX_BXN=0;FX_GBN=0;FX_TC=0;
  FXL=FXL.filter(q=>t<q.t+q.life);
+ FX_MZB.i=0;
+ W4N={};for(const q of FXL)if(q.f[4]==4){const k=q.f[6];if(q.t>(W4N[k]||0))W4N[k]=q.t}
+ for(const k in W4S)if(!W4N[k]||W4N[k]+420<t)delete W4S[k];
+ for(const q of FXL)if(q.f[4]==4){const k=q.f[6];if(W4S[k]==null||q.t<W4S[k])W4S[k]=q.t}
  for(let i=0;i<FXL.length;i++)fxShot(FXL[i],t);
+ if(GLMZ){GLMZ.intensity=FX_MZB.i;if(FX_MZB.i>0)GLMZ.position.set(FX_MZB.x,FX_MZB.h,FX_MZB.y)}
  fxFires(t);
  fxBuff(s,t);
  for(const k in FXBR)if(FXBR[k].u!==FXBRF)FXBR[k].m.visible=false;

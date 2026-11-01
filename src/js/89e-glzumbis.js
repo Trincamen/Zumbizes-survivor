@@ -78,7 +78,7 @@ function glZumbiFrame(){
  if(GQ.blob&&GLW)zgBlob();
 }
 // empurra UM zumbi (mesma decisão de clipe/fase/yaw do zumbiSpr 2D). Sem alocação por quadro.
-function glZumbiPush(x,y,k,v,fa,id,t,s){
+function glZumbiPush(x,y,k,v,fa,id,t,s,ap){
  const t0=pfStart();
  const mi=k==1?4:k==2?5:(v>0&&v<4)?v|0:0;
  let rec=ZG_R.get(mi);
@@ -93,8 +93,8 @@ function glZumbiPush(x,y,k,v,fa,id,t,s){
  // velocidade em px/s (não por quadro: a 144 FPS o gordão, 34 px/s, move só 0,24 px/quadro) com média móvel p/ não piscar entre walk e idle
  st.sp=(st.sp||0)*.85+(dd/Math.max(.004,DT_))*.15;
  let cn=st.sp>9?(k==1?'run':'walk'):'idle';
- for(const p of s.P||[]){if(p[7])continue;if(Math.hypot(p[3]-x,p[4]-y)<=rad+16){cn='attack';break}}
- let ph=(t/(k==1?500:k==2?(cn=='idle'?2830:cn=='attack'?1270:1500):800)+id*.137)%1;if(ph<0)ph+=1; // gordão: período = duração do clipe do GLB
+ if(ap>0)cn='attack'; // ataque dirigido pelo host: fase do clipe = ciclo de ataque real (dano sai no golpe)
+ let ph=(t/(k==1?500:k==2?(cn=='idle'?2830:cn=='attack'?1270:1500):800)+id*.137)%1;if(ph<0)ph+=1;if(ap>0)ph=Math.min(.999,(ap-1)/100); // gordão: período = duração do clipe do GLB
  const tab_=rec.pm[ZG_CLI[cn]],NPH=tab_.length,phq=(ph*NPH|0)%NPH;
  const scl=k==2?1.3:k==1?.9:1,wf=k==2?1:1,S=rec.SC*scl;
  // altura do chão (gpH) só quando o zumbi muda de pixel inteiro
@@ -135,6 +135,8 @@ function glClipPush(mi,x,y,yaw,cn,ph,sc,wf,abs,ay,roll){
 // fim do quadro (glRenderNow): publica count/needsUpdate só do trecho usado e esconde o que não foi desenhado
 function glZumbiEnd(){
  if(!glLive)return;
+ if(typeof corpseDraw=='function')corpseDraw(); // 89n-glsangue.js: cadáveres caídos
+ if(typeof blFrame=='function')blFrame();
  if(typeof gooDraw=='function')gooDraw(); // 89k-glgosma.js: corpo explodindo + poça de gosma
  for(const rec of ZG_R.values()){if(!rec)continue;
   const c=rec.cnt;

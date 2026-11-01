@@ -24,11 +24,13 @@ function bossEdge(){const L=Object.values(PL).filter(p=>!p.dead);let best=null,b
  for(let i=0;i<20;i++){const sd=Math.random()*4|0,u=Math.random();let x,y;if(sd==0){x=60+u*(MW-120);y=60}else if(sd==1){x=60+u*(MW-120);y=MH-60}else if(sd==2){x=60;y=60+u*(MH-120)}else{x=MW-60;y=60+u*(MH-120)}
   if(blk(x,y,34)||(L.length&&!L.some(p=>zn(p.y)==zn(y)||zn(p.y)==2)))continue;const d=L.length?Math.min(...L.map(p=>Math.hypot(p.x-x,p.y-y))):1400,sc=Math.abs(d-1400);if(sc<bs){bs=sc;best=[x,y]}}
  return best||[MW/2,60]}
+const THR_D=1.733,THR_REL=.6; // clipe 'throw' do boss: duração e instante em que a mão solta o objeto
+const ZAP=[.9,.7,1.267],ZAH=[.5,.5,.28]; // duração (s) e instante do golpe (fração) do clipe 'attack' de cada zumbi (k0 comum, k1 corredor, k2 gordão)
 function spawnZ(k,px,py){const L=Object.values(PL).filter(p=>!p.dead);if(!L.length)return;const p=L[Math.random()*L.length|0];let x,y;
  for(let i=0;i<14;i++){const a=R(0,6.28),d=R(650,1700);x=Math.min(MW-20,Math.max(20,p.x+Math.cos(a)*d));y=Math.min(MH-20,Math.max(20,p.y+Math.sin(a)*d));if(!blk(x,y,24)&&(zn(y)==zn(p.y)||zn(p.y)==2))break}
  if(px!=null){x=px;y=py}
  const r=Math.random();const D=dl();if(k==null)k=D>=3&&r<Math.min(.22,.06+.015*D)?2:D>=2&&r<.05+.01*D?4:D>=2&&r<.35?1:0;
- const T=[[30+D*4,55,12,10,10],[20+D*3,115,10,8,12],[90+D*10,34,18,25,20],[Math.round((500+bossN*130+D*40)*(1+.5*(L.length-1))),50,32,40,400+D*30],[16+D*2,105,10,0,14]][k==4?4:k];
+ const T=[[30+D*4,55,12,10,10],[20+D*3,115,10,8,12],[90+D*10,34,18,25,20],[Math.round((500+bossN*130+D*40)*(1+.5*(L.length-1))),50,26,40,400+D*30],[16+D*2,105,10,0,14]][k==4?4:k];
  Z.push({i:++zid,x,y,k,v:Math.random()*4|0,hp:T[0],mx:T[0],s:T[1]*R(.9,1.1),r:T[2],d:T[3],xp:T[4],h:{},fa:1.57});if(k==4)hzInit(Z[Z.length-1],L)}
 function mkOpts(p){if(p.pend>0&&!p.o)p.o=[0,1,2,3,4,5].sort(()=>Math.random()-.5).slice(0,3)}
 function giveXp(p,x){p.xp+=x;while(p.xp>=need(p.lv)){p.xp-=need(p.lv);p.lv++;const om=p.mx;p.mx=100+8*(p.lv-1);p.hp=Math.min(p.mx,p.hp+(p.mx-om));p.sp=1+Math.min(.6,.025*(p.lv-1));p.pr=Math.min(.3,.012*(p.lv-1));p.bk=Math.min(.7,.06*(p.lv-1))}}
@@ -48,7 +50,8 @@ const GOO_LIFE=14000,GOO_ON=1500,GOO_R=75,GOO_DPS=9; // gosma do gordão: dura 1
 function kill(z,p){p.k++;cash(z);if(z.k==2)GOO.push({i:++gid,x:z.x,y:z.y,fa:z.fa||0,t0:Date.now()});
  if(z.k==3){for(const i in z.h)giveXp(PL[i],z.xp);for(let i=0;i<7;i++){let x=z.x+R(-70,70),y=z.y+R(-70,70);if(blk(x,y,20)){x=z.x;y=z.y}IT.push({x,y,k:[0,9,9,6,6,2,3,4,5,11,10][Math.random()*11|0]})}}
  else{giveXp(p,z.xp);if(Math.random()<.01)IT.push({x:z.x,y:z.y,k:9})}}
-function handle(m){if(m.t=='j')return addP(m.id,m.n);const p=PL[m.id];if(!p||p.dead)return;
+function handle(m){if(m.t=='j')return addP(m.id,m.n);if(m.t=='pg'){const q=PL[m.id];if(q)q.pk=m.k;return} // ping: guarda o carimbo do cliente; volta no próximo snapshot dele
+  const p=PL[m.id];if(!p||p.dead)return;
  if(m.t=='i'){let b=null,bd=40;for(const z of Z){const d=Math.hypot(z.x-m.x,z.y-m.y)-z.r;if(d<bd){bd=d;b=z}}if(m.f&&b&&b===p.tz)b=null;p.tz=b;if(m.f)p.dd=1;else{p.dd=0;p.tx=b?null:m.x;p.ty=m.y}}
  else if(m.t=='m'){p.dd=1;p.jx=Math.max(-1,Math.min(1,+m.x||0));p.jy=Math.max(-1,Math.min(1,+m.y||0));p.jt=Date.now()}
  else if(m.t=='s'&&p.o&&p.o.includes(m.k)){skill(p,m.k);p.pend--;p.o=null;mkOpts(p)}
@@ -66,7 +69,7 @@ function regrid(o){for(let gy=Math.max(0,(o.y-30)/CS|0);gy<=Math.min(GH-1,(o.y+o
 function smash(o,a){o.dead=1;regrid(o);DEADL.push(o);ev(0,o,o.x+o.w/2,o.y+o.h/2,a,o.t,colOf(o))}
 function wallAt(x,y,r){if(x<r||y<r||x>MW-r||y>MH-r)return 2;let w=0;for(const o of near(x,y,r+4)){if(o.dead||(o.t!=5&&o.t!=6))continue;if(x>o.x-r&&x<o.x+o.w+r&&y>o.y-r&&y<o.y+o.h+r){if(o.t==5)return 1;w=2}}return w}
 function grabNear(z){const c=near(z.x,z.y,300).filter(o=>!o.dead&&o.t>=1&&o.t<=3&&!bAt(o.x+o.w/2,o.y+o.h/2)&&Math.hypot(o.x+o.w/2-z.x,o.y+o.h/2-z.y)<300).sort((a,b)=>Math.hypot(a.x-z.x,a.y-z.y)-Math.hypot(b.x-z.x,b.y-z.y))[0];if(!c)return 0;
- const cx_=c.x+c.w/2,cy_=c.y+c.h/2;c.dead=1;regrid(c);DEADL.push(c);ev(3,c,cx_,cy_,0,c.t,colOf(c));const j={k:c.t,c:colOf(c),ox:cx_,oy:cy_,x:cx_,y:cy_,h:0,rot:0,ph:0,t:0,bz:z};PJ.push(j);z.gr=j;return 1}
+ const cx_=c.x+c.w/2,cy_=c.y+c.h/2;c.dead=1;regrid(c);DEADL.push(c);ev(3,c,cx_,cy_,0,c.t,colOf(c));const j={k:c.t,oi:c.i,c:colOf(c),ox:cx_,oy:cy_,x:cx_,y:cy_,h:0,rot:0,ph:0,t:0,bz:z};PJ.push(j);z.gr=j;z.rcv=0;return 1}
 function startReload(p,cu){p.rl=p.rlt=rtOf(cu.c,cu.l);const wd=Math.max(.14,.3/p.rlt),zs=R(.14,.93-wd);p.rz=[zs,zs+wd];p.arF=0}
 function activeReload(p,fc){const cu=p.sl[p.cs];if(p.rl<=0){if(cu.a<magOf(cu.c,cu.l))startReload(p,cu);return}
  if(p.arF)return;let f=1-p.rl/p.rlt;if(typeof fc=='number'&&isFinite(fc)&&Math.abs(fc-f)<.22)f=fc;
@@ -78,9 +81,10 @@ function bossAct(z,dt,all){z.bs=0;
   const st=1500*dt,nx=z.x+Math.cos(d.a)*st,ny=z.y+Math.sin(d.a)*st;
   for(const o of near(nx,ny,50))if(!o.dead&&o.t>=1&&o.t<=3&&nx>o.x-44&&nx<o.x+o.w+44&&ny>o.y-44&&ny<o.y+o.h+44)smash(o,d.a);
   const w=wallAt(nx,ny,18);
-  if(d.l<=0||w){z.dash=null;if(w==1){z.stun=5;z.x-=Math.cos(d.a)*36;z.y-=Math.sin(d.a)*36;ev(1,null,nx,ny,d.a,0,'')}else z.stun=.9;return 1}
+  if(d.l<=0||w){z.dash=null;if(w==1){z.stun=1;z.x-=Math.cos(d.a)*36;z.y-=Math.sin(d.a)*36;ev(1,null,nx,ny,d.a,0,'')}else z.stun=.9;return 1}
   z.x=nx;z.y=ny;d.l-=st;for(const p of all)if(!p.dead&&!d.hit[p.id]&&Math.hypot(p.x-z.x,p.y-z.y)<52){d.hit[p.id]=1;p.hp-=45+dl()*2;if(p.hp<=0){p.hp=0;p.dead=1;p.tz=null}}return 1}
  if(z.gr){z.bs=z.gr.ph==0?1:2;return 1}
+ if(z.rcv>0){z.rcv-=dt;z.bs=2;z.gt=(THR_D-z.rcv)/THR_D;return 1} // fim do clipe 'throw' depois de soltar o objeto
  if(z.armT>0){z.armT-=dt;z.arm=Math.max(0,z.armT/.35)}else z.arm=0;
  z.tc=(z.tc==null?2:z.tc)-dt;
  if(z.tc<=0){z.tc=Math.max(2.2,4.2-dl()*.1);const L=all.filter(p=>!p.dead&&Math.hypot(p.x-z.x,p.y-z.y)<800);
@@ -88,10 +92,10 @@ function bossAct(z,dt,all){z.bs=0;
    if(!ok){const p=L[Math.random()*L.length|0];z.dash={t:0,a:Math.atan2(p.y-z.y,p.x-z.x),x0:z.x,y0:z.y,l:750,hit:{}}}}}
  return 0}
 function updPJ(dt,all){for(const j of PJ){j.t+=dt;const b=j.bz;if(b.hp<=0){j.dn=1;continue}
-  if(j.ph==0){const u=Math.min(1,j.t);j.x=j.ox+(b.x-j.ox)*u;j.y=j.oy+(b.y-j.oy)*u;j.h=195*u+30*Math.sin(u*Math.PI);j.rot=u*.6;b.arm=Math.min(1,j.t/.9);if(j.t>=1){j.ph=1;j.t=0}}
-  else if(j.ph==1){j.x=b.x;j.y=b.y;j.h=195;b.arm=1;if(j.t>=.4){const L=all.filter(p=>!p.dead&&Math.hypot(p.x-b.x,p.y-b.y)<900),p=L[Math.random()*L.length|0];b.gr=null;b.armT=.35;
+  if(j.ph==0){const u=Math.min(1,j.t);j.x=j.ox+(b.x-j.ox)*u;j.y=j.oy+(b.y-j.oy)*u;j.h=150*u+24*Math.sin(u*Math.PI);j.rot=u*.6;b.arm=Math.min(1,j.t/.9);b.gt=u;if(j.t>=1){j.ph=1;j.t=0}}
+  else if(j.ph==1){j.x=b.x;j.y=b.y;j.h=150;b.arm=1;b.gt=j.t/THR_D;if(j.t>=THR_REL){b.rcv=THR_D-THR_REL;const L=all.filter(p=>!p.dead&&Math.hypot(p.x-b.x,p.y-b.y)<900),p=L[Math.random()*L.length|0];b.gr=null;b.armT=.35;
     if(!p){j.dn=1;ev(5,null,j.x,j.y,0,j.k,j.c)}else{j.tx=p.x;j.ty=p.y;const d=Math.hypot(j.tx-b.x,j.ty-b.y);j.T=Math.max(1.1,Math.min(2.4,d/260));j.sx=b.x;j.sy=b.y;j.ph=2;j.t=0;RK.push({x:j.tx,y:j.ty,t:0,dur:j.T,k:j.k,c:j.c});ev(6,null,b.x,b.y,0,j.k,j.c);if(b.queue>0){b.queue--;grabNear(b)}}}}
-  else{const u=Math.min(1,j.t/j.T);j.x=j.sx+(j.tx-j.sx)*u;j.y=j.sy+(j.ty-j.sy)*u;j.h=195*(1-u)+(70+Math.hypot(j.tx-j.sx,j.ty-j.sy)*.16)*Math.sin(u*Math.PI);j.rot+=dt*7;if(j.t>=j.T)j.dn=1}}
+  else{const u=Math.min(1,j.t/j.T);j.x=j.sx+(j.tx-j.sx)*u;j.y=j.sy+(j.ty-j.sy)*u;j.h=150*(1-u)+(70+Math.hypot(j.tx-j.sx,j.ty-j.sy)*.16)*Math.sin(u*Math.PI);j.rot+=dt*7;if(j.t>=j.T)j.dn=1}}
  PJ=PJ.filter(j=>!j.dn)}
 function step(){const dt=.033,all=Object.values(PL);tick++;
  if(ph==1){
@@ -99,7 +103,7 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
   gt+=dt;const m_=Math.floor(gt/60),nA=all.filter(p=>!p.dead).length||1;
   if(!shopOn){sa+=(.5+.2*Math.min(m_,22))*(1+.35*(nA-1))*dt;const cap=Math.min(330,120+m_*12+nA*20);while(sa>=1){sa--;if(Z.length<cap)spawnZ()}}
   if(m_>lastMin){lastMin=m_;minuteTick(m_)}
-  if(bossPend){bossPend.t=BOSS_LEAD-(performance.now()-bossPend.t0)/1000;if(bossPend.t<=0){const bp=bossPend;bossPend=null;spawnZ(3,bp.x,bp.y);const bz=Z[Z.length-1];if(bz&&bz.k==3){bz.em=1.3;ev(7,null,bz.x,bz.y,0,0,'')}}}
+  if(bossPend){bossPend.t=BOSS_LEAD-(performance.now()-bossPend.t0)/1000;if(bossPend.t<=0){const bp=bossPend;bossPend=null;spawnZ(3,bp.x,bp.y);const bz=Z[Z.length-1];if(bz&&bz.k==3){bz.em=2.8;ev(7,null,bz.x,bz.y,0,0,'')}}}
   if(shopOn){shopT-=dt;if(shopT<=0){shopOn=0;shopP=0}}
   for(const p of all){if(p.dead)continue;p.hp=Math.min(p.mx,p.hp+p.rc*1.5*dt);if(p.bt>0)p.bt-=dt;if(p.bDm>0)p.bDm-=dt;if(p.bCd>0)p.bCd-=dt;if(p.bSp>0)p.bSp-=dt;if(p.arD>0)p.arD-=dt;
    const cu=p.sl[p.cs],rg=rgOf(p.cw,cu.l);let t=p.tz&&p.tz.hp>0?p.tz:(p.tz=null),gx=null,gy,mv=0,mvx=0,mvy=0,mvL=0;
@@ -128,7 +132,13 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
      if(!magLos(it.x,it.y,p.x,p.y))continue;const m=Math.min((35+(1-d/MAGR)*85)*dt,d-28),nx=it.x+dx/d*m,ny=it.y+dy/d*m;if(!blk(nx,ny,5)&&!wallAt(nx,ny,5)){it.x=nx;it.y=ny;MAGMV=1}}}
    if(p.of&&(IT.indexOf(p.of.it)<0||Math.hypot(p.of.it.x-p.x,p.of.it.y-p.y)>45))p.of=null;if(p.skip&&(IT.indexOf(p.skip)<0||Math.hypot(p.skip.x-p.x,p.skip.y-p.y)>90))p.skip=null}
   for(const z of Z){if(z.hp<=0)continue;if(z.k==3&&bossAct(z,dt,all))continue;if(z.k==4){hunterAct(z,dt,all);continue}let n=null,bd=1e9;for(const p of all){if(p.dead)continue;const d=Math.hypot(p.x-z.x,p.y-z.y);if(d<bd){bd=d;n=p}}
-   if(!n)break;if(bd>z.r+12||!los(z,n))pathTo(z,'z'+n.id,n.x,n.y,z.s*dt,z.k==3?16:z.r*.7);else{z.fa=Math.atan2(n.y-z.y,n.x-z.x);n.hp-=z.d*dt;if(n.hp<=0){n.hp=0;n.dead=1;n.tz=null}}}
+   if(!n)break;if(bd>z.r+12||!los(z,n)){z.atk=0;z.ap=0;(z.k==3?pathTo:zChase)(z,'z'+n.id,n.x,n.y,z.s*dt,z.k==3?16:z.r*.7)}
+   else{z.fa=Math.atan2(n.y-z.y,n.x-z.x);
+    if(z.k>2){n.hp-=z.d*dt;if(n.hp<=0){n.hp=0;n.dead=1;n.tz=null}}
+    else{ // ataque em ciclos: o dano sai só quando o braço bate (ZAH = fração do clipe 'attack' no pico do golpe); dano por golpe = z.d*duração (mesmo DPS médio)
+     const P=ZAP[z.k],H=ZAH[z.k];if(!z.atk){z.atk=1;z.ap=0}const a0=z.ap;z.ap+=dt/P;
+     if(a0<H&&z.ap>=H){n.hp-=z.d*P;if(n.hp<=0){n.hp=0;n.dead=1;n.tz=null}}if(z.ap>=1)z.ap-=1}}}
+  zSep(Z,dt);
   updPJ(dt,all);for(const r of RK){r.t+=dt;if(!r.h&&r.t>=r.dur){r.h=1;ev(5,null,r.x,r.y,0,r.k,r.c);for(const p of all)if(!p.dead&&Math.hypot(p.x-r.x,p.y-r.y)<70){p.hp-=30+dl()*2;if(p.hp<=0){p.hp=0;p.dead=1;p.tz=null}}}}
   RK=RK.filter(r=>r.t<r.dur+.4);
   if(DEADL.length>=8&&tick%30==0&&Date.now()-lastResp>20000){lastResp=Date.now();let n=3+(Math.random()*3|0);for(let tr=0;tr<25&&n>0&&DEADL.length;tr++){const i=Math.random()*DEADL.length|0,o=DEADL[i],cx_=o.x+o.w/2,cy_=o.y+o.h/2;if(all.some(p=>Math.hypot(p.x-cx_,p.y-cy_)<90)||Z.some(z=>Math.hypot(z.x-cx_,z.y-cy_)<z.r+70)||PJ.some(j=>Math.hypot(j.x-cx_,j.y-cy_)<90))continue;o.dead=0;regrid(o);DEADL.splice(i,1);ev(4,o,cx_,cy_,0,o.t,colOf(o));n--}}
@@ -146,10 +156,10 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
    for(const g of GOO){if(nw-g.t0<GOO_ON)continue;for(const p of all){if(p.dead||Math.hypot(p.x-g.x,p.y-g.y)>GOO_R)continue;p.hp-=GOO_DPS*dt;if(p.hp<=0){p.hp=0;p.dead=1;p.tz=null}}}}
   for(const p of all)if(p.hz&&(p.hz.hp<=0||!Z.includes(p.hz)))p.hz=null;
   Z=Z.filter(z=>z.hp>0)}
- const base={t:'S',G:GOO.map(g=>[g.x|0,g.y|0,(g.fa*10)|0,Date.now()-g.t0,g.i]),ph,gt:gt|0,bn,sd,left:Z.length,sh:shopOn?[shopX|0,shopY|0,shopT|0]:0,bp:bossPend?[bossPend.x|0,bossPend.y|0,Math.ceil(Math.max(0,bossPend.t)),+Math.max(0,bossPend.t).toFixed(3)]:0,F:FX,K:RK.map(r=>[r.x|0,r.y|0,r.t<r.dur?r.t/r.dur:1+(r.t-r.dur)/.4]),Pj:PJ.map(j=>[j.k,j.c,j.x|0,j.y|0,j.h|0,j.rot*100|0]),EV,Dh:Z.filter(z=>z.dash).map(z=>[z.dash.x0|0,z.dash.y0|0,z.dash.a*100|0,750,z.dash.t]),
+ const base={t:'S',G:GOO.map(g=>[g.x|0,g.y|0,(g.fa*10)|0,Date.now()-g.t0,g.i]),ph,gt:gt|0,bn,sd,left:Z.length,sh:shopOn?[shopX|0,shopY|0,shopT|0]:0,bp:bossPend?[bossPend.x|0,bossPend.y|0,Math.ceil(Math.max(0,bossPend.t)),+Math.max(0,bossPend.t).toFixed(3)]:0,F:FX,K:RK.map(r=>[r.x|0,r.y|0,r.t<r.dur?r.t/r.dur:1+(r.t-r.dur)/.4]),Pj:PJ.map(j=>[j.k,j.c,j.x|0,j.y|0,j.h|0,j.rot*100|0,j.oi|0]),EV,Dh:Z.filter(z=>z.dash).map(z=>[z.dash.x0|0,z.dash.y0|0,z.dash.a*100|0,750,z.dash.t]),
   P:all.map(p=>[p.id,p.n,p.c,p.x|0,p.y|0,p.hp|0,p.mx|0,p.dead,p.cw,p.lv,p.xp|0,need(p.lv),p.sl.filter(q=>q.c==11).length,p.o,p.sl.map(q=>[q.c,q.l,q.a]),p.sl[p.cs].l,p.cs,p.fa*10|0,p.k,p.money|0,p.da,Math.ceil(Math.max(0,p.bt)),p.rl>0?p.rl/(p.rlt||RT[p.cw])*100|0:0,p.of?[wiOf(p.of.it.k),p.of.it.l||0,p.sl[p.cs].c,p.sl[p.cs].l]:0,p.aim*10|0,(p.ls&&Date.now()-p.ls<450)?(p.bkf>.4?2:1):0,p.tz&&p.tz.hp>0?p.tz.i:0,p.rl>0&&p.rz?p.rz[0]*100|0:0,p.rl>0&&p.rz?p.rz[1]*100|0:0,p.arF?1:0,Math.ceil(Math.max(0,p.bDm||0,p.bCd||0,p.bSp||0)),Math.ceil(Math.max(0,p.arD||0)*10),Math.round((p.rlt||0)*1000),Math.ceil(Math.max(0,p.bDm||0)*10),Math.ceil(Math.max(0,p.bCd||0)*10),Math.ceil(Math.max(0,p.bSp||0)*10)])};
  if(tick%6==0||MAGMV){MAGMV=0;base.I=IT.map(i=>[i.x|0,i.y|0,i.k,i.v|0,i.u||(i.u=++IID)]);base.ZM=Z.map(z=>[z.x/30|0,z.y/30|0,z.k]);base.DS=DEADL.map(o=>o.i)}
- const zA=Z.map(z=>[z.x|0,z.y|0,z.k,z.hp/z.mx*100|0,z.v,z.fa*10|0,z.i].concat(z.k==3?[z.bs|0,z.arm*100|0,Math.ceil(Math.max(0,z.stun||0)*10),Math.ceil(Math.max(0,z.em||0)*10)]:z.k==4?[z.st|0,z.alt|0,z.at||'',z.st==5?z.t/.7*100|0:z.st==2?z.t/1.37*100|0:0]:[]));
+ const zA=Z.map(z=>[z.x|0,z.y|0,z.k,z.hp/z.mx*100|0,z.v,z.fa*10|0,z.i].concat(z.k==3?[z.bs|0,z.arm*100|0,Math.ceil(Math.max(0,z.stun||0)*10),Math.ceil(Math.max(0,z.em||0)*10),Math.round((z.gt||0)*100)]:z.k==4?[z.st|0,z.alt|0,z.at||'',z.st==5?z.t/.7*100|0:z.st==2?z.t/1.37*100|0:0]:[z.atk?1+(z.ap*100|0):0]));
  onSnap(Object.assign({},base,{Z:zA}));
- if(ws&&ws.bufferedAmount<3e6)for(const q of all)if(q.id!=id)ws.send('@'+q.id+'|'+JSON.stringify(Object.assign({},base,{Z:zA.filter(z=>z[2]==3||Math.abs(z[0]-q.x)<1500&&Math.abs(z[1]-q.y)<950)})));
+ if(ws&&ws.bufferedAmount<3e6)for(const q of all)if(q.id!=id)ws.send('@'+q.id+'|'+JSON.stringify(Object.assign({},base,{pk:q.pk,Z:zA.filter(z=>z[2]==3||Math.abs(z[0]-q.x)<1500&&Math.abs(z[1]-q.y)<950)})));
  FX=[];EV=[]}

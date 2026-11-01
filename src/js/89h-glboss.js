@@ -11,26 +11,26 @@
 // altura de tela do drawBoss 2D (~285 px).
 // O RENDER é adiado como nos zumbis: glBossFrame() (no glFrame) esconde o modelo, o laço de draw() empurra
 // (só se o boss passou no cull v()) e o render acontece em glRenderNow().
-const BGLB='@@GLB:assets/zumbis/zumbi_boss_v4.glb@@';
+const BGLB='@@GLB:assets/zumbis/zumbi_boss_v5.glb@@';
 // estado do host (bs) → clipe do GLB. `ms` = duração de UMA volta do clipe em ms (fácil de editar).
 // bs: 0 anda · 1/2 agarrando (attack) · 3 prepara investida (roar) · 4 investida (walk acelerado)
 //     5 atordoado (idle + corpo girando/cabeça bamba, como o 2D) · 6 emergindo (roar, sobe do chão por `em`)
 const BOSS_CLIP={
- 0:{c:'walk',ms:1050},
- 1:{c:'attack',ms:800},
- 2:{c:'attack',ms:800},
- 3:{c:'roar',ms:1400},
- 4:{c:'walk',ms:585},
- 5:{c:'idle',ms:2000},
- 6:{c:'roar',ms:1400,emerge:1}
+ 0:{c:'walk_normal',ms:1367},
+ 1:{c:'attack',ms:800,once:1},       // agarra o objeto
+ 2:{c:'throw',ms:1733,once:1},       // arremessa o objeto
+ 3:{c:'charge',ms:567},       // prepara a investida
+ 4:{c:'run',ms:700},          // investida
+ 5:{c:'idle',ms:2400},        // atordoado (+ corpo girando/cabeça bamba, como o 2D)
+ 6:{c:'spawn',spawn:2.8}      // aparição: cai do alto (o próprio clipe tem a queda); fase = 1-em/2.8
 };
 // BG_HS = fator medido entre a altura do modelo (Y do mundo) e a altura na TELA (projeção da câmera inclinada
 // + a profundidade Z do modelo cisalhada para cima): 1,352. Só entra no cálculo da escala.
 const BG_HS=1.352;
-const BOSS_H=285; // altura do boss NA TELA em px (o drawBoss 2D mede ~284; o zumbi gordão tem ~69)
+const BOSS_H=215; // altura do boss NA TELA em px (o drawBoss 2D mede ~284; o zumbi gordão tem ~69)
 const BG_NPH=16;
 let BGR,BG_MAT=null,BG_EYE=null,BG_WARN=0;
-const _bgB=new THREE.Matrix4(),_bgM=new THREE.Matrix4(),_bgH=new THREE.Matrix4(),
+const _bgRQ=new THREE.Quaternion(),_bgZ=new THREE.Vector3(0,0,1),_bgB=new THREE.Matrix4(),_bgM=new THREE.Matrix4(),_bgH=new THREE.Matrix4(),
  _bgP=new THREE.Vector3(),_bgQ=new THREE.Quaternion(),_bgS=new THREE.Vector3(),_bgY=new THREE.Vector3(0,1,0);
 function bgMat(){return BG_MAT||(BG_MAT=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide}))}
 function bgEyeMat(){return BG_EYE||(BG_EYE=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide}))}
@@ -59,7 +59,7 @@ function bgBuild(){
   msh.matrixAutoUpdate=false;msh.frustumCulled=false;msh.visible=false;
   GLW.add(msh);rec.msh[ni]=msh;rec.tri+=M.GEO[ni].n}
  // tabela de poses: por clipe usado e BG_NPH fases, uma Matrix4 por nó (nada de esqueleto por quadro)
- for(const cn of ['walk','idle','attack','roar']){
+ for(const cn of ['walk_normal','idle','attack','throw','charge','run','spawn']){
   const clip=zClip(M,cn),phs=[];
   for(let q=0;q<BG_NPH;q++){
    zPose(M,clip,q/BG_NPH);zWorld(M);
@@ -76,7 +76,7 @@ function bgBuild(){
 function bgRec(){
  if(BGR!==undefined)return BGR;
  BGR=bgBuild();
- if(!BGR&&!BG_WARN){BG_WARN=1;console.warn('glboss: falha ao carregar zumbi_boss_v4.glb; fica no 2D')}
+ if(!BGR&&!BG_WARN){BG_WARN=1;console.warn('glboss: falha ao carregar zumbi_boss_v5.glb; fica no 2D')}
  return BGR;
 }
 // por quadro (chamado no glFrame): esconde o modelo; só o glBossPush do quadro o mostra
@@ -85,7 +85,8 @@ function glBossFrame(){
  for(const m of BGR.msh)if(m)m.visible=false;
 }
 // empurra o boss do quadro (mesma decisão de estado/yaw do drawBoss 2D). Sem alocação por quadro.
-function glBossPush(x,y,fa,bs,arm,t,s,em){
+function glBossPush(x,y,fa,bs,arm,t,s,em,gt,roll,ay,sc,yawOv){
+ if(typeof bossSnd=='function')bossSnd(bs,x,y);
  const t0=pfStart();
  if(!glLive){pfAdd('bgl',t0);return 0}
  const rec=bgRec();
@@ -95,15 +96,14 @@ function glBossPush(x,y,fa,bs,arm,t,s,em){
  BYAW+=ad(tgt,BYAW)*Math.min(1,DT_*9);
  const st=BOSS_CLIP[bs]||BOSS_CLIP[0];
  // emergindo: a fase do clipe é o progresso do `em` (1,3 s), então o rugido toca uma vez enquanto sobe
- const ph=st.emerge?Math.max(0,Math.min(1,1-(em||0)/1.3)):((t/st.ms)%1+1)%1;
+ const ph=st.spawn?Math.max(0,Math.min(.999,1-(em||0)/st.spawn)):st.once?Math.max(0,Math.min(.999,gt||0)):((t/st.ms)%1+1)%1;
  const phq=(ph*BG_NPH|0)%BG_NPH;
- const yaw=bs==5?t/190:BYAW; // atordoado: o 2D gira o corpo todo (psi=t/190)
- let gy=0;if(typeof gpH==='function')gy=gpH(x,y);
- if(st.emerge)gy-=rec.h*rec.S*(1-ph); // sobe do chão (desce a altura inteira do modelo)
- _bgP.set(x,gy,y);_bgQ.setFromAxisAngle(_bgY,yaw);_bgS.set(rec.S,rec.S,rec.S);
+ const yaw=yawOv!=null?yawOv:BYAW; // atordoado: sem girar (pedido do usuário)
+ let gy=0;if(typeof gpH==='function')gy=gpH(x,y);gy+=ay||0;
+ _bgP.set(x,gy,y);_bgQ.setFromAxisAngle(_bgY,yaw);if(roll){_bgQ.multiply(_bgRQ.setFromAxisAngle(_bgZ,roll))}const bsc=rec.S*(sc==null?1:sc);_bgS.set(bsc,bsc,bsc);
  _bgB.compose(_bgP,_bgQ,_bgS);
- const arr=(rec.pm[st.c]||rec.pm.walk)[phq];
- const hshake=bs==5?Math.sin(t/90)*.45:0;
+ const arr=(rec.pm[st.c]||rec.pm.walk_normal)[phq];
+ const hshake=0;
  for(let ni=0;ni<rec.msh.length;ni++){
   const msh=rec.msh[ni];if(!msh)continue;
   const pm=arr&&arr[ni];if(!pm){msh.visible=false;continue}

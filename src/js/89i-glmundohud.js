@@ -159,7 +159,7 @@ function gwBoss(x,y,o,t){
   B.bb.style.top=(-(bh+22)*GWSIN)+'px';
   B.tt.style.top=(-(bh+36)*GWSIN)+'px';
   B.st.style.top=(-(bh+50)*GWSIN)+'px'}
- const sh=o.bs==5?'rgba(255,220,60,.28)':'rgba(190,10,30,.4)';
+ const sh='rgba(0,0,0,0)'; // círculo vermelho/amarelo sob o boss removido (pedido do usuário)
  if(B.shc!==sh){B.shc=sh;B.sh.style.background=sh}
  const hf=Math.max(0,Math.min(1,o.h/100)),hfq=hf.toFixed(2);
  if(B.hf!==hfq){B.hf=hfq;B.bf.style.width=(hf*80).toFixed(1)+'px'}
@@ -169,7 +169,7 @@ function gwBoss(x,y,o,t){
  // estrelas do atordoamento: órbitas de 38 px em volta do topo (só com bs==5)
  for(let i=0;i<5;i++){
   const s=B.sr[i];
-  if(o.bs!=5){gwDisp(s,0);continue}
+  gwDisp(s,0);continue; // estrelas do atordoamento removidas (pedido do usuário)
   const a=t/260+i*1.2566,px=Math.cos(a)*38,py=-(bh+8)*GWSIN+Math.sin(a)*10,rot=(t/200+i*6.283)%6.283;
   gwDisp(s,1);
   s.style.transform='translate3d('+px.toFixed(1)+'px,'+py.toFixed(1)+'px,0) translate(-50%,-50%) rotate('+rot.toFixed(2)+'rad)'
@@ -347,9 +347,8 @@ function gwMark(s,t){
 function gwDashNew(){
  const s=gwNew();if(!s)return null;gwBack(s);
  s.i.style.transformOrigin='0 0';
- s.r=gwD(s.i,'gwRect',0,-50,750,100);s.r.style.border='3px solid #f44';
- s.ch=[];for(let i=0;i<10;i++){const c=document.createElement('div');c.className='gwCh';
-  c.style.left=(60+i*90-14)+'px';c.style.top='-14px';c.style.display='none';s.i.appendChild(c);s.ch.push(c)}
+ s.r=gwD(s.i,'gwRect',0,-50,750,100); // retângulo só como âncora (sem fundo nem borda): o aviso é a palavra PERIGO no chão
+ s.ch=[];for(let i=0;i<3;i++){const c=document.createElement('div');c.className='gwPer';c.textContent='PERIGO';c.style.display='none';s.r.appendChild(c);s.ch.push(c)}
  s.k='';return s;
 }
 // mesmo retângulo de aviso do dash do boss que o 2D desenha em coordenadas de mundo (rotação = an)
@@ -357,13 +356,13 @@ function gwDash(x,y,an,len,tt){
  if(!glLive)return;
  const o=gwSlot('dh',GWU.dhn++,gwDashNew);if(!o)return;
  gwPutR(o,x,y,an);
- const fl=tt<1;
- o.r.style.background=fl?'rgba(255,40,40,'+(.12+tt*.25).toFixed(3)+')':'rgba(255,90,40,.35)';
- const k=(fl?'1|':'0|')+len;
+ const fl=tt<1,bk=Math.cos(an)<0; // apontando para a esquerda: gira o texto 180° para continuar legível
+ const k=(fl?'1|':'0|')+len+'|'+(bk?1:0);
  if(o.k!==k){o.k=k;
   if(o.r.style.width!==len+'px')o.r.style.width=len+'px';
-  for(let i=0;i<o.ch.length;i++)o.ch[i].style.display=(fl&&60+i*90<len)?'block':'none';
+  for(let i=0;i<o.ch.length;i++){const c=o.ch[i];c.style.display=(len>=300)||i==1?'block':'none';c.style.left=(110+(len-110)*(.3+i*.3))+'px';c.style.transform='translate(-50%,-50%)'+(bk?' rotate(180deg)':'')}
  }
+ o.r.style.opacity=fl?(.55+.35*Math.sin(tt*30)).toFixed(2):'1';
 }
 function gwRingNew(){
  const s=gwNew();if(!s)return null;gwBack(s);
