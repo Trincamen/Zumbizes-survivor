@@ -203,3 +203,7 @@ canvas{display:block;width:100%;height:100%}
 .rlp .rlc:after{content:'';position:absolute;left:-8px;bottom:100%;width:18px;height:26px;background:radial-gradient(ellipse at 50% 78%,#fff7c0 0,#ffd23a 22%,#ff7a12 48%,rgba(220,30,10,.75) 66%,transparent 74%);clip-path:polygon(50% 0,72% 30%,88% 62%,74% 100%,26% 100%,12% 62%,28% 30%);animation:gwFlame .16s ease-in-out infinite alternate}
 .opt svg{display:block;margin:auto}
 #end{z-index:20}
+
+.gwBufF{border:4px solid #ff7a12;box-sizing:border-box;overflow:visible;animation:gwBufP .3s ease-in-out infinite alternate;box-shadow:0 0 8px 2px #ff5a10,inset 0 0 8px 1px #ffb020}
+@keyframes gwBufP{from{border-color:#ff5a10;box-shadow:0 0 6px 1px #ff4a10,inset 0 0 5px 1px #ff8a20}to{border-color:#ffc83a;box-shadow:0 0 13px 4px #ff7a12,inset 0 0 10px 2px #ffd060}}
+.gwFl{position:absolute;width:12px;height:18px;transform-origin:50% 100%;background:radial-gradient(ellipse at 50% 78%,#fff7c0 0,#ffd23a 25%,#ff7a12 55%,rgba(220,30,10,.7) 75%,transparent 80%);clip-path:polygon(50% 0,72% 30%,88% 62%,74% 100%,26% 100%,12% 62%,28% 30%);animation:gwFlame .18s ease-in-out infinite alternate;filter:drop-shadow(0 0 3px #ff6a10)}

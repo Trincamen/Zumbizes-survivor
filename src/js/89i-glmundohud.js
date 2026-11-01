@@ -43,7 +43,12 @@ function gwPl(pid){
  o.pid=pid;GWU.pl[pid]=o;
  o.sh=gwD(o.i,'gwEl',-20,-9*GWSIN,40,18*GWSIN);o.sh.style.background='rgba(0,0,0,.4)';
  o.bl=gwD(o.i,'gwEl',-34,-14*GWSIN,68,28*GWSIN);
- o.buf=gwD(o.i,'gwR',-30,-11*GWSIN,60,22*GWSIN);o.buf.style.border='3px solid rgba(80,170,255,.6)';
+ o.g.style.zIndex='3'; // nome/barra do jogador ficam POR CIMA das auréolas de item (z-index 1)
+ // anel do BUFF = círculo pegando fogo: borda de brasa pulsando + 12 chamas animadas em volta da elipse
+ o.buf=gwD(o.i,'gwR',-30,-11*GWSIN,60,22*GWSIN);o.buf.className='gwR gwBufF';
+ for(let q=0;q<12;q++){const th=q/12*6.2832,f=document.createElement('div');f.className='gwFl';
+  f.style.left=(30+30*Math.cos(th)-6)+'px';f.style.top=(11*GWSIN+11*GWSIN*Math.sin(th)-17)+'px';
+  f.style.animationDuration=(.15+(q%4)*.04)+'s';f.style.animationDelay=(-q*.037)+'s';o.buf.appendChild(f)}
  const rc=document.createElement('canvas');rc.className='gwC';rc.width=240;rc.height=96;
  rc.style.left='-40px';rc.style.top='-16px';rc.style.width='80px';rc.style.height='32px';
  o.i.appendChild(rc);o.rc=rc;o.rx=rc.getContext('2d');o.rk='';
@@ -211,7 +216,7 @@ function gwArc(x,y,L){
  if(!o){o=GWU.arc=gwNew();if(!o)return;
   const c=document.createElement('canvas');c.className='gwC';c.width=360;c.height=216;
   c.style.left='-60px';c.style.top='-56px';c.style.width='120px';c.style.height='72px';
-  o.i.appendChild(c);o.cv=c;o.cx=c.getContext('2d');o.key=''}
+  o.i.appendChild(c);o.cv=c;o.cx=c.getContext('2d');o.key='';o.g.style.zIndex='1'}
  gwPut(o,x,y);
  let key='';for(const q of L)key+=q[0].toFixed(2)+'|'+(q[1]/4|0)+'|'+q[2]+';';
  if(o.key!==key){o.key=key;const g=o.cx;
