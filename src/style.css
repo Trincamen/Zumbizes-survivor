@@ -142,3 +142,22 @@ canvas{display:block;width:100%;height:100%}
   linear-gradient(#8a6f35,#8a6f35) left bottom/3px 10px no-repeat,
   linear-gradient(#8a6f35,#8a6f35) right bottom/10px 3px no-repeat,
   linear-gradient(#8a6f35,#8a6f35) right bottom/3px 10px no-repeat}
+/* ---------- M4 (89i-glmundohud.js): elementos do MUNDO em DOM (só com glLive). Tudo pointer-events:none ---------- */
+#gw{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:hidden;--gwzo:1}
+.gwE{position:absolute;left:0;top:0;width:0;height:0;display:none;will-change:transform}
+.gwI{position:absolute;left:0;top:0;transform:scale(var(--gwzo,1));transform-origin:0 0}
+.gwT{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-family:sans-serif;line-height:1;text-align:center}
+.gwEl{position:absolute;border-radius:50%}
+.gwR{position:absolute;border-radius:50%;box-sizing:border-box}
+.gwB{position:absolute;background:rgba(0,0,0,.67)}
+.gwBf{position:absolute;left:0;top:0;height:100%}
+.gwC{position:absolute;display:block}
+.gwSt{position:absolute;left:0;top:0;width:14px;height:14px;background:#ffe45a;
+ clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+ filter:drop-shadow(0 0 1px #a80)}
+.gwP{position:absolute;box-sizing:border-box;border-radius:9px;background:rgba(0,0,0,.78);border:1.5px solid #ffe27a}
+.gwPf{position:absolute;left:0;top:0;height:100%;border-radius:9px 0 0 9px}
+.gwPz{position:absolute;top:1px;box-sizing:border-box}
+.gwPc{position:absolute;background:#fff}
+.gwPt{position:absolute;width:8px;height:5px;background:#fff;clip-path:polygon(50% 100%,0 0,100% 0)}
+.gwPf{z-index:1}.gwPz{z-index:2}.gwPc{z-index:3}.gwP>.gwT{z-index:4;text-shadow:0 0 3px #000,0 0 3px #000}

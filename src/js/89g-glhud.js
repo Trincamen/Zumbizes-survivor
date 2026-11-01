@@ -283,6 +283,8 @@ function glHudFrame(s){
  if(key!==HG.sk){HG.sk=key;ghScore(P.slice().sort((a,b)=>b[18]-a[18]))}
  // ---- F4 (M2): minimapa DOM ----
  ghMini(s);
+ // ---- M4: esconde os elementos do mundo não desenhados neste quadro ----
+ if(typeof gwEnd==='function')gwEnd(s);
  // ---- M3: joystick + dica em DOM ----
  ghJoy();
 }
