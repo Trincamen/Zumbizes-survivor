@@ -119,9 +119,9 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
     else{const ux=Math.cos(aim),uy=Math.sin(aim),off=(Math.random()<.5?-1:1)*R(26,55);ex=s.x-uy*off+ux*30;ey=s.y+ux*off+uy*30}
     FX.push([p.x|0,p.y|0,ex|0,ey|0,p.cw,++fid,p.id,hit?1:0])}
    for(let i=IT.length-1;i>=0;i--){const it=IT[i];if(Math.hypot(it.x-p.x,it.y-p.y)>50||it.nt>Date.now())continue;if(needsConf(p,it)){if(p.skip!==it&&(!p.of||p.of.it!==it))p.of={it};continue}if(give(p,it))IT.splice(i,1)}
-   // ÍMÃ leve: itens que o jogador PODE pegar, dentro de MAGR px, deslizam até ele (mais rápido quanto mais perto)
+   // ÍMÃ leve (só dinheiro): dentro de MAGR px, deslizam até ele (mais rápido quanto mais perto)
    {const cu_=p.sl[p.cs];for(const it of IT){if(it.nt>Date.now())continue;const dx=p.x-it.x,dy=p.y-it.y,d=Math.hypot(dx,dy);if(d>=MAGR||d<=30)continue;
-     const k=it.k;if((k<2||k==9||k==10)&&p.sl.length>=6)continue;if(k==6&&(!cu_||cu_.l>=6))continue;
+     if(it.k!=8)continue; // o ímã puxa SÓ dinheiro;
      if(!magLos(it.x,it.y,p.x,p.y))continue;const m=Math.min((35+(1-d/MAGR)*85)*dt,d-28),nx=it.x+dx/d*m,ny=it.y+dy/d*m;if(!blk(nx,ny,5)&&!wallAt(nx,ny,5)){it.x=nx;it.y=ny;MAGMV=1}}}
    if(p.of&&(IT.indexOf(p.of.it)<0||Math.hypot(p.of.it.x-p.x,p.of.it.y-p.y)>45))p.of=null;if(p.skip&&(IT.indexOf(p.skip)<0||Math.hypot(p.skip.x-p.x,p.skip.y-p.y)>90))p.skip=null}
   for(const z of Z){if(z.hp<=0)continue;if(z.k==3&&bossAct(z,dt,all))continue;let n=null,bd=1e9;for(const p of all){if(p.dead)continue;const d=Math.hypot(p.x-z.x,p.y-z.y);if(d<bd){bd=d;n=p}}
