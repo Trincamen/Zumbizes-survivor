@@ -1,6 +1,6 @@
 # tools/teste — testes automáticos do jogo sem abrir janela
 
-`lib.py` sobe Xvfb (tela virtual) + geckodriver + Firefox mudo, abre o jogo e deixa você avaliar JS e tirar prints.
+`lib.py` sobe o Google Chrome do PC (headless, sem janela, via DevTools Protocol, Python puro) mudo, abre o jogo e deixa você avaliar JS e tirar prints. Firefox NÃO é mais usado.
 Exemplo mínimo e regras em `lib.py`. Pontos importantes:
 - Sem `ffmpeg`/`numpy`: tudo por Python puro + o próprio Firefox (WebAudio, canvas).
 - Display e porta: use um `display` único por teste simultâneo (120, 121...).
