@@ -1,7 +1,7 @@
 // ---------- HOST: simulação ----------
 let gt=0,lastMin=0,bossP=0,shopP=0,bossHold=0,bossN=0,sa=0,ph=0,rd=0,PL={},Z=[],IT=[],FX=[],sp=0,brk=0,bn=[0,'',0],minP=1,tick=0,sd=0,RK=[],shopOn=0,shopT=0,shopX=0,shopY=0,fid=0,zid=0,PJ=[],DEADL=[],EV=[],evid=0,lastResp=0,bossPend=null,GOO=[],gid=0;
-function addP(i,n){if(PL[i]||Object.keys(PL).length>=8)return;const k=Object.keys(PL).length;
- PL[i]={id:i,n:n.replace(/</g,'&lt;'),c:`hsl(${k*47+200},90%,60%)`,x:2000+R(-60,60),y:4500+R(-60,60),hp:100,mx:100,xp:0,lv:1,dead:0,sl:[{c:0,l:0,a:7}],cs:0,cw:0,tx:null,ty:null,tz:null,sp:1,pr:0,bk:0,rc:0,aim:1.57,ls:0,bkf:0,arT:0,arF:0,rz:[.5,.7],pend:0,o:null,cd:0,fa:1.57,k:0,money:0,da:20,bt:0,rl:0,dd:0,jx:0,jy:0,jt:0}}
+function addP(i,n){if(PL[i]||Object.keys(PL).length>=8)return;const k=Object.keys(PL).length,sp0=ph==1?asSpawn():[2000+R(-60,60),4500+R(-60,60)];
+ PL[i]={id:i,n:n.replace(/</g,'&lt;'),c:`hsl(${k*47+200},90%,60%)`,x:sp0[0],y:sp0[1],hp:100,mx:100,xp:0,lv:1,dead:0,sl:[{c:0,l:0,a:7}],cs:0,cw:0,tx:null,ty:null,tz:null,sp:1,pr:0,bk:0,rc:0,aim:1.57,ls:0,bkf:0,arT:0,arF:0,rz:[.5,.7],pend:0,o:null,cd:0,fa:1.57,k:0,money:0,da:20,bt:0,rl:0,dd:0,jx:0,jy:0,jt:0}}
 function rmSlot(p,n){p.sl.splice(n,1);if(n<p.cs)p.cs--;p.cw=p.sl[p.cs].c}
 function spawnLoot(){if(IT.length>260)return;const n=Object.keys(PL).length,put=(k,c,f,v)=>{for(let i=0;i<c;i++){const[x,y]=f();IT.push({x,y,k,v})}},
   inB=T=>()=>inPos(BLD.filter(b=>b.T==T)),anyH=()=>inPos(BLD.filter(b=>b.T=='x'&&!b.sm)),out=()=>freePos(),wk=()=>[2,3,4,5,2,3,11,4][Math.random()*8|0],cv=()=>20+(Math.random()*3|0)*10,LC=()=>{const r=Math.random();return r<.66?inB('p')():r<.76?inB('h')():r<.96?anyH():out()};
@@ -10,9 +10,9 @@ function spawnLoot(){if(IT.length>260)return;const n=Object.keys(PL).length,put=
  put(9,8,inB('m'));put(10,4,inB('m'));put(8,4,inB('m'),0);for(const it of IT)if(it.k==8&&!it.v)it.v=cv();
  put(9,10+n,anyH);put(9,8,out);put(10,3,anyH);put(7,n+2,anyH);put(7,2,inB('p'));for(let i=0;i<Math.ceil(n/2);i++)put(wk(),1,anyH);
  for(let i=0;i<n+6;i++){const[x,y]=(i%2?anyH:out)();IT.push({x,y,k:8,v:cv()})}}
-function start(){if(Object.keys(PL).length<minP)return;sd=Math.random()*1e9|0;O=genMap(sd);BLD=O.B;buildOB();DECOR=genDecor(sd);decorObs();buildOB();initGrid();RK=[];PJ=[];DEADL=[];EV=[];GOO=[];bossPend=null;shopOn=0;ph=1;gt=0;lastMin=0;bossP=0;shopP=0;bossHold=0;bossN=0;sa=0;Z=[];IT=[];for(const p of Object.values(PL)){p.x=2000+R(-60,60);p.y=4500+R(-60,60)}spawnLoot();bn=[Date.now(),'SOBREVIVA!',0]}
+function start(){if(Object.keys(PL).length<minP)return;sd=Math.random()*1e9|0;O=genMap(sd);BLD=O.B;buildOB();DECOR=genDecor(sd);decorObs();buildOB();initGrid();RK=[];PJ=[];DEADL=[];EV=[];GOO=[];bossPend=null;shopOn=0;ph=1;gt=0;lastMin=0;bossP=0;shopP=0;bossHold=0;bossN=0;sa=0;Z=[];IT=[];for(const p of Object.values(PL)){const s_=asSpawn();p.x=s_[0];p.y=s_[1]}spawnLoot();bn=[Date.now(),'SOBREVIVA!',0]}
 function reset(){if(!ws){location.reload();return} // solo: não existe sala/lobby para voltar, vai para a tela inicial
- const o=Object.values(PL);PL={};o.forEach(p=>addP(p.id,p.n));ph=0;sd=0}
+ const o=Object.values(PL).filter(p=>p.id==id||netConns[p.id]);PL={};o.forEach(p=>addP(p.id,p.n));ph=0;sd=0}
 const dl=()=>1+Math.floor(gt/60);
 // MU2: lead-in da musica do boss (10,14 s = 6 compassos de 1,6896 s a 142 BPM; ver saidas/boss_cut_medidas.md)
 const BOSS_LEAD=10.14;
@@ -50,7 +50,11 @@ const GOO_LIFE=14000,GOO_ON=1500,GOO_R=75,GOO_DPS=9; // gosma do gordão: dura 1
 function kill(z,p){p.k++;cash(z);if(z.k==2)GOO.push({i:++gid,x:z.x,y:z.y,fa:z.fa||0,t0:Date.now()});
  if(z.k==3){for(const i in z.h)giveXp(PL[i],z.xp);for(let i=0;i<7;i++){let x=z.x+R(-70,70),y=z.y+R(-70,70);if(blk(x,y,20)){x=z.x;y=z.y}IT.push({x,y,k:[0,9,9,6,6,2,3,4,5,11,10][Math.random()*11|0]})}}
  else{giveXp(p,z.xp);if(Math.random()<.01)IT.push({x:z.x,y:z.y,k:9})}}
-function handle(m){if(m.t=='j')return addP(m.id,m.n);if(m.t=='pg'){const q=PL[m.id];if(q)q.pk=m.k;return} // ping: guarda o carimbo do cliente; volta no próximo snapshot dele
+function dropAll(p){const nt=Date.now()+1500,ex=Date.now()+120000,at=()=>({x:p.x+R(-34,34),y:p.y+R(-34,34)});
+ for(const s of p.sl){if(s.c==0&&s.l==0)continue;const q=at();IT.push({x:q.x,y:q.y,k:kOf(s.c),l:s.l,a:s.a,nt,ex})}
+ if(p.money>=1){const q=at();IT.push({x:q.x,y:q.y,k:8,v:p.money|0,nt,ex})}
+ p.sl=[{c:0,l:0,a:7}];p.cs=0;p.cw=0;p.rl=0;p.money=0} // morreu: solta tudo no chão e fica só com a pistola base
+function handle(m){if(m.t=='sp'){const q=PL[m.id];if(q&&q.dead)q.spd=(m.d<0?-1:1);return}if(m.t=='j')return addP(m.id,m.n);if(m.t=='pg'){const q=PL[m.id];if(q)q.pk=m.k;return} // ping: guarda o carimbo do cliente; volta no próximo snapshot dele
   const p=PL[m.id];if(!p||p.dead)return;
  if(m.t=='i'){let b=null,bd=40;for(const z of Z){const d=Math.hypot(z.x-m.x,z.y-m.y)-z.r;if(d<bd){bd=d;b=z}}if(m.f&&b&&b===p.tz)b=null;p.tz=b;if(m.f)p.dd=1;else{p.dd=0;p.tx=b?null:m.x;p.ty=m.y}}
  else if(m.t=='m'){p.dd=1;p.jx=Math.max(-1,Math.min(1,+m.x||0));p.jy=Math.max(-1,Math.min(1,+m.y||0));p.jt=Date.now()}
@@ -99,6 +103,7 @@ function updPJ(dt,all){for(const j of PJ){j.t+=dt;const b=j.bz;if(b.hp<=0){j.dn=
  PJ=PJ.filter(j=>!j.dn)}
 function step(){const dt=.033,all=Object.values(PL);tick++;
  if(ph==1){
+  for(const p of all){if(p.dead){if(!p.dl){p.dl=1;dropAll(p)}}else p.dl=0}
   if(all.every(p=>p.dead))ph=2;
   gt+=dt;const m_=Math.floor(gt/60),nA=all.filter(p=>!p.dead).length||1;
   if(!shopOn){sa+=(.5+.2*Math.min(m_,22))*(1+.35*(nA-1))*dt;const cap=Math.min(330,120+m_*12+nA*20);while(sa>=1){sa--;if(Z.length<cap)spawnZ()}}
@@ -160,6 +165,8 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
   P:all.map(p=>[p.id,p.n,p.c,p.x|0,p.y|0,p.hp|0,p.mx|0,p.dead,p.cw,p.lv,p.xp|0,need(p.lv),p.sl.filter(q=>q.c==11).length,p.o,p.sl.map(q=>[q.c,q.l,q.a]),p.sl[p.cs].l,p.cs,p.fa*10|0,p.k,p.money|0,p.da,Math.ceil(Math.max(0,p.bt)),p.rl>0?p.rl/(p.rlt||RT[p.cw])*100|0:0,p.of?[wiOf(p.of.it.k),p.of.it.l||0,p.sl[p.cs].c,p.sl[p.cs].l]:0,p.aim*10|0,(p.ls&&Date.now()-p.ls<450)?(p.bkf>.4?2:1):0,p.tz&&p.tz.hp>0?p.tz.i:0,p.rl>0&&p.rz?p.rz[0]*100|0:0,p.rl>0&&p.rz?p.rz[1]*100|0:0,p.arF?1:0,Math.ceil(Math.max(0,p.bDm||0,p.bCd||0,p.bSp||0)),Math.ceil(Math.max(0,p.arD||0)*10),Math.round((p.rlt||0)*1000),Math.ceil(Math.max(0,p.bDm||0)*10),Math.ceil(Math.max(0,p.bCd||0)*10),Math.ceil(Math.max(0,p.bSp||0)*10)])};
  if(tick%6==0||MAGMV){MAGMV=0;base.I=IT.map(i=>[i.x|0,i.y|0,i.k,i.v|0,i.u||(i.u=++IID)]);base.ZM=Z.map(z=>[z.x/30|0,z.y/30|0,z.k]);base.DS=DEADL.map(o=>o.i)}
  const zA=Z.map(z=>[z.x|0,z.y|0,z.k,z.hp/z.mx*100|0,z.v,z.fa*10|0,z.i].concat(z.k==3?[z.bs|0,z.arm*100|0,Math.ceil(Math.max(0,z.stun||0)*10),Math.ceil(Math.max(0,z.em||0)*10),Math.round((z.gt||0)*100)]:z.k==4?[z.st|0,z.alt|0,z.at||'',z.st==5?z.t/.7*100|0:z.st==2?z.t/1.37*100|0:0]:[z.atk?1+(z.ap*100|0):0]));
- onSnap(Object.assign({},base,{Z:zA}));
- if(ws&&ws.bufferedAmount<3e6)for(const q of all)if(q.id!=id)ws.send('@'+q.id+'|'+JSON.stringify(Object.assign({},base,{pk:q.pk,Z:zA.filter(z=>z[2]==3||Math.abs(z[0]-q.x)<1500&&Math.abs(z[1]-q.y)<950)})));
+ const al=all.filter(a=>!a.dead);for(const q of all){if(!q.dead||!al.length){q.spec=0;q.spd=0;continue}let ix=al.findIndex(a=>a.id==q.spec);if(ix<0)ix=0;if(q.spd){ix=(ix+q.spd+al.length)%al.length;q.spd=0}q.spec=al[ix].id}
+ const cp=q=>q.dead&&q.spec&&PL[q.spec]||q;
+ onSnap(Object.assign({},base,{Z:zA,sp:(PL[id]||{}).spec||0}));
+ if(ws)for(const q of all)if(q.id!=id){const c=cp(q);netTo(q.id,Object.assign({},base,{pk:q.pk,sp:q.spec||0,Z:zA.filter(z=>z[2]==3||Math.abs(z[0]-c.x)<1500&&Math.abs(z[1]-c.y)<950)}))}
  FX=[];EV=[]}

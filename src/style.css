@@ -208,3 +208,7 @@ canvas{display:block;width:100%;height:100%}
 .gwBufF{box-sizing:border-box;border-radius:0;overflow:visible}
 .gwBufQ{position:absolute;left:50%;top:50%;width:15px;height:15px;margin:-7.5px 0 0 -7.5px;box-sizing:border-box;border:2.5px solid #ff9a1a;box-shadow:0 0 4px #ff9a1a;animation:gwBufR 1.2s linear infinite}
 @keyframes gwBufR{from{transform:scaleY(.82) rotate(0)}to{transform:scaleY(.82) rotate(360deg)}}
+
+/* jogo só em pé no celular: em paisagem cobre a tela com o aviso */
+#rot{display:none;position:fixed;inset:0;z-index:99999;background:#0a0a0c;color:#e8d9b0;font:700 26px Dracutaz,sans-serif;text-align:center;align-items:center;justify-content:center;letter-spacing:2px}#rot small{font-size:15px;opacity:.7;display:block;margin-top:8px}
+@media (orientation:landscape) and (pointer:coarse) and (max-height:600px){#rot{display:flex}}

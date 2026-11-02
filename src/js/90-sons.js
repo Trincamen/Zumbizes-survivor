@@ -470,7 +470,7 @@ function draw(){requestAnimationFrame(draw);const _n=performance.now();
  if(!G3){X.setTransform(ZO*DPR,0,0,ZO*DPR,0,0);if(glLive)X.clearRect(0,0,W,H);else{X.fillStyle='#000';X.fillRect(0,0,W,H)}}
  if(!s||s.ph==0){if(glLive)glHudShow(0);menuScene(t);{const _d=performance.now()-_n;DRAW_MS=DRAW_MS?DRAW_MS*.9+_d*.1:_d}return}
  if(FR%180==0){for(const k in RP)if(RP[k].u<FR-120)delete RP[k];zsClean()}
- const mr=me?sm('p'+id,me[3],me[4],dtf):null;if(mr){cx=mr.x;cy=mr.y}meB=bAt(cx,cy);audioFrame(s,t,mr);ox=Math.round(W/2-cx);oy=Math.round(H/2-cy);
+ let mr=me?sm('p'+id,me[3],me[4],dtf):null;if(me&&me[7]&&s.sp){const tg=s.P.find(p=>p[0]==s.sp&&!p[7]);if(tg)mr=sm('p'+tg[0],tg[3],tg[4],dtf)}if(mr){cx=mr.x;cy=mr.y}meB=bAt(cx,cy);audioFrame(s,t,mr);ox=Math.round(W/2-cx);oy=Math.round(H/2-cy);
  const shx=(Math.random()-.5)*QK*14,shy=(Math.random()-.5)*QK*14;GL_SHX=shx;GL_SHY=shy;
  if(glOn)glFrame();if(glLive)hudShake(shx,shy);QK=Math.max(0,QK-dtf*1.6);if(!G3){X.save();X.translate(ox+shx,oy+shy)}
  const v=(x,y,m=90)=>Math.abs(x-cx)<W/2+m&&Math.abs(y-cy)<H/2+m;

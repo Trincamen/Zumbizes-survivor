@@ -7,7 +7,7 @@ const NOC2D=/[?&]c2d=0(?:&|$)/.test(location.search||'');
 const GQS=[1,.85,.7,.55],GQ={blob:1,esfera:1,halo:1,scale:1};
 let GFX=_l('gfx')||'auto';if(GFX!='auto'&&GQS.indexOf(+GFX)<0)GFX='auto';if(GFX!='auto')GQ.scale=+GFX;
 const zbase=()=>MOB?Math.min(1.4,Math.max(1.1,innerHeight/340)):Math.max(.5,Math.min(1,innerWidth/1100)),hkF=()=>(MOB?.6:1)*HUDS;
-function rs(){DPR=Math.min(window.devicePixelRatio||1,2)*GQ.scale;const zl=Math.max(innerHeight/1900,innerWidth/3000,.45),zh=Math.max(zl,Math.min(1.8,innerWidth/420,innerHeight/220));ZO=Math.max(zl,Math.min(zh,zbase()*CAM));
+function rs(){if(MOB)HUDS=Math.max(.55,Math.min(1.1,Math.min(innerWidth,innerHeight*.62)/390*.78));DPR=Math.min(window.devicePixelRatio||1,2)*GQ.scale;const zl=Math.max(innerHeight/1900,innerWidth/3000,.45),zh=Math.max(zl,Math.min(1.8,innerWidth/420,innerHeight/220));ZO=Math.max(zl,Math.min(zh,zbase()*CAM));
  // DIAGNÓSTICO (?c2d=0): reduz o canvas 2D de sobreposição a 1x1 px (tudo que o jogo desenha nele passa a custar ~0 de rasterização); mundo 3D e HUD DOM seguem normais
  C.width=NOC2D?1:innerWidth*DPR|0;C.height=NOC2D?1:innerHeight*DPR|0;W=innerWidth/ZO;H=innerHeight/ZO;const st=document.documentElement.style;if(st.setProperty)st.setProperty('--hs',HUDS)}
 rs();onresize=rs;
@@ -17,7 +17,7 @@ const WA=[.8,.74,.86,.62,1,.92],rgOf=(c,l)=>WS_[c][0]*(1+.06*l),dmOf=(c,l)=>WS_[
 const SK=['Dano +2%','Velocidade +5%','Vida máx +25%','Cadência +2%','Alcance +5%','Regeneração'];
 const CL={10:['+','Curar'],11:['+','Desfib.'],12:['+','Bandagem'],13:['+','Analgés.']};
 const SH=[['Bandagem',15,9],['Analgésico',60,10],['Kit de cura',60,0],['Desfibrilador',400,1],['Escopeta',300,2],['Rifle',440,3],['Metralhadora',600,4],['Lança-chamas',520,5],['Sniper',900,11],['Melhoria da arma',100,6]];
-const id=Math.random().toString(36).slice(2,8);let host=0,ws,snap=null,me=null,lastBn=null,skKey='',shKey='',ofKey='',LSH={},LVP={},LUE=[],FT=[],PILL=null,wbKey='',O=[],curSd=0,BLD=[],meB=null,IL=[],ZMM=[],FIRES=[],DD={},POP={},FL2=[],PT=[],QK=0,lastEv=0,FXL=[],lastF=0,RP={},FR=0,LT=Date.now();
+const id=(()=>{let v=null;try{v=new URLSearchParams(location.search).get('pid')||localStorage.getItem('pid')}catch(e){}v=String(v||'').replace(/\W/g,'').slice(0,12);if(!v){v=Math.random().toString(36).slice(2,8)+Math.random().toString(36).slice(2,6);try{localStorage.setItem('pid',v)}catch(e){}}return v})();let host=0,ws,snap=null,me=null,lastBn=null,skKey='',shKey='',ofKey='',LSH={},LVP={},LUE=[],FT=[],PILL=null,wbKey='',O=[],curSd=0,BLD=[],meB=null,IL=[],ZMM=[],FIRES=[],DD={},POP={},FL2=[],PT=[],QK=0,lastEv=0,FXL=[],lastF=0,RP={},FR=0,LT=Date.now();
 const LS={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}},esc=x=>String(x).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 let originKind='?',onRooms=[],scanning=0,tab='on',rc='';
 $('nm').value=LS.get('name')||'';nickUp();if(!$('nm').value)setTimeout(()=>{show('nick');try{$('nk').focus()}catch(e){}},0);

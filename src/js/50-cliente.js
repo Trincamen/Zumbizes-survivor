@@ -1,7 +1,9 @@
 // ---------- UI / cliente ----------
 let PING=-1,PING_K=0;
 setInterval(()=>{if(!host&&ws&&ws.readyState===1)try{send({t:'pg',id,k:Math.round(performance.now())})}catch(e){}},1500); // ping: o host devolve o carimbo no snapshot
-function onSnap(s){snap=s;if(s.pk&&s.pk!==PING_K){PING_K=s.pk;PING=Math.max(0,Math.round(performance.now()-s.pk))}me=s.P.find(p=>p[0]==id);if(s.sd&&s.sd!=curSd){curSd=s.sd;O=genMap(s.sd);BLD=O.B;buildOB();DECOR=genDecor(s.sd);decorObs();buildOB();FIRES=O.FR;DD={};POP={};FL2=[];PT=[]}if(s.I){IL=s.I;const ks={};for(const e of IL)ks[e[4]]=1;for(const u in ITD)if(!ks[u])delete ITD[u]}if(s.ZM)ZMM=s.ZM;for(const p of s.P){const lv=LVP[p[0]];if(lv!=null&&p[9]>lv)LUE.push({pid:p[0],t:Date.now()});LVP[p[0]]=p[9]}
+function specHud(s){let e=document.getElementById('gspec');if(!e){e=document.createElement('div');e.id='gspec';e.style.cssText='position:fixed;left:50%;bottom:9%;transform:translateX(-50%);z-index:5;pointer-events:none;color:#e8d9b0;font:700 18px sans-serif;text-shadow:0 2px 6px #000;letter-spacing:1px;display:none';document.body.appendChild(e)}
+ const m=s.ph==1&&me&&me[7]&&s.sp?s.P.find(p=>p[0]==s.sp):null,t=m?'ESPECTANDO: '+m[1]+'   (\u2190 \u2192 ou toque para trocar)':'';if(e.dataset.t!==t){e.dataset.t=t;e.textContent=t;e.style.display=t?'block':'none'}}
+function onSnap(s){snap=s;if(s.pk&&s.pk!==PING_K){PING_K=s.pk;PING=Math.max(0,Math.round(performance.now()-s.pk))}me=s.P.find(p=>p[0]==id);specHud(s);if(s.sd&&s.sd!=curSd){curSd=s.sd;O=genMap(s.sd);BLD=O.B;buildOB();DECOR=genDecor(s.sd);decorObs();buildOB();FIRES=O.FR;DD={};POP={};FL2=[];PT=[]}if(s.I){IL=s.I;const ks={};for(const e of IL)ks[e[4]]=1;for(const u in ITD)if(!ks[u])delete ITD[u]}if(s.ZM)ZMM=s.ZM;for(const p of s.P){const lv=LVP[p[0]];if(lv!=null&&p[9]>lv)LUE.push({pid:p[0],t:Date.now()});LVP[p[0]]=p[9]}
  $('menu').style.display=s.ph==0?'flex':'none';$('opt').style.display=s.ph==1?'block':'none';if(s.ph!=1)$('opp').style.display='none';if(s.ph==1&&!hintT)hintT=Date.now();if(s.ph==0&&$('s-lobby').style.display!='block')show('lobby');$('end').style.display=s.ph==2?'flex':'none';
  if(s.ph==0){$('pl').innerHTML=s.P.map(p=>`<div style="color:${p[2]}">● ${p[1]}</div>`).join('');$('mp').textContent=minP;$('st').disabled=s.P.length<minP}
  if(s.ph==2){$('er').textContent='Vocês sobreviveram '+fmt(s.gt);$('nb').style.display=host?'':'none'}
@@ -27,7 +29,7 @@ addEventListener('pointermove',e=>{if(!dr)return;if(!dr.g&&Math.hypot(e.clientX-
 addEventListener('pointerup',e=>{if(!dr)return;const r=$('wb').getBoundingClientRect();if(dr.g){dr.g.remove();if(e.clientY<r.top-25||e.clientX>r.right+25)send({t:'d',id,n:dr.i})}else if(dr.i>=0)send({t:'u',id,n:dr.i});dr=null});
 addEventListener('pointercancel',()=>{if(dr&&dr.g)dr.g.remove();dr=null});
 const RLS={},RLH={},RLH0={},RLV={f:null,t:0};function rlSend(){return RLV.f!=null&&performance.now()-RLV.t<400?+RLV.f.toFixed(3):undefined}
-let lastTap=0,joy=null,mvLast=[0,0],mvT0=0,hintT=0,ctl=LS.get('ctl')||'auto';const KS={},JR=()=>(MOB?55:60)*Math.min(1.3,HUDS),wantJoy=e=>ctl=='joy'||(ctl=='auto'&&e.pointerType!='mouse');
+let sec2=null,lastTap=0,joy=null,mvLast=[0,0],mvT0=0,hintT=0,ctl=LS.get('ctl')||'auto';const KS={},JR=()=>(MOB?55:60)*Math.min(1.3,HUDS),wantJoy=e=>ctl=='joy'||(ctl=='auto'&&e.pointerType!='mouse');
 const CTL=[['auto','Automático','celular: joystick • PC: WASD ou setas'],['joy','Joystick na tela','toque e arraste na metade de baixo'],['tap','Toque para andar','toque onde quer ir (modo antigo)']];
 function ctlBtns(){for(const k of['ctl1','ctl2']){const e=$(k);if(e)e.innerHTML=CTL.map(c=>`<button class=sb style="display:block;width:100%;text-align:left;margin:4px 0;background:${ctl==c[0]?'linear-gradient(90deg,#8a6f35,#2a2218)':'#0a0a0c'};border-color:${ctl==c[0]?'#c9a54a':'#3a3226'};transform:none;font:700 15px Dracutaz,sans-serif;letter-spacing:0" onclick="setCtl('${c[0]}')">${c[1]}<br><small>${c[2]}</small></button>`).join('')}}
 function setCtl(m){ctl=m;LS.set('ctl',m);joy=null;ctlBtns();pushMove()}
@@ -40,21 +42,27 @@ function pushMove(){if(!snap||snap.ph!=1)return;let x=0,y=0;
  const now=Date.now(),ch=Math.abs(x-mvLast[0])>.06||Math.abs(y-mvLast[1])>.06;
  if(ch||((x||y)&&now-mvT0>200)){mvLast=[x,y];mvT0=now;send({t:'m',id,x:+x.toFixed(2),y:+y.toFixed(2)})}}
 // M3: handlers de ponteiro em funções nomeadas, usados pelo canvas 2D (#c) E pela camada #inp do modo GL
-function onPD(e){if(!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});
+function onPD(e){if(me&&me[7]&&snap&&snap.ph==1&&e.target&&e.target.id!='opt')send({t:'sp',id,d:1});if(!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});
  if(!snap||snap.ph!=1)return;const[_wx,_wy]=s2w(e.clientX,e.clientY),wx=_wx,wy=_wy;
+ const rel=!!(me&&!me[7]&&me[22]>0);
+ if(rel&&e.pointerType=='touch')send({t:'r',id,f:rlSend()}); // celular: tocar em QUALQUER lugar da tela é o toque da recarga ativa
+ if(joy&&e.pointerId!=joy.id&&e.pointerType=='touch'&&!rel&&me&&!me[7]){sec2={id:e.pointerId,done:0};sec2.tm=setTimeout(()=>{if(sec2&&sec2.id==e.pointerId){sec2.done=1;useHeal()}},380);try{e.currentTarget.setPointerCapture(e.pointerId)}catch(_){}return} // 2o dedo andando: toque = próxima arma, segurar = usar vida
  if(PILL&&Date.now()-PILL.t<250&&wx>PILL.x-16&&wx<PILL.x+PILL.w+16&&wy>PILL.y-26&&wy<PILL.y+PILL.h+26){send({t:'r',id,f:rlSend()});return}
  if(ctl=='tap'){send({t:'i',id,x:wx,y:wy});return}
  if(wantJoy(e)&&e.clientY>innerHeight*.5&&!joy){joy={id:e.pointerId,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,t0:Date.now(),mx:0};try{e.currentTarget.setPointerCapture(e.pointerId)}catch(_){}pushMove();return}
  send({t:'i',id,x:wx,y:wy,f:1})}
 function onPM(e){if(ctl=='tap'){if(e.buttons||e.pressure>0){const n=Date.now();if(n-lastTap>80){lastTap=n;if(snap&&snap.ph==1){const[_tx,_ty]=s2w(e.clientX,e.clientY);send({t:'i',id,x:_tx,y:_ty})}}}return}
  if(joy&&e.pointerId==joy.id){joy.x=e.clientX;joy.y=e.clientY;joy.mx=Math.max(joy.mx,Math.hypot(joy.x-joy.x0,joy.y-joy.y0));pushMove()}}
-function onPU(e){if(joy&&e.pointerId==joy.id){const j=joy;joy=null;pushMove();if(e.type=='pointerup'&&Date.now()-j.t0<260&&j.mx<12){const[_jx,_jy]=s2w(j.x0,j.y0);send({t:'i',id,x:_jx,y:_jy,f:1})}}}
+function cycleWeapon(){if(!me)return;const s=me[14],cs=me[16];for(let k=1;k<s.length;k++){const i=(cs+k)%s.length;if(s[i]&&s[i][0]<6){send({t:'u',id,n:i});return}}}
+function useHeal(){if(!me||me[5]>=me[6])return;const s=me[14];for(let i=0;i<s.length;i++)if(s[i]&&(s[i][0]==10||s[i][0]==12)){send({t:'u',id,n:i});return}}
+function onPU(e){if(sec2&&e.pointerId==sec2.id){clearTimeout(sec2.tm);const d=sec2.done;sec2=null;if(!d&&e.type=='pointerup')cycleWeapon();return}if(joy&&e.pointerId==joy.id){const j=joy;joy=null;pushMove();if(e.type=='pointerup'&&Date.now()-j.t0<260&&j.mx<12){const[_jx,_jy]=s2w(j.x0,j.y0);send({t:'i',id,x:_jx,y:_jy,f:1})}}}
 C.onpointerdown=onPD;C.onpointermove=onPM;C.onpointerup=C.onpointercancel=onPU;
 {const I=$('inp');if(I){I.onpointerdown=onPD;I.onpointermove=onPM;I.onpointerup=I.onpointercancel=onPU}}
 // com glLive a entrada vai para #inp (cobre a tela); o canvas 2D pode ficar 1x1 (c2d=0) sem perder clique/toque
 function glInp(v){try{const I=$('inp');if(I)I.style.display=v?'block':'none';C.style.pointerEvents=v?'none':''}catch(e){}}
 const MK=['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'];
 addEventListener('keydown',e=>{if(e.target.tagName=='INPUT'||!snap||snap.ph!=1)return;if(e.key=='Escape'){optOpen();return}
+ if(me&&me[7]&&(e.code=='ArrowLeft'||e.code=='ArrowRight')){e.preventDefault();send({t:'sp',id,d:e.code=='ArrowLeft'?-1:1});return}
  if(me&&me[23]&&(e.code=='Enter'||e.code=='NumpadEnter')){e.preventDefault();ofr(1);return}
  if(me&&me[23]&&e.code=='Escape'){e.preventDefault();ofr(0);return}
  if(e.code=='KeyR'){e.preventDefault();send({t:'r',id,f:rlSend()});return}

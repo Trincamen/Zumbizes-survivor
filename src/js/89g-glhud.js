@@ -192,9 +192,9 @@ function ghJoy(){
   const k=(m?1:0)+'|'+Math.round(al*100);
   if(k!==HJJ.hk){
    HJJ.hk=k;
-   const t=m?'Toque e arraste na metade de baixo da tela para andar':'Use W A S D ou as setas para andar';
+   const t=m?'Arraste embaixo para andar\n2º dedo: toque = trocar arma, segurar = usar vida\nRecarga: toque em qualquer lugar':'Use W A S D ou as setas para andar';
    if(E.h.textContent!==t)E.h.textContent=t;
-   E.h.style.fontSize=(m?14:20)+'px';
+   E.h.style.fontSize=(m?14:20)+'px';E.h.style.whiteSpace='pre-line';E.h.style.textAlign='center';
    E.h.style.opacity=al.toFixed(2);
    E.h.style.display='block';
   }

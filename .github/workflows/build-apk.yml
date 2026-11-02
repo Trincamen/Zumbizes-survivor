@@ -15,7 +15,7 @@ jobs:
           cd apk && npm install && npx cap add android
           M=android/app/src/main/AndroidManifest.xml
           sed -i 's/<application/<application android:usesCleartextTraffic="true"/' $M
-          sed -i 's/<activity/<activity android:screenOrientation="sensorLandscape"/' $M
+          sed -i 's/<activity/<activity android:screenOrientation="portrait"/' $M
           npx cap sync android
       - name: Compilar
         run: cd apk/android && chmod +x gradlew && ./gradlew assembleDebug
