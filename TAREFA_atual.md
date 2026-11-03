@@ -1,38 +1,28 @@
-# TAREFA_atual.md — EXECUTAR AGORA: TUTORIAL DE PRIMEIRA VEZ + CRÉDITOS no menu
+# TAREFA_atual.md — EXECUTAR AGORA: AJUSTES DO TUTORIAL (`src/js/89r-tutorial.js`, `src/style.css`, `src/assets/tutorial/`, `src/index.html`)
 
-> Edite SÓ `src/`, depois `node build.js` e `node build.js --check`. NÃO mexer em `server.js`, Dockerfile, workflows, `package*.json`, `40-host.js`. NÃO commite. Se travar 2×, pare e reporte. Testes só no Chrome (`tools/teste/lib.py`). Não imprima `game.html`. Textos em português do Brasil, curtos, sem exagero.
+> Edite SÓ `src/`, depois `node build.js` e `node build.js --check`. NÃO mexer em `server.js`, Dockerfile, workflows, `package*.json`, `40-host.js`. NÃO commite. Se travar 2×, pare e reporte. Testes só no Chrome (`tools/teste/lib.py`; o menu de DEBUG `98-debug.js` existe no build normal e serve para spawnar boss e dar/soltar itens no chão). Não imprima `game.html`. PNGs ≤ 30 KB cada.
 
-## Parte A — Tutorial de primeira vez
-Ao começar a partida (`snap.ph==1`), se o jogador nunca viu/pulou o tutorial (`LS 'tut'` != '1'), mostrar um painel NO CENTRO da tela (classe `.pn`, mesmo visual de terror dos outros painéis, z-index acima do HUD/`#inp`) ANTES de ele poder jogar: enquanto aberto, a entrada do jogo não age (stopPropagation nos pointerdown do painel; teclas WASD/setas não movem — ignorar `pushMove`/teclas enquanto `TUT_ON`). O jogo pode seguir rodando por trás (no multiplayer não dá para pausar).
-Cada página = título + print simples (imagem ~320 px de largura) + 1–3 linhas de explicação EMBAIXO. Indicador "n/7". Botões embaixo: **SEGUIR** (última página vira "ENTENDI") e **PULAR**. Pular OU terminar → `LS.set('tut','1')` e nunca mais abre sozinho. (Depois, com contas, vira registro por conta; por ora só localStorage.)
-Reabrir: botão **COMO JOGAR** no painel de opções `#opp` (Esc no PC / ⚙ no celular) abre o mesmo painel a qualquer hora (sem gravar nada além de `tut`).
-Páginas (confira cada fato no código por grep em `src/js/` antes de escrever; não invente):
-1. **Andar e atirar** — PC: WASD/setas anda; mouse mira e clica/atira. Celular: joystick na tela anda, toque mira/atira (a arma atira sozinha para onde o personagem olha — confira em `50-cliente.js`).
-2. **Minimapa** — o mapa no canto superior direito. Legenda COM ÍCONES em print (recorte do minimapa e/ou dos rótulos): HOSPITAL = curas; POLÍCIA = armas; MERCADO = itens/dinheiro; AREA SEGURA = abrigo com torretas. No PC aparecem como texto; no celular como pontinho colorido com a inicial (`89g-glhud.js` ~linha 94). Explicar também os outros pontos (você/aliados, zumbis, boss, itens, loja) conferindo cores em `ghMini` (`89g-glhud.js`) — só o que existir.
-3. **Melhoria de armas** — item "Melhoria da arma" (k==6, `40-host.js:45`, nível até 6, aumenta o carregador/dano — confira `magOf`) e onde comprar (`SH` em `00-base.js`, loja abre depois do boss).
-4. **Área Segura** — prédio `'r'`: torretas no telhado matam zumbis na rua; quando o boss está pendente/vivo a porta fecha, as torretas desligam e quem está dentro é levado para fora; spawn sempre ali (confira em `10-mapa.js`/`40-host.js`/`RETOMADA.md` seção sessão 15).
-5. **Subir de nível** — XP vem de matar zumbis; cada nível: +8 vida máxima, mais velocidade, resistência e empurrão (`giveXp`, `40-host.js:36`); onde ver (estrela dourada e barra de XP no HUD).
-6. **Itens de cura** — Bandagem, Analgésico (pílula), Kit de cura, Desfibrilador (revive aliado caído, uso manual) com ícone de cada (use `weaponIcon`/GLB já existentes ou recorte do print) e 1 linha cada (confira o efeito real em `40-host.js` função de usar item: valores de cura, tempo).
-7. **HUD das armas (inventário)** — slots no canto inferior esquerdo; trocar de arma (toque/tecla/2º dedo no celular), arrastar o slot para fora solta o item; kit/bandagem usa segurando (celular); botão ⚙ ao lado. Mencionar o botão AJUSTAR HUD das opções (mover/redimensionar o HUD).
+## 1. Botão COMO JOGAR das opções está por cima de outras coisas
+No painel `#opp` (`src/index.html` ~linha 25, estilo `#opp` em `style.css`) o botão COMO JOGAR ficou sobreposto. Colocá-lo no fluxo normal do painel, junto dos outros botões (`class=sb`), sem `position:absolute/fixed` e sem sobrepor AJUSTAR HUD, FECHAR, SAIR PARA O MENU, nem no celular (`.mob`, 390×844). Conferir com print do painel aberto (PC e celular).
 
-### Prints
-Gerar com Chrome headless (`tools/teste/lib.py`, solo, `?pid=` novo), recortando só a parte relevante (ex.: o minimapa para a página 2, os slots para a 7, o canto de vida/XP para a 5). PNG ou JPEG pequeno, ≤ 30 KB cada, salvos em `src/assets/tutorial/NN.png`; embutidos pelo `build.js` via CSS: `background-image:url(data:image/png;base64,@@GLB:assets/tutorial/NN.png@@)` em classes `.tp1..tp7` (o `build.js` já substitui `@@GLB:` no CSS, linha 16). Para a página 1 (andar/atirar) vale um print da cena com o personagem. Prints simples, sem anotações elaboradas.
+## 2. Texto maior
+Tamanho da letra do texto explicativo do tutorial = **15px** (`.mob` também 15px; o painel pode crescer em largura/altura, mas deve caber na tela 390×844 — se precisar, rolar o texto dentro do painel). Títulos proporcionais.
 
-## Parte B — Créditos no lugar de COMO JOGAR
-1. No menu principal (`src/index.html` linha ~34) o botão `COMO JOGAR` (`show('how')`) vira **CRÉDITOS** (`show('cred')`) na MESMA posição; ids/ordem dos demais botões intactos. A tela `s-how` vira `s-cred` (mantendo `← VOLTAR`). Apague o texto antigo de "Como jogar" (agora vive no tutorial). Procure referências a `'how'`/`s-how` em `src/js/*.js` e atualize.
-2. Conteúdo (títulos em negrito, linhas separadas):
-   - **Programação:** `Vinicius` (link `https://github.com/Trincamen`, `target=_blank rel=noopener`) · `Claude (Anthropic)`
-   - **Modelagem:** Claude (Anthropic)
-   - **Sons:** Claude (Anthropic)
-   - **Músicas:** uma linha por faixa:
-     - Pufino — Metal Is Trash
-     - Zambolino — Rotten Bones
-     - Nebulite — Iron Pulse
-     - (as 3 acima: Music provided by Free To Use — freetouse.com)
-     - Música do boss: Ashen Circuit — elevenlabs.io
-3. Também um link/botão pequeno "Créditos" no painel `#opp` NÃO é necessário.
+## 3. Nomes em negrito e sem explicar localização
+O mapa é aleatório: NÃO dizer onde ficam hospital/polícia/mercado. Em todas as páginas, destacar em **negrito** os nomes que a pessoa vai ver no jogo (HOSPITAL, POLÍCIA, MERCADO, AREA SEGURA, Bandagem, Analgésico, Kit de cura, Desfibrilador, Melhoria da arma, KRAID etc.), cada um com 1 frase curta do que é/faz.
+
+## 4. Página de andar/atirar (mouse)
+Trocar o texto do mouse por: no PC, WASD/setas andam; **clicar num inimigo com o mouse faz o personagem mirar nele**; sem clicar, o jogo **atira sozinho**. Confira o comportamento real (`onPD` em `50-cliente.js` e o tratamento de `m.t=='i'` em `40-host.js`: o clique escolhe o zumbi mais perto do ponto como alvo `tz`) para o texto não ficar errado. Celular: joystick anda; toque num inimigo mira; sem tocar atira sozinho (confirme).
+
+## 5. Minimapa em DUAS páginas (total passa a 8: indicador "n/8")
+- Página "Minimapa — lugares": manter o print atual do mapa; legenda em lista (1 linha por item, nome em negrito): **HOSPITAL** curas · **POLÍCIA** armas · **MERCADO** itens e dinheiro · **AREA SEGURA** abrigo com torretas. Dizer que no celular aparecem como pontinho colorido com a inicial. Sem localização.
+- Página "Minimapa — pontos": print com os pontos dinâmicos, 1 linha por ponto em negrito: **você/aliados**, **zumbis**, **BOSS**, **itens**, **LOJA**. Para o print: no Chrome, solo, usar o debug para spawnar o boss (e esperar aparecer no minimapa como bolinha), abrir a loja (debug: loja) e soltar alguns itens no chão perto; recortar o minimapa mostrando a bolinha do boss e a marca da loja (pode ser 2 recortes lado a lado numa só imagem). Confira as cores reais em `ghMini` (`89g-glhud.js`) e descreva cada ponto com a cor certa.
+
+## 6. Itens de cura com o objeto 3D
+Página dos itens de cura: soltar no chão (debug: "itens chão") Bandagem, Analgésico (pílula), Kit de cura e Desfibrilador perto do jogador, enquadrar cada esfera/objeto 3D do chão (`drawPickup`/esfera 3D) e recortar um print por item (ou uma faixa única com os 4). Cada um com nome em **negrito** e 1 linha do efeito real (confira em `40-host.js` o valor de cura de cada k0/k9/k10 e k1). Tirar o recorte da lista da loja.
+
+## 7. Renumerar
+Páginas finais (8): 1 andar/atirar · 2 minimapa lugares · 3 minimapa pontos · 4 melhoria de armas · 5 Área Segura · 6 subir de nível · 7 itens de cura · 8 HUD das armas. Atualizar `.tp1..tp8`, `n/8`, `SEGUIR/ENTENDI`, e os PNGs em `src/assets/tutorial/NN.png` (novos/regravados).
 
 ## Critério de pronto
-- `node build.js` e `node build.js --check` ok; `node --check` do script gerado ok; `window.__err` vazio; `game.html` com tamanho razoável (some só as 7 imagens).
-- Teste Chrome (desktop 1500×950 e emulação celular 390×844): `?pid=novo` → entra na partida → painel aparece no centro; SEGUIR avança as 7 páginas (print + texto em cada); na última "ENTENDI" fecha, `LS tut=='1'`; recarregar + nova partida → NÃO aparece; limpar `tut` + PULAR → fecha e grava; botão COMO JOGAR nas opções reabre; WASD não anda enquanto o painel está aberto e anda depois; menu principal mostra CRÉDITOS (sem COMO JOGAR) e a tela de créditos tem todas as linhas e o link. Prints do teste em `/tmp/opencode/tutorial/`.
-- Devolver ≤5 linhas: sucesso/falha, arquivos alterados, caminhos dos prints, e qualquer fato do jogo que você não conseguiu confirmar no código.
+`node build.js` e `--check` ok; `node --check` ok; `window.__err` vazio. Teste Chrome 1500×950 e 390×844: painel de opções com COMO JOGAR sem sobrepor nada (prints), tutorial das 8 páginas com texto 15px legível e dentro da tela, prints novos mostram a bolinha do boss, a marca da loja e os objetos 3D dos itens. Prints do teste em `/tmp/opencode/tutorial2/`. Devolver ≤5 linhas: sucesso/falha, arquivos alterados, caminhos dos prints, fatos não confirmados.

@@ -1,16 +1,17 @@
-// ---------- 89r-tutorial.js — tutorial de primeira vez (7 páginas, abre quando a partida começa) ----------
+// ---------- 89r-tutorial.js — tutorial de primeira vez (8 páginas, abre quando a partida começa) ----------
 // Abre sozinho no início da partida se localStorage 'tut' != '1'. Enquanto aberto, TUT_ON bloqueia a
 // entrada do jogo (pushMove/onPD/onPM/teclas em 50-cliente.js). O jogo segue rodando por trás.
 // Reabrir: botão COMO JOGAR no painel de opções (#opp). SEGUIR na última ou PULAR grava 'tut'.
 var TUT_ON=0,TUT_P=0,TUT_MAN=0,TUT_SKIP=0,TUT_EL=null;
 const TUTP=[
- ['ANDAR E ATIRAR','PC: WASD ou setas andam, o mouse aponta e o clique atira. Celular: arraste embaixo para andar e toque para atirar. A arma atira sozinha para onde olha.'],
- ['MINIMAPA','Canto superior direito: HOSPITAL = curas, POLÍCIA = armas, MERCADO = itens e dinheiro, AREA SEGURA = abrigo com torretas. Anel branco = você, roxo = boss, $ = loja.'],
- ['MELHORIA DA ARMA','O item laranja sobe a arma da mão até o nível 6: +10% de carregador e +25% de dano por nível. Também se compra na loja depois do boss ($ no minimapa).'],
- ['ÁREA SEGURA','Prédio do nascimento. As 4 torretas do telhado limpam a rua. Com o boss chegando ou vivo a porta fecha, as torretas desligam e quem está dentro sai.'],
- ['SUBIR DE NÍVEL','O XP vem de matar zumbis. Cada nível dá +8 de vida máxima, mais velocidade, resistência e empurrão. Estrela dourada e barra amarela no canto superior esquerdo.'],
- ['ITENS DE CURA','Bandagem: +20% da vida. Kit: +50%. Analgésico: 25 s andando 40% mais rápido. Desfibrilador: levanta um aliado caído perto com metade da vida (manual).'],
- ['SUAS ARMAS','Embaixo à esquerda. Troque com 1–6, tocando no slot ou com um toque do 2º dedo; arraste o slot para fora para soltar. Kit/bandagem: segure o 2º dedo. ⚙ = opções.'],
+ ['ANDAR E ATIRAR','PC: <b>WASD</b> ou as setas andam. Clicar num inimigo com o mouse faz o personagem mirar nele; sem clicar, o jogo atira sozinho no zumbi mais perto. Celular: o <b>joystick</b> anda, tocar num inimigo mira nele e sem tocar o jogo atira sozinho.'],
+ ['MINIMAPA — LUGARES','Canto superior direito; o mapa é sorteado a cada partida.<br><b>HOSPITAL</b> curas<br><b>POLÍCIA</b> armas<br><b>MERCADO</b> itens e dinheiro<br><b>AREA SEGURA</b> abrigo com torretas<br>No celular viram pontinho colorido com a inicial.'],
+ ['MINIMAPA — PONTOS','<b>VOCÊ/ALIADOS</b> anel branco em você<br><b>ZUMBIS</b> pontinhos escuros<br><b>BOSS</b> bolinha roxa com o nome<br><b>ITENS</b> verdes (cura), vermelhas (armas) e amarelas (dinheiro)<br><b>LOJA</b> um $ piscando'],
+ ['MELHORIA DA ARMA','O item laranja <b>Melhoria da arma</b> sobe a arma da mão até o nível 6: +10% de carregador e +25% de dano por nível. Também se compra na <b>LOJA</b> depois do boss.'],
+ ['ÁREA SEGURA','É o abrigo do nascimento. As 4 <b>torretas</b> do telhado limpam a rua; com o <b>BOSS</b> chegando ou vivo a porta fecha, elas desligam e quem está dentro sai.'],
+ ['SUBIR DE NÍVEL','O XP vem de matar zumbis. Cada nível dá +8 de vida máxima, mais velocidade, resistência e empurrão. <b>Estrela dourada</b> e barra amarela no canto superior esquerdo.'],
+ ['ITENS DE CURA','No chão, na esfera 3D:<br><b>Bandagem</b> +20% da vida<br><b>Analgésico</b> 25 s andando 40% mais rápido<br><b>Kit de cura</b> +50%<br><b>Desfibrilador</b> levanta o aliado caído perto com metade da vida (manual)'],
+ ['SUAS ARMAS','Barra embaixo à esquerda. Troque com 1–6, tocando no slot ou com um toque do 2º dedo; arraste o slot para fora para soltar. Kit/bandagem: segure o 2º dedo. <b>⚙</b> = opções.'],
 ];
 function tutBuild(){
  if(TUT_EL)return TUT_EL;
@@ -31,7 +32,7 @@ function tutPage(){
  const e=tutBuild(),p=TUTP[TUT_P]||TUTP[0];
  e.querySelector('#tutn').textContent=(TUT_P+1)+'/'+TUTP.length;
  const im=e.querySelector('#tuti');im.className='ti tp'+(TUT_P+1);
- e.querySelector('#tutt').textContent=p[1];
+ e.querySelector('#tutt').innerHTML=p[1];
  e.querySelector('#tuts').textContent=TUT_P>=TUTP.length-1?'ENTENDI':'SEGUIR';
  e.scrollTop=0;
 }
@@ -56,4 +57,4 @@ function tutCheck(s){
  tutOpen(0);
 }
 {const o=$('opp'); // botão COMO JOGAR no painel de opções (reabre o tutorial a qualquer hora)
- if(o){const b=document.createElement('button');b.className='sb';b.textContent='COMO JOGAR';b.onclick=()=>{o.style.display='none';tutOpen(1)};o.insertBefore(b,o.firstChild.nextSibling)}}
+ if(o){const b=document.createElement('button');b.className='sb';b.textContent='COMO JOGAR';b.onclick=()=>{o.style.display='none';tutOpen(1)};const f=$('obtns')||o;f.insertBefore(b,f.firstChild)}}
