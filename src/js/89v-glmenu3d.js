@@ -110,7 +110,7 @@ function mn3Build(){
  const R=MN3.root=new THREE.Group();SCN.add(R);
  const lam=k=>new THREE.MeshLambertMaterial({color:k});
  // chão escuro + terra queimada na fogueira
- const gnd=new THREE.Mesh(new THREE.CircleGeometry(160,24),lam(0x0d0b0a));gnd.rotation.x=-Math.PI/2;R.add(gnd);
+ const gnd=new THREE.Mesh(new THREE.CircleGeometry(160,24),new THREE.MeshLambertMaterial({color:0x3a4a2b,emissive:0x1b2713}));gnd.rotation.x=-Math.PI/2;R.add(gnd);
  const bu=new THREE.Mesh(new THREE.CircleGeometry(1.1,20),new THREE.MeshBasicMaterial({color:0x241812,transparent:true,opacity:.5,depthWrite:false}));
  bu.rotation.x=-Math.PI/2;bu.position.y=.012;R.add(bu);
  // fogueira (em (0,0,0), objeto): pedras + brasa + troncos + chamas + faíscas
@@ -209,10 +209,6 @@ function mn3Build(){
     pc:2400+7000*v5,ph:v2,os:900+1400*v4,os2:1500+2200*v5})}}
  // GLBs do jogo: poste (índice 8), cerca (26), rua_reta (CEN_RGLB 0)
  try{if(typeof CENGLB!=='undefined'&&CENGLB[8])mn3Glb(CENGLB[8],M=>{MN3.pole=M;if(M&&M.grp&&MN3.scn)MN3.scn.add(M.grp);if(MN3.scn)mn3Place()})}catch(e){}
- try{if(typeof CENGLB!=='undefined'&&CENGLB[26])mn3Glb(CENGLB[26],M=>{
-  MN3.cbb=M.bb;MN3.cerca=[];
-  for(let i=0;i<7;i++){const g2=M.grp.clone();MN3.scn.add(g2);MN3.cerca.push(g2)}
-  if(MN3.scn)mn3Place()})}catch(e){}
  try{if(typeof CEN_RGLB!=='undefined'&&CEN_RGLB[0])mn3Glb(CEN_RGLB[0],M=>{
   MN3.street=M.grp;MN3.sbb=M.bb;MN3.scn.add(M.grp);if(MN3.scn)mn3Place()})}catch(e){}
  mn3Extras();
@@ -303,19 +299,8 @@ function mn3Extras(){
    const h={M,c,L:null};
    if(!mn3Lite()){h.L=new THREE.PointLight(0xffc880,1.5,16,2);MN3.scn.add(h.L)}
    MN3.hs.push(h);mn3Place()},{em:0x1c1e24,ds:true})}
- const gc=document.createElement('canvas');gc.width=gc.height=64;const x=gc.getContext('2d');
- if(x){let g=x.createLinearGradient(0,0,64,0);g.addColorStop(0,'#000');g.addColorStop(.38,'#fff');g.addColorStop(1,'#fff');
-  x.fillStyle=g;x.fillRect(0,0,64,64);x.globalCompositeOperation='multiply';
-  g=x.createLinearGradient(0,0,0,64);g.addColorStop(0,'#000');g.addColorStop(.35,'#fff');g.addColorStop(1,'#fff');
-  x.fillStyle=g;x.fillRect(0,0,64,64)}
- const ge=new THREE.BufferGeometry();
- ge.setAttribute('position',new THREE.BufferAttribute(new Float32Array(18),3));
- ge.setAttribute('normal',new THREE.BufferAttribute(new Float32Array([0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0]),3));
- // uv: FL(0,1) NL(0,0) NR(1,0) | FL NR FR(1,1)  (v=1 = lado de trás = some)
- ge.setAttribute('uv',new THREE.BufferAttribute(new Float32Array([0,1,0,0,1,0,0,1,1,0,1,1]),2));
- MN3.grass=new THREE.Mesh(ge,new THREE.MeshLambertMaterial({color:0x3a4a2b,emissive:0x1d2915,alphaMap:new THREE.CanvasTexture(gc),
-  transparent:true,depthWrite:false,side:THREE.DoubleSide}));
- MN3.grass.frustumCulled=false;MN3.grass.renderOrder=0;MN3.scn.add(MN3.grass)}
+}
+
 // ponto do CHÃO (y=0) sob uma fração de tela; devolve a profundidade
 function mn3Ground(fx,fy,out){mn3RP(fx,fy,1,out);const c=MN3.cam.position,dy=out.y-c.y;
  if(dy>=-1e-4){out.set(c.x,0,c.z-30);return 30}
