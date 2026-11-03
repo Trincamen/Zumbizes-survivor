@@ -150,19 +150,29 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
   if(tick%30==0)IT=IT.filter(i=>!i.ex||i.ex>Date.now());
   // Área Segura: 4 torretas no telhado matam qualquer zumbi (menos o boss) na rua ao redor, antes de chegar à porta
   const AS=BLD.find(b=>b.T=='r'),asC=!!(bossPend||Z.some(z=>z.k==3&&z.hp>0));asClosed(asC);
+  // Limite na Área Segura: 120 s lá dentro (cronômetro na tela = P[i][36]); ao zerar ou ao sair, 300 s INVISÍVEIS sem poder entrar (quem entra é empurrado para fora).
+  // O nascimento dentro da zona não conta: o limite só vale depois da primeira saída. Com a porta do boss fechada o limite é zerado, sem castigo.
+  if(AS)for(const p of all){const ins=!p.dead&&p.x>AS.x+14&&p.x<AS.x+AS.w-14&&p.y>AS.y+14&&p.y<AS.y+AS.h+16;
+   if(p.asG===undefined){p.asG=ins?1:0;p.asI=0;p.asK=0}
+   if(asC||p.dead){p.asI=0;p.asK=0;if(!ins)p.asG=0;continue}
+   if(p.asK>0)p.asK-=dt;
+   const kick=()=>{let x=AS.dx+28+R(-34,34),y=AS.y+AS.h+54+R(0,30);if(blk(x,y,12)){x=AS.dx+28;y=AS.y+AS.h+54}p.x=x;p.y=y;p.tx=null;p.ty=null;p.tz=null;p.asI=0;p.asK=300;p.asG=0;p.asMn=(p.asMn||0)+1;p.asMi=Math.random()*4|0};
+   if(ins){if(p.asG){}else if(p.asK>0)kick();else{if(!p.asI)p.asI=120;p.asI-=dt;if(p.asI<=0)kick()}}
+   else{if(p.asG||p.asI>0)p.asK=300;p.asG=0;p.asI=0}}
   if(AS&&asC){let n=0;for(const p of all){if(p.dead||!(p.x>AS.x+14&&p.x<AS.x+AS.w-14&&p.y>AS.y+14&&p.y<AS.y+AS.h+16))continue;
    let x=AS.dx+28+(n%3-1)*34,y=AS.y+AS.h+54+(n/3|0)*30;n++;if(blk(x,y,12)){x=AS.dx+28;y=AS.y+AS.h+54}
    p.x=x;p.y=y;p.tx=null;p.ty=null;p.tz=null}} // boss chegando: quem está dentro da Área Segura é jogado para fora (porta fechada)
   if(AS&&!asC){const Rg=320,x0=AS.x-Rg,x1=AS.x+AS.w+Rg,y0=AS.y-Rg,y1=AS.y+AS.h+Rg;AS.tt=AS.tt||[0,0,0,0];
    for(let i=0;i<4;i++){AS.tt[i]-=dt;if(AS.tt[i]>0)continue;const[tx,ty]=turPos(AS,i);let bz=null,bd=1e9;
     for(const z of Z){if(z.hp<=0||z.k==3||z.x<x0||z.x>x1||z.y<y0||z.y>y1)continue;const d=Math.hypot(z.x-tx,z.y-ty);if(d<bd){bd=d;bz=z}}
-    if(bz){AS.tt[i]=.16;bz.hp=0;FX.push([tx|0,ty|0,bz.x|0,bz.y|0,2,++fid,-1,1])}}}
+    if(bz){AS.tt[i]=.16;if(bz.hp>0&&bz.k==2)GOO.push({i:++gid,x:bz.x,y:bz.y,fa:bz.fa||0,t0:Date.now()}); // gordão morto pela torreta também explode (gosma), sem XP/item
+     bz.hp=0;FX.push([tx|0,ty|0,bz.x|0,bz.y|0,2,++fid,-1,1])}}}
   if(GOO.length){const nw=Date.now();GOO=GOO.filter(g=>nw-g.t0<GOO_LIFE);
    for(const g of GOO){if(nw-g.t0<GOO_ON)continue;for(const p of all){if(p.dead||Math.hypot(p.x-g.x,p.y-g.y)>GOO_R)continue;p.hp-=GOO_DPS*dt;if(p.hp<=0){p.hp=0;p.dead=1;p.tz=null}}}}
   for(const p of all)if(p.hz&&(p.hz.hp<=0||!Z.includes(p.hz)))p.hz=null;
   Z=Z.filter(z=>z.hp>0)}
  const base={t:'S',G:GOO.map(g=>[g.x|0,g.y|0,(g.fa*10)|0,Date.now()-g.t0,g.i]),ph,gt:gt|0,bn,sd,left:Z.length,sh:shopOn?[shopX|0,shopY|0,shopT|0]:0,bp:bossPend?[bossPend.x|0,bossPend.y|0,Math.ceil(Math.max(0,bossPend.t)),+Math.max(0,bossPend.t).toFixed(3)]:0,F:FX,K:RK.map(r=>[r.x|0,r.y|0,r.t<r.dur?r.t/r.dur:1+(r.t-r.dur)/.4]),Pj:PJ.map(j=>[j.k,j.c,j.x|0,j.y|0,j.h|0,j.rot*100|0,j.oi|0]),EV,Dh:Z.filter(z=>z.dash).map(z=>[z.dash.x0|0,z.dash.y0|0,z.dash.a*100|0,750,z.dash.t]),
-  P:all.map(p=>[p.id,p.n,p.c,p.x|0,p.y|0,p.hp|0,p.mx|0,p.dead,p.cw,p.lv,p.xp|0,need(p.lv),p.sl.filter(q=>q.c==11).length,p.o,p.sl.map(q=>[q.c,q.l,q.a]),p.sl[p.cs].l,p.cs,p.fa*10|0,p.k,p.money|0,p.da,Math.ceil(Math.max(0,p.bt)),p.rl>0?p.rl/(p.rlt||RT[p.cw])*100|0:0,p.of?[wiOf(p.of.it.k),p.of.it.l||0,p.sl[p.cs].c,p.sl[p.cs].l]:0,p.aim*10|0,(p.ls&&Date.now()-p.ls<450)?(p.bkf>.4?2:1):0,p.tz&&p.tz.hp>0?p.tz.i:0,p.rl>0&&p.rz?p.rz[0]*100|0:0,p.rl>0&&p.rz?p.rz[1]*100|0:0,p.arF?1:0,Math.ceil(Math.max(0,p.bDm||0,p.bCd||0,p.bSp||0)),Math.ceil(Math.max(0,p.arD||0)*10),Math.round((p.rlt||0)*1000),Math.ceil(Math.max(0,p.bDm||0)*10),Math.ceil(Math.max(0,p.bCd||0)*10),Math.ceil(Math.max(0,p.bSp||0)*10)])};
+  P:all.map(p=>[p.id,p.n,p.c,p.x|0,p.y|0,p.hp|0,p.mx|0,p.dead,p.cw,p.lv,p.xp|0,need(p.lv),p.sl.filter(q=>q.c==11).length,p.o,p.sl.map(q=>[q.c,q.l,q.a]),p.sl[p.cs].l,p.cs,p.fa*10|0,p.k,p.money|0,p.da,Math.ceil(Math.max(0,p.bt)),p.rl>0?p.rl/(p.rlt||RT[p.cw])*100|0:0,p.of?[wiOf(p.of.it.k),p.of.it.l||0,p.sl[p.cs].c,p.sl[p.cs].l]:0,p.aim*10|0,(p.ls&&Date.now()-p.ls<450)?(p.bkf>.4?2:1):0,p.tz&&p.tz.hp>0?p.tz.i:0,p.rl>0&&p.rz?p.rz[0]*100|0:0,p.rl>0&&p.rz?p.rz[1]*100|0:0,p.arF?1:0,Math.ceil(Math.max(0,p.bDm||0,p.bCd||0,p.bSp||0)),Math.ceil(Math.max(0,p.arD||0)*10),Math.round((p.rlt||0)*1000),Math.ceil(Math.max(0,p.bDm||0)*10),Math.ceil(Math.max(0,p.bCd||0)*10),Math.ceil(Math.max(0,p.bSp||0)*10),Math.ceil(Math.max(0,p.asI||0)),p.asMn||0,p.asMi||0])};
  if(tick%6==0||MAGMV){MAGMV=0;base.I=IT.map(i=>[i.x|0,i.y|0,i.k,i.v|0,i.u||(i.u=++IID)]);base.ZM=Z.map(z=>[z.x/30|0,z.y/30|0,z.k]);base.DS=DEADL.map(o=>o.i)}
  const zA=Z.map(z=>[z.x|0,z.y|0,z.k,z.hp/z.mx*100|0,z.v,z.fa*10|0,z.i].concat(z.k==3?[z.bs|0,z.arm*100|0,Math.ceil(Math.max(0,z.stun||0)*10),Math.ceil(Math.max(0,z.em||0)*10),Math.round((z.gt||0)*100)]:z.k==4?[z.st|0,z.alt|0,z.at||'',z.st==5?z.t/.7*100|0:z.st==2?z.t/1.37*100|0:0]:[z.atk?1+(z.ap*100|0):0]));
  const al=all.filter(a=>!a.dead);for(const q of all){if(!q.dead||!al.length){q.spec=0;q.spd=0;continue}let ix=al.findIndex(a=>a.id==q.spec);if(ix<0)ix=0;if(q.spd){ix=(ix+q.spd+al.length)%al.length;q.spd=0}q.spec=al[ix].id}
