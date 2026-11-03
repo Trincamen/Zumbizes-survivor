@@ -20,3 +20,24 @@ Trocar o fundo 2D do menu por uma cena 3D: acampamento à noite, personagem SENT
 - Sem a flag/WebGL (`glKill()` ou fallback) o menu 2D antigo ainda aparece.
 - `draw` do menu medido (ms) e informado; prints em `/tmp/opencode/menu3d/`.
 - Relatar em ≤5 linhas.
+
+## Notas de execução (levantadas pelo orquestrador — conferidas no código)
+- Nós do jogador (índices): 0 player, 1 hips, 2 leg_l, 3 leg_r, 4 torso, 5 head, 6 arm_l, 7 arm_r, 8 weapon_socket. Clip `idle` existe em `PG.CLP`.
+- `pgSolve` está em `src/js/80-jogador.js:78`; o laço FK vai de `const R=PG.WRT,Wt=PG.WT,PGT=PG.PGT,PGR=PG.PGR,PAR=PG.PAR;` (linha ~104) até o fecho do `for(const i of PG.ORD)` (~linha 122). Extraia esse laço tal e qual para `function pgFK()` (usa PG.WRT/WT/PGT/PGR/PAR) e substitua no `pgSolve` por `pgFK();`. Não mude mais nada da função (o `if(!o.dead){...})` do IK do braço vem DEPOIS do laço no arquivo original — mantenha a ordem).
+- `glC2D(0)` esconde `#c`; `#glc` já está visível com `glLive` (glInit faz `cv.style.display='block'`). Não precisa mostrar `#glc`.
+- Em `90-sons.js` o ramo do menu faz `return` ANTES de `glRenderNow()` (linha 611). Logo `glMenuFrame(t)` deve chamar `GLR.render(GLMENU,GM_CAM)` ele mesmo — inclusive o `setPixelRatio/setSize` quando `GLCV.width!==innerWidth*d`.
+- NÃO usar `jgObj()` (ele faz `GLW.add(grp)`). Monte um `THREE.Group` próprio em `GLMENU` e reuse `jgBuild()`, `jgNodeGeo(ni,-1,cc,gg)` e `jgMat()` de `89d-gljogador.js`. `jgNodeGeo` devolve geometria nova a cada chamada: chame só na construção.
+- Escala/metros do modelo: `S=27*s` (px por metro) igual a `drawPlayerGL`; para a cena do menu a escala é livre, use algo como 1 unidade de mundo = 1 px para a câmera (perspectiva própria, distância ~em px).
+- `GQ` é o objeto de qualidade (ver `88-gl.js`/`GQ.scale`); modo LITE = menos faíscas e sem luz extra.
+- Cor da camisa: o menu 2D usa a cor salva do jogador; use a MESMA fonte que o menu 2D usa hoje.
+- Servidor de teste: `PORT=4997 node server.js &` e `tools/teste/lib.py` (Chrome headless). Prints em `/tmp/opencode/menu3d/`.
+
+## CORREÇÕES (rodada 2 — pedido do usuário; prevalecem sobre o texto acima)
+Só editar `src/js/89u-glmenu.js` (e o mínimo em outros se inevitável). Tudo na cena `GLMENU`.
+1. **Sem arma:** nada de arma nas mãos/costas (`MNG_O.gun`/`w` sem arma; esconder malha da arma/`weapon_socket`). O clipe `idle_aim` ergue o braço: use `idle` ou zere o efeito, e sobrescreva os braços na pose.
+2. **Graveto com linguiça:** graveto fino marrom (cilindro ~90 px de comprimento) preso nas mãos, inclinado para a frente/baixo, ponta SOBRE a fogueira; na ponta uma linguiça (cápsula/cilindro arredondado rosa-avermelhado escuro, levemente dourada, com 2 marcas de grelha). Sutil balanço do graveto e leve brilho/escurecer da linguiça por tempo (opcional). Ajuste os braços (`armL/armR`) para as mãos segurarem o graveto.
+3. **Pose realmente sentada:** coxas dobradas ~90° à frente, canelas para baixo (se o modelo só tiver 2 segmentos de perna, incline as pernas à frente e para baixo sobre o tronco-banco), tronco quase reto/levemente inclinado para o fogo, cabeça virada para a fogueira. Conferir em print que NÃO parece deitado.
+4. **Fundo = cidade com zumbis andando:** à distância (atrás da fogueira, lado direito e centro, longe da coluna do texto) silhuetas de prédios baixos/médios (caixas escuras `MeshLambertMaterial` quase pretas azuladas, alturas variadas, ~12–16 prédios em 2 fileiras, algumas janelas acesas fracas amarelas via `MeshBasicMaterial`), poste/luz distante opcional, névoa mais densa para dar profundidade. Na frente da cidade, ~6–8 zumbis ANDANDO devagar (vindo e voltando em trajetos retos curtos, giro ao inverter) usando os modelos 3D dos zumbis do jogo (`87-zumbis.js` `zParse`/`ZGLB` e a tabela de poses de `89e-glzumbis.js`; reutilizar, sem duplicar parsing; NÃO mexer na partida). Se reaproveitar for invasivo, use clones dos meshes do zumbi com a pose `walk` fixada/oscilando; reporte qual caminho usou. Contraste: zumbis ficam escuros, recortados contra o brilho do horizonte (faixa de céu levemente mais clara atrás da cidade).
+5. **Luz:** cena mais legível: aumentar um pouco hemisférica/luar e a névoa clara perto do fogo; personagem, banco e tenda visíveis. Sem estourar: continuar noite.
+6. Modo LITE/`GQ`: menos zumbis (3) e sem janelas animadas.
+7. Rebuild com `node build.js --release` e `--release --check` no fim. Prints desktop 1500×950 e 390×844 em `/tmp/opencode/menu3d/r2_*.png` (2 prints com ~2 s de intervalo para ver zumbis mexendo). Relatar ≤5 linhas.
