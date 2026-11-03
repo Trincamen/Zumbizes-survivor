@@ -4,6 +4,9 @@ let CAM=1.29,HUDS=1.4;
 // O1-2: qualidade grafica. GQ.scale multiplica o DPR dos dois canvases (1 = nativo; passos GQS).
 // GFX = 'auto' (adaptativo) ou um passo fixo; salvo em LS 'gfx'. Alta=1, Media=.7, Baixa=.55.
 const NOC2D=/[?&]c2d=0(?:&|$)/.test(location.search||'');
+// ZSG (?zs=1): teste em PRIMEIRA PESSOA da Área Segura (89t-zonaseg.js). Tudo que depende da
+// constante é gated por ela — sem a flag o jogo é EXATAMENTE o de sempre (câmera 2D/3D de cima).
+const ZSG=/[?&]zs=1/.test(location.search||'');
 const GQS=[1,.85,.7,.55],GQ={blob:1,esfera:1,halo:1,scale:1};
 let GFX=_l('gfx')||'auto';if(GFX!='auto'&&GQS.indexOf(+GFX)<0)GFX='auto';if(GFX!='auto')GQ.scale=+GFX;
 const zbase=()=>MOB?Math.min(1.4,Math.max(1.1,innerHeight/340)):Math.max(.5,Math.min(1,innerWidth/1100)),hkF=()=>(MOB?.6:1)*HUDS;

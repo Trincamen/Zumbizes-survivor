@@ -90,6 +90,7 @@ function grBldGlb(b,key){
  const roof=[],low=[];
  for(const nm of nodes){
   if(T=='c8'&&GR_ROOF.test(nm))continue; // casa_09 (queimada): o telhado é um bloco preto opaco que cobria metade da casa; sem ele vira uma ruína aberta
+  if(ZSG&&T=='r'&&nm=='clothesline')continue; // ZS: o varal é uma lâmina sólida no meio do salão e tapa a visão da loja
   const me=new THREE.Mesh(geo[nm],/glass/.test(nm)?grGlass():grMat());
   me.name=nm;grp.add(me); // matrixAutoUpdate fica ligado: as paredes sul/internas mudam de scale ao entrar
   if(GR_ROOF.test(nm))roof.push(me);
@@ -152,15 +153,28 @@ function grTurAnim(it,b){
  }
 }
 function grClear(){
- for(const it of GR.items){GLW.remove(it.grp);if(it.tur)GLW.remove(it.tur);if(it.door)GLW.remove(it.door)}
+ for(const it of GR.items){GLW.remove(it.grp);if(it.tur)GLW.remove(it.tur);if(it.door)GLW.remove(it.door);if(it.zsCeil)GLW.remove(it.zsCeil);if(it.zsL)for(const L of it.zsL)GLW.remove(L)}
  GR.items.length=0;GR.built=0;
 }
 // dentro × fora: esconde telhado/chaminé/props e baixa as paredes sul/internas (mesmo pulo seco do 2D)
+// ZSG: ins=2 = "dentro" permanente SEM baixar as paredes (1ª pessoa precisa de parede inteira) — só o telhado sai.
 function grInside(it,ins){
  for(const m of it.roof)m.visible=!ins;
+ const lw=ins===2?0:ins;
  for(const w of it.low){
-  w.me.scale.y=ins?w.lo:w.h0;
-  if(w.py!=null)w.me.position.y=ins?w.lo/2:w.py;
+  w.me.scale.y=lw?w.lo:w.h0;
+  if(w.py!=null)w.me.position.y=lw?w.lo/2:w.py;
+ }
+}
+// ZSG: teto de concreto + 3 luzes quentes dentro do prédio 'r' (sem eles a 1ª pessoa vê o céu e o interior fica preto)
+function grZSRoom(it,b){
+ const base=grBase(b),top=base+b.H;
+ const ceil=new THREE.Mesh(new THREE.BoxGeometry(b.w-6,10,b.h-6),new THREE.MeshLambertMaterial({color:0x59524a}));
+ ceil.position.set(b.x+b.w/2,top-5,b.y+b.h/2);GLW.add(ceil);it.zsCeil=ceil;
+ it.zsL=[];
+ for(let i=0;i<3;i++){
+  const L=new THREE.PointLight(0xffc27a,1.6,Math.max(b.w,b.h)*.85,1.4);
+  L.position.set(b.x+b.w*(.25+.25*i),top-16,b.y+b.h*(.42+.1*(i%2)));GLW.add(L);it.zsL.push(L);
  }
 }
 function grBuild(sn){
@@ -172,7 +186,7 @@ function grBuild(sn){
   if(b.T=='h'||b.T=='p'||b.T=='m'||b.T=='r'){it=grBldGlb(b);if(it)nGlb++;else it=grBldBox(b)}
   else if(b.T=='x'){it=grBldGlb(b,'c'+(((b.cm|0)%10+10)%10));if(it)nCasa++;else it=grBldBox(b)}
   else if(b.T=='W')it=grBldBox(b);
-  if(it){if(b.T=='r')grTurrets(it);GR.items.push(it);nBox++}
+  if(it){if(b.T=='r'){grTurrets(it);if(ZSG)grZSRoom(it,b)}GR.items.push(it);nBox++}
  }
  GR.sd=sn;GR.built=1;
  GR.ms=Math.round((performance&&performance.now?performance.now():Date.now())-t0);
@@ -190,7 +204,8 @@ function glPrediosFrame(){
   const it=GR.items[i],b=it.b,dx=b.x+b.w/2-cx,dz=b.y+b.h/2-cy;
   const vis=dx*dx+dz*dz<=r2;
   if(it.grp.visible!==vis)it.grp.visible=vis;
-  const ins=b===meB?1:0;
+  let ins=b===meB?1:0;
+  if(ZSG&&b.T=='r')ins=2; // ZSG: o prédio 'r' é "dentro" permanente, mas com as paredes inteiras
   if(ins!==it.inside){it.inside=ins;grInside(it,ins)}
   if(it.door){const cl=!!(snap&&(snap.bp||(snap.Z&&snap.Z.some(z=>z[2]==3))));if(b.door&&(b.door.dead?1:0)===(cl?1:0))asClosed(cl);it.door.visible=vis&&cl}
   if(it.tur){it.tur.visible=vis&&!ins;

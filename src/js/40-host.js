@@ -106,8 +106,8 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
   for(const p of all){if(p.dead){if(!p.dl){p.dl=1;dropAll(p)}}else p.dl=0}
   if(all.every(p=>p.dead))ph=2;
   gt+=dt;const m_=Math.floor(gt/60),nA=all.filter(p=>!p.dead).length||1;
-  if(!shopOn){sa+=(.5+.2*Math.min(m_,22))*(1+.35*(nA-1))*dt;const cap=Math.min(330,120+m_*12+nA*20);while(sa>=1){sa--;if(Z.length<cap)spawnZ()}}
-  if(m_>lastMin){lastMin=m_;minuteTick(m_)}
+  if(!shopOn&&!ZSG){sa+=(.5+.2*Math.min(m_,22))*(1+.35*(nA-1))*dt;const cap=Math.min(330,120+m_*12+nA*20);while(sa>=1){sa--;if(Z.length<cap)spawnZ()}}
+  if(m_>lastMin&&!ZSG){lastMin=m_;minuteTick(m_)} // ZSG: nem zumbis, nem boss/nem loja
   if(bossPend){bossPend.t=BOSS_LEAD-(performance.now()-bossPend.t0)/1000;if(bossPend.t<=0){const bp=bossPend;bossPend=null;spawnZ(3,bp.x,bp.y);const bz=Z[Z.length-1];if(bz&&bz.k==3){bz.em=2.8;ev(7,null,bz.x,bz.y,0,0,'')}}}
   if(shopOn){shopT-=dt;if(shopT<=0){shopOn=0;shopP=0}}
   for(const p of all){if(p.dead)continue;p.hp=Math.min(p.mx,p.hp+p.rc*1.5*dt);if(p.bt>0)p.bt-=dt;if(p.bDm>0)p.bDm-=dt;if(p.bCd>0)p.bCd-=dt;if(p.bSp>0)p.bSp-=dt;if(p.arD>0)p.arD-=dt;
@@ -152,7 +152,7 @@ function step(){const dt=.033,all=Object.values(PL);tick++;
   const AS=BLD.find(b=>b.T=='r'),asC=!!(bossPend||Z.some(z=>z.k==3&&z.hp>0));asClosed(asC);
   // Limite na Área Segura: 120 s lá dentro (cronômetro na tela = P[i][36]); ao zerar ou ao sair, 300 s INVISÍVEIS sem poder entrar (quem entra é empurrado para fora).
   // O nascimento dentro da zona não conta: o limite só vale depois da primeira saída. Com a porta do boss fechada o limite é zerado, sem castigo.
-  if(AS)for(const p of all){const ins=!p.dead&&p.x>AS.x+14&&p.x<AS.x+AS.w-14&&p.y>AS.y+14&&p.y<AS.y+AS.h+16;
+  if(AS&&!ZSG)for(const p of all){const ins=!p.dead&&p.x>AS.x+14&&p.x<AS.x+AS.w-14&&p.y>AS.y+14&&p.y<AS.y+AS.h+16;
    if(p.asG===undefined){p.asG=ins?1:0;p.asI=0;p.asK=0}
    if(asC||p.dead){p.asI=0;p.asK=0;if(!ins)p.asG=0;continue}
    if(p.asK>0)p.asK-=dt;

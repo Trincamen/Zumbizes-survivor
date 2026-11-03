@@ -36,7 +36,7 @@ function setCtl(m){ctl=m;LS.set('ctl',m);joy=null;ctlBtns();pushMove()}
 function optPos(){const o=$('opt'),w=$('wb');if(o&&w){const r=w.getBoundingClientRect();o.style.left=(r.right+8)+'px';o.style.right='auto'}}addEventListener('resize',optPos);
 function optOpen(){const p=$('opp'),o=p.style.display!='block';p.style.display=o?'block':'none';if(o){$('vol3').value=AU.vol*100;$('mvol3').value=AU.mv*100;ctlBtns()}}
 ctlBtns();
-function pushMove(){if(TUT_ON)return;if(!snap||snap.ph!=1)return;let x=0,y=0;
+function pushMove(){if(ZSG&&typeof zsPush=='function')return zsPush();if(TUT_ON)return;if(!snap||snap.ph!=1)return;let x=0,y=0;
  if(joy){const dx=joy.x-joy.x0,dy=joy.y-joy.y0,L=Math.hypot(dx,dy),R_=JR();if(L>8){const m=Math.min(1,(L-8)/(R_-8));x=dx/L*m;y=dy/L*m}}
  if(!x&&!y){x=(KS.KeyD||KS.ArrowRight?1:0)-(KS.KeyA||KS.ArrowLeft?1:0);y=(KS.KeyS||KS.ArrowDown?1:0)-(KS.KeyW||KS.ArrowUp?1:0);const L=Math.hypot(x,y);if(L>1){x/=L;y/=L}}
  const now=Date.now(),ch=Math.abs(x-mvLast[0])>.06||Math.abs(y-mvLast[1])>.06;

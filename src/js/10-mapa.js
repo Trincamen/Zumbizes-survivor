@@ -28,7 +28,8 @@ const LOOTC={"h":[[-3.05,-5.2,1.4,0.7],[2.6,-4.7,1.4,0.6],[3.5,-6.3,0.9,0.7],[-9
 const TUR_H=135,RZ_M=170; // RZ_M = margem livre (px) ao redor da Área Segura
 function nearAS(x,y){const b=BLD.find(q=>q.T=='r');return !!b&&x>b.x-RZ_M&&x<b.x+b.w+RZ_M&&y>b.y-RZ_M&&y<b.y+b.h+RZ_M}
 
-function asSpawn(){const b=BLD.find(q=>q.T=='r');if(!b)return[2000+R(-60,60),4500+R(-60,60)];for(let t=0;t<60;t++){const x=R(b.x+50,b.x+b.w-50),y=R(b.y+50,b.y+b.h-50);if(!blk(x,y,16))return[x,y]}return[b.x+b.w/2,b.y+b.h/2]} // nascimento SEMPRE dentro da Área Segura
+function asSpawn(){const b=BLD.find(q=>q.T=='r');if(!b)return[2000+R(-60,60),4500+R(-60,60)];if(ZSG)return[b.x+b.w/2,b.y+b.h/2]; // ZSG: nasce no centro do prédio
+ for(let t=0;t<60;t++){const x=R(b.x+50,b.x+b.w-50),y=R(b.y+50,b.y+b.h-50);if(!blk(x,y,16))return[x,y]}return[b.x+b.w/2,b.y+b.h/2]} // nascimento SEMPRE dentro da Área Segura
 function asClosed(on){const b=BLD.find(q=>q.T=='r');if(b&&b.door)b.door.dead=on?0:1}
 function asIn(){const b=BLD.find(q=>q.T=='r');if(!b)return 0;for(const p of Object.values(PL))if(!p.dead&&p.x>b.x+14&&p.x<b.x+b.w-14&&p.y>b.y+14&&p.y<b.y+b.h-14)return 1;return 0}
 function turPos(b,i){return[b.x+(i&1?b.w-40:40),b.y+(i&2?b.h-40:40)]} // torretas nos 4 cantos do telhado da Área Segura

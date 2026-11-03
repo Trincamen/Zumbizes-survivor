@@ -12,6 +12,9 @@ let GL_SOFT=0,GL_GPU='',GLR=null,GLMZ=null,GLHEMI=null,GLDIR=null,GLPL=[],GLSCN=
 // MU2-3: tremor (QK) compartilhado — 90-sons.js calcula shx/shy ANTES de glFrame e a camera 3D usa o mesmo
 // deslocamento em px de mundo do canvas 2D (sem isso so a camada 2D tremia).
 let GL_SHX=0,GL_SHY=0;
+// ZSG (?zs=1): câmera PERSPECTIVA de 1ª pessoa (89t-zonaseg.js), no lugar da ortográfica.
+// glCamA() = a câmera ativa (em ZSG é a perspectiva; fora, a ortográfica de sempre).
+let GLP=null;const glCamA=()=>ZSG&&GLP?GLP:GLCAM;
 // GQ (declarado em 00-base.js) = interruptores de QUALIDADE: blob = sombra em disco dos zumbis (89e);
 // esfera = esfera translúcida dos itens no chão e halo = brilho aditivo (89f; sem eles o item continua visível);
 // scale = passo de resolução aplicado ao DPR (O1-2). M5: fxP = fração de partículas/chamas/fumaça (celular usa
@@ -21,18 +24,18 @@ const _gv=new THREE.Vector3(),_gp=new THREE.Vector3(),_gq=new THREE.Vector3();
 // mundo -> tela CSS (px). Em 2D: idêntico a (x+ox, y+oy)*ZO.
 function w2s(x,y,h){
  if(!glLive)return[(x+ox)*ZO,(y+oy)*ZO];
- _gv.set(x,h||0,y).applyMatrix4(GLW.matrixWorld).project(GLCAM);
+ _gv.set(x,h||0,y).applyMatrix4(GLW.matrixWorld).project(glCamA());
  return[(_gv.x+1)*.5*innerWidth,(1-_gv.y)*.5*innerHeight];
 }
 // tela CSS (px) -> mundo, por raio no plano y=0. Em 2D: idêntico a (sx/ZO-ox, sy/ZO-oy).
 function s2w(sx,sy){
  if(!glLive)return[sx/ZO-ox,sy/ZO-oy];
  const nx=sx/innerWidth*2-1,ny=1-sy/innerHeight*2;
- _gp.set(nx,ny,-1).unproject(GLCAM);
- _gq.set(nx,ny,1).unproject(GLCAM).sub(_gp).normalize();
+ _gp.set(nx,ny,-1).unproject(glCamA());
+ _gq.set(nx,ny,1).unproject(glCamA()).sub(_gp).normalize();
  if(Math.abs(_gq.y)<1e-9)return[sx/ZO-ox,sy/ZO-oy];
  const t=-_gp.y/_gq.y;
- return[_gp.x+_gq.x*t,(_gp.z+_gq.z*t)*GLCOS];
+ return[_gp.x+_gq.x*t,(_gp.z+_gq.z*t)*(ZSG?1:GLCOS)];
 }
 // M7a: esconde/mostra o canvas 2D (#c) conforme a fase. Com glLive e partida em andamento (ph==1) TUDO é 3D+DOM:
 // display:none tira a camada da composição e o draw() para de chamar X.* (sem clearRect de tela cheia por quadro).
@@ -73,7 +76,10 @@ function glInit(){
   GLSCN=new THREE.Scene();GLSCN.background=new THREE.Color(0x101a10);
   GLCAM=new THREE.OrthographicCamera(-W/2,W/2,H/2,-H/2,1,GCAMR*3);
   GLCAM.up.set(0,GLSIN,-GLCOS);
-  GLW=new THREE.Group();GLW.scale.set(1,1,1/GLCOS);GLSCN.add(GLW);
+  GLW=new THREE.Group();GLW.scale.set(1,1,ZSG?1:1/GLCOS);GLSCN.add(GLW); // ZSG: sem a escala do oblíquo
+  if(ZSG){ // ZSG: câmera perspectiva (FOV 75°, near 2, far 6000) + hemisfério extra (interior claro)
+   GLP=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,2,6000);GLP.up.set(0,1,0);GLSCN.add(GLP);
+   GLSCN.add(new THREE.HemisphereLight(0xfff0d8,0x3a2f24,.5));}
   GLW.updateMatrixWorld(true); // w2s() usa GLW.matrixWorld antes do 1º render (o render é adiado p/ o fim do quadro)
   const gr=new THREE.Mesh(new THREE.PlaneGeometry(30000,30000),new THREE.MeshLambertMaterial({color:0x1b2e16}));
   gr.rotation.x=-Math.PI/2;gr.position.set(MW/2,0,MH/2);GLW.add(gr);
@@ -111,17 +117,20 @@ function glFrame(){
  if(typeof glZumbiFrame=='function')glZumbiFrame(); // 89e-glzumbis.js: zera as instancias do quadro
  if(typeof glItemFrame=='function')glItemFrame(); // 89f-glitens.js: zera as instancias dos itens do quadro
  if(typeof glBossFrame==='function')glBossFrame(); // 89h-glboss.js: esconde o boss (so o push do quadro o mostra)
+ if(ZSG&&typeof zsCam==='function')zsCam(); // 89t-zonaseg.js: câmera de 1ª pessoa (só ?zs=1)
 }
 // 1c: o render do quadro e ADIADO para o fim de draw() (90-sons.js) porque o jogador 3D so recebe a pose
 // DEPOIS de glFrame (drawPlayerGL roda na lista D do 2D). Assim pose, camera e chao sao do mesmo quadro.
 function glRenderNow(){
  if(!glLive)return;
+ if(ZSG&&typeof zsPre==='function')zsPre(); // 89t: pose do vendedor + etiquetas (antes do render)
  if(typeof glJogEnd=='function')glJogEnd(); // esconde os jogadores nao desenhados neste quadro
  if(typeof glZumbiEnd=='function')glZumbiEnd(); // 89e-glzumbis.js: publica as instancias do quadro
  if(typeof glItemEnd=='function')glItemEnd(); // 89f-glitens.js: publica as instancias dos itens do quadro
  if(typeof glBossEnd==='function')glBossEnd(); // 89h-glboss.js: fecha o boss do quadro
  if(typeof glFxEnd==='function')glFxEnd(); // 89j-glfx.js: publica as instâncias dos efeitos do quadro
  if(typeof glLiteCheck=='function')glLiteCheck();
- if(!(typeof glBloomRender=='function'&&glBloomRender()))GLR.render(GLSCN,GLCAM);
+ if(ZSG&&GLP)GLR.render(GLSCN,GLP); // ZSG: primeira pessoa, sem o passe de bloom
+ else if(!(typeof glBloomRender=='function'&&glBloomRender()))GLR.render(GLSCN,GLCAM);
 }
 if(glOn)glInit();

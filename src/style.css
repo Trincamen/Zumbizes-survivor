@@ -239,7 +239,7 @@ canvas{display:block;width:100%;height:100%}
 #tut .ti.tp1{height:160px}
 #tut .ti.tp2{height:300px}
 #tut .ti.tp3{height:460px}
-#tut .ti.tp5{height:196px}
+#tut .ti.tp5{height:196px}#tut .ti.tp4{height:260px}
 #tut .ti.tp7{height:400px}
 #tut .ti.tp8{height:150px}
 .tp1{background-image:url(data:image/png;base64,@@GLB:assets/tutorial/01.png@@)}
@@ -251,3 +251,11 @@ canvas{display:block;width:100%;height:100%}
 .tp7{background-image:url(data:image/png;base64,@@GLB:assets/tutorial/07.png@@)}
 .tp8{background-image:url(data:image/png;base64,@@GLB:assets/tutorial/08.png@@)}
 @media(max-width:900px){#tut{width:min(360px,95vw)}#tut .ti{height:150px}#tut .ti.tp2{height:250px}#tut .ti.tp3{height:420px}#tut .ti.tp5{height:170px}#tut .ti.tp7{height:380px}#tut .ti.tp8{height:130px}#tut .tx{font-size:15px;min-height:62px}}
+/* ---------- ZS (?zs=1): teste em 1ª pessoa da Área Segura — HUD mínimo ---------- */
+body.zs #glh,body.zs #gmm,body.zs #bn,body.zs #sk,body.zs #shop,body.zs #tut,body.zs #end,body.zs #menu,body.zs #cf,body.zs #gspec,body.zs #zlt,body.zs #zlm,body.zs #fpsb,body.zs #logo,body.zs #nick,body.zs #net{display:none!important}
+#zsx{position:fixed;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:#fff;box-shadow:0 0 5px #000;z-index:8;pointer-events:none;display:none}
+body.zs #zsx{display:block}
+#zsn{position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:8;pointer-events:none;font:700 13px Dracutaz,sans-serif;letter-spacing:2px;color:#e8e2d0;background:rgba(0,0,0,.62);padding:6px 12px;border:1px solid #3a3226;border-left:4px solid #8a6f35;white-space:nowrap;display:none}
+body.zs #zsn{display:block}
+.zsl{position:fixed;left:0;top:0;transform:translate(-50%,-100%);z-index:8;pointer-events:none;font:700 12px Dracutaz,sans-serif;letter-spacing:1px;color:#ffd88a;text-shadow:0 0 4px #000,0 1px 2px #000;white-space:nowrap;display:none}
+body.zs #wb{display:none!important}
