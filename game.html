@@ -9068,7 +9068,7 @@ function mn3RP(fx,fy,d,out){
  const k=d/Math.max(.02,out.x*MN3.fwd.x+out.y*MN3.fwd.y+out.z*MN3.fwd.z);
  return out.multiplyScalar(k).add(MN3.cam.position)}
 // GLB base64 → {grp,bb[6],lamp?} (parsing padrão do jogo: gmBuf + THREE.GLTFLoader.parse)
-function mn3Glb(b64,cb){let M=null;
+function mn3Glb(b64,cb,opt){let M=null;
  try{new THREE.GLTFLoader().parse(gmBuf(b64),'',g=>{try{
   M={grp:new THREE.Group(),bb:[1e9,-1e9,1e9,-1e9,1e9,-1e9]};
   g=g.scene||g;g.updateMatrixWorld(true);
@@ -9092,7 +9092,7 @@ function mn3Glb(b64,cb){let M=null;
    geo.setAttribute('position',new THREE.Float32BufferAttribute(P,3));
    geo.setAttribute('color',new THREE.Float32BufferAttribute(C,3));
    geo.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));
-   M.grp.add(new THREE.Mesh(geo,new THREE.MeshLambertMaterial({color:0xffffff,vertexColors:true,emissive:0x23262c})));
+   M.grp.add(new THREE.Mesh(geo,new THREE.MeshLambertMaterial({color:0xffffff,vertexColors:true,emissive:(opt&&opt.em!=null)?opt.em:0x23262c,side:(opt&&opt.ds)?THREE.DoubleSide:THREE.FrontSide})));
    if(/lamp/i.test(o.name||'')){try{
     ge.computeBoundingBox();
     const c=ge.boundingBox.getCenter(new THREE.Vector3());
@@ -9253,6 +9253,7 @@ function mn3Build(){
   if(MN3.scn)mn3Place()})}catch(e){}
  try{if(typeof CEN_RGLB!=='undefined'&&CEN_RGLB[0])mn3Glb(CEN_RGLB[0],M=>{
   MN3.street=M.grp;MN3.sbb=M.bb;MN3.scn.add(M.grp);if(MN3.scn)mn3Place()})}catch(e){}
+ mn3Extras();
  return 1}
 // ---------- câmera/projeção: FOV 40, y=.60, eixo no alvo levantado 14,1° (horizonte 0.845H) ----------
 function mn3CamPose(){const c=MN3.cam;
@@ -9328,7 +9329,46 @@ function mn3Place(){
   MN3.vig.scale.set(hv*d*aH,hv*d,1)}
  // pontos de referência da poeira (triângulo do cone: lâmpada → pé)
  MN3.footP=q.clone();
+ mn3PlaceX();
 }
+// casas do jogo (src/assets/casas, porta para +z = para a câmera) nos quadrados verdes do desenho do usuário
+// + grama do jogo (#3a4a2b, GM_C.gr) no chão da frente (faixa vermelha do desenho), por baixo da rua (a rua tem 19 cm de altura)
+const MN3_HS=[{i:1,fx:.41,fy:.88,wf:.169},{i:9,fx:.903,fy:.873,wf:.126}];
+function mn3Extras(){
+ MN3.hs=[];
+ if(typeof GR_CASA!=='undefined')for(const c of MN3_HS){
+  mn3Glb(GR_CASA[c.i],M=>{if(!M||!MN3.scn)return;MN3.scn.add(M.grp);
+   const h={M,c,L:null};
+   if(!mn3Lite()){h.L=new THREE.PointLight(0xffc880,1.5,16,2);MN3.scn.add(h.L)}
+   MN3.hs.push(h);mn3Place()},{em:0x1c1e24,ds:true})}
+ const gc=document.createElement('canvas');gc.width=gc.height=64;const x=gc.getContext('2d');
+ if(x){let g=x.createLinearGradient(0,0,64,0);g.addColorStop(0,'#000');g.addColorStop(.38,'#fff');g.addColorStop(1,'#fff');
+  x.fillStyle=g;x.fillRect(0,0,64,64);x.globalCompositeOperation='multiply';
+  g=x.createLinearGradient(0,0,0,64);g.addColorStop(0,'#000');g.addColorStop(.35,'#fff');g.addColorStop(1,'#fff');
+  x.fillStyle=g;x.fillRect(0,0,64,64)}
+ const ge=new THREE.BufferGeometry();
+ ge.setAttribute('position',new THREE.BufferAttribute(new Float32Array(18),3));
+ ge.setAttribute('normal',new THREE.BufferAttribute(new Float32Array([0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0]),3));
+ // uv: FL(0,1) NL(0,0) NR(1,0) | FL NR FR(1,1)  (v=1 = lado de trás = some)
+ ge.setAttribute('uv',new THREE.BufferAttribute(new Float32Array([0,1,0,0,1,0,0,1,1,0,1,1]),2));
+ MN3.grass=new THREE.Mesh(ge,new THREE.MeshLambertMaterial({color:0x3a4a2b,emissive:0x1d2915,alphaMap:new THREE.CanvasTexture(gc),
+  transparent:true,depthWrite:false,side:THREE.DoubleSide}));
+ MN3.grass.frustumCulled=false;MN3.grass.renderOrder=0;MN3.scn.add(MN3.grass)}
+// ponto do CHÃO (y=0) sob uma fração de tela; devolve a profundidade
+function mn3Ground(fx,fy,out){mn3RP(fx,fy,1,out);const c=MN3.cam.position,dy=out.y-c.y;
+ if(dy>=-1e-4){out.set(c.x,0,c.z-30);return 30}
+ const t=-c.y/dy;out.sub(c).multiplyScalar(t).add(c);out.y=0;return t}
+function mn3PlaceX(){
+ const q=new THREE.Vector3(),asp=innerWidth/innerHeight,nar=asp<1,hv=Math.tan(20*Math.PI/180);
+ for(const h of MN3.hs){const c=h.c,bb=h.M.bb,fx=nar?(c.i==1?.22:.86):c.fx;
+  const d=mn3Ground(fx,c.fy,q),k=1.2*c.wf*(nar?.55:1)*2*d*hv*1.58/Math.max(.5,bb[1]-bb[0]);
+  h.M.grp.scale.setScalar(k);h.M.grp.rotation.y=0;
+  h.M.grp.position.set(q.x-(bb[0]+bb[1])*.5*k,-bb[2]*k,q.z-(bb[4]+bb[5])*.5*k);
+  if(h.L)h.L.position.set(q.x,2.2,q.z+(bb[5]-bb[4])*.5*k+2.2)}
+ if(MN3.grass){const P=MN3.grass.geometry.attributes.position,a=new THREE.Vector3(),b=new THREE.Vector3(),cc=new THREE.Vector3(),e=new THREE.Vector3();
+  mn3Ground(.22,.925,a);mn3Ground(1.12,.925,e);mn3Ground(.22,1.04,b);mn3Ground(1.12,1.04,cc);
+  const y=.012;P.setXYZ(0,a.x,y,a.z);P.setXYZ(1,b.x,y,b.z);P.setXYZ(2,cc.x,y,cc.z);
+  P.setXYZ(3,a.x,y,a.z);P.setXYZ(4,cc.x,y,cc.z);P.setXYZ(5,e.x,y,e.z);P.needsUpdate=true}}
 // ---------- frame: clamp adversas/piscar/respawn com buffers pré-alocados ----------
 function glMenuFrame(t){
  if(!glLive||GLBAD||!GLR)return 0;
