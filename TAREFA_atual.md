@@ -1,20 +1,23 @@
-# TAREFA_atual.md — EXECUTAR AGORA: JOGADOR SENTADO NUM ACAMPAMENTO NO MENU 2D (só isso muda)
+# TAREFA_atual.md — EXECUTAR AGORA: MENU 2D ATUAL (acampamento) RECRIADO IDÊNTICO EM 3D (WebGL)
 
-> Edite SÓ `src/`, depois `node build.js --release` e `node build.js --release --check`. NÃO mexer em `server.js`, Dockerfile, workflows, `package*.json`. NÃO commite. Se travar 2×, pare e reporte. Testes só no Chrome (`tools/teste/lib.py`, 1500×950 e 390×844). Não imprima `game.html`. A partida (ph>0) NÃO pode mudar.
+> Edite SÓ `src/`, depois `node build.js --release` e `--release --check`. NÃO mexer em `server.js`, Dockerfile, workflows, `package*.json`. NÃO commite. Se travar 2×, pare e reporte. Testes só no Chrome (`tools/teste/lib.py`, 1500×950 e 390×844). Não imprima `game.html`. A partida (ph>0) NÃO pode mudar. Esperar o `opencode run` terminar de verdade.
 
-## Contexto
-O menu voltou ao 2D antigo (`menuScene`, `src/js/90-sons.js:~278`, canvas 2D `#c`): fundo preto, olhos vermelhos, névoa, poste/lâmpada, cerca etc., e o jogador do jogo (`drawPlayer`, 2D com raster do modelo 3D) em pé mirando nos olhos, em ~`W*.72,H*.92`. Um menu 3D anterior (WebGL) foi REVERTIDO a pedido do usuário; NÃO reintroduzir WebGL no menu.
+## Objetivo
+O menu 2D atual (`menuScene` em `src/js/90-sons.js:~100–318` + `src/js/89u-menucampo.js`, o jogador sentado na fogueira) deve ter uma versão **3D idêntica na aparência**: mesma composição, cores, névoa, escuridão, luz e posições. O usuário aprovou o visual atual; NÃO inventar elementos novos (sem barraca, cidade, zumbis, árvores). Referência visual: `/tmp/opencode/menu2d_camp/pc_2.png` (1500×950) e `mob_1.png` (390×844) — ler as imagens e comparar com os prints novos lado a lado.
 
-## Pedido do usuário (só isto)
-Manter TUDO do menu como está (fundo preto, olhos vermelhos, poste, névoa, etc.) e mudar APENAS o jogador: ele fica **SENTADO num acampamento, no mesmo lugar onde está hoje**.
-1. **Jogador sentado, sem arma**, virado para a fogueira (à esquerda dele, para o lado dos olhos), com um **graveto na mão com uma linguiça na ponta, PAIRANDO acima das chamas (não dentro)**. Sentado num tronco-banco deitado. Mochila ao lado é opcional.
-2. **Acampamento 2D** desenhado em canvas no mesmo estilo do menu: fogueira (pedras em anel, 3–4 línguas de chama animadas laranja/amarelo, brasas), faíscas subindo (~30 partículas), cintilar da luz (radial gradient laranja aditivo sobre o chão e sobre o jogador, intensidade variando por `performance.now()` com senos "ruidosos"), sombra do jogador/tronco no chão. Sem barraca, sem cidade, sem rua, sem zumbis novos.
-3. **Pose sentada:** no 2D o jogador vem de `pgSolve` + raster dos nós (`src/js/80-jogador.js`). Para sentar: depois de `pgSolve` com `idle`, sobrescrever as rotações locais `PG.PGR` dos nós (índices reais do GLB: 2/3 pernas, 4 quadris, 5 tronco, 6/7 braços; ver `git show 326171f:src/js/89u-glmenu.js` para a pose que o usuário JÁ APROVOU: pernas ≈ −1,19 rad à frente/para baixo, tronco levemente inclinado para o fogo, cabeça virada ao fogo, rootY desce quadris ao banco, braço direito levantado segurando o graveto) e recompor `WRT/WT` com um laço FK (`git show 326171f:src/js/80-jogador.js` tem `pgFK()` extraído de `pgSolve`; reintroduzir só esse laço se precisar, sem mudar o comportamento da partida). Depois rasterizar pelo mesmo caminho do `drawPlayer`. Se o raster 2D exigir ajuste (ordem de profundidade, banco atrás/à frente das pernas), resolver só no menu. Respiração leve (±1–2% no tronco). Sem arma (não desenhar arma/`weapon_socket`).
-4. Mesmo lugar e escala de hoje (`W*.72,H*.92` com a mesma regra para celular); o texto do menu (coluna esquerda) continua legível; a mira nos olhos deixa de existir (ele olha o fogo).
-5. Desempenho: nada de alocar por quadro; pré-renderizar o que for estático (pedras/tronco) uma vez.
+## Elementos a reproduzir em 3D (ler `menuScene` para as medidas exatas)
+1. Fundo preto com névoa baixa horizontal e poeira/partículas fracas no cone de luz.
+2. Olhos vermelhos pequenos espalhados na escuridão (pares de pontos `MeshBasicMaterial`/`Points` vermelhos, com piscar/deriva leves como no 2D).
+3. Poste de luz do jogo (`assets/props/poste_luz.glb`, via `cenLoad`/loaders do jogo, SEM duplicar parsing) à direita, lâmpada com halo quente, **cone de luz** (cone aditivo translúcido, `SpotLight` opcional) caindo sobre o jogador/chão, reflexo no chão.
+4. Cerca baixa atrás do jogador (`assets/props/cerca.glb`, mesmas posições relativas do 2D) e a rua/asfalto com faixa tracejada na esquerda do jogador como no 2D (`assets/rua/rua_reta.glb` ou plano escuro com faixa).
+5. Jogador sentado num tronco-banco, sem arma, com graveto e linguiça pairando sobre as chamas, mochila verde ao lado, olhando a fogueira; fogueira com pedras, chamas animadas, brasas, faíscas, luz laranja cintilando (PointLight com cintilar por `performance.now()`), sombra no chão. Base de código: `git show 326171f:src/js/89u-glmenu.js` (cena 3D anterior — pose sentada via override `PGT/PGR` + `pgFK()`, fogueira, faíscas, graveto/linguiça; **reaproveitar** esse código, mas sem barraca/cidade/rua larga/zumbis/árvores) e `pgFK()` já está em `80-jogador.js` (confirmar). Corrigir o que o usuário notou: linguiça realmente SOBRE as chamas, e fogueira um pouco maior que no 2D se necessário para ler bem.
+6. Vinheta escura nas bordas e o mesmo gradiente do `#menu` por cima (HTML não muda). Texto do menu continua legível na coluna esquerda.
+
+## Integração
+- Arquivo novo `src/js/89v-glmenu3d.js` (carrega depois de `89u-menucampo.js`) exportando `glMenuFrame(t)`; gancho no ramo `ph==0` de `draw()` em `90-sons.js:~471`: se `glLive` e `glMenuFrame` retornar truthy → `glC2D(0)` e `return`; senão cai no `menuScene` 2D de hoje (fallback, `?gl=0`, erro). Cena própria `GLMENU` + `PerspectiveCamera` (FOV ~35–40°, enquadramento igual ao 2D: jogador em ~72% da largura e ~92% da altura, poste à direita, texto à esquerda; no celular o mesmo ajuste de proporção do 2D). Render com `GLR.render` direto, resize como o do jogo. Construir tudo uma vez (lazy), sem alocar por quadro. LITE/`GQ`: menos partículas/luzes.
+- Voltar do jogo ao menu sem recarregar deve funcionar (`glC2D(1)` na partida).
 
 ## Critério de pronto
 - `node build.js --release` + `--check` ok; `window.__err` vazio.
-- Prints 1500×950 e 390×844 (2 prints com ~1 s de intervalo mostrando fogo/faíscas mudando) em `/tmp/opencode/menu2d_camp/*.png`: fundo preto, olhos vermelhos e poste iguais ao antes; jogador sentado ao lado da fogueira com a linguiça sobre as chamas.
-- Ciclo menu → solo → menu sem recarregar ok; partida sem diferença.
-- `draw` do menu em ms informado. Relatar ≤5 linhas.
+- Prints 1500×950 e 390×844 (2 com ~1 s de intervalo: fogo/olhos mudando) em `/tmp/opencode/menu3d_igual/*.png`, ao lado dos de referência; descrever diferenças restantes.
+- Ciclo menu → solo → menu ok; `?gl=0` mostra o menu 2D; partida sem diferença. `draw` do menu em ms. Relatar ≤5 linhas.
