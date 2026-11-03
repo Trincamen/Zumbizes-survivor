@@ -1,27 +1,38 @@
-# TAREFA_atual.md — EXECUTAR AGORA: EDITOR DE HUD (mover e redimensionar cada bloco, PC e celular)
+# TAREFA_atual.md — EXECUTAR AGORA: TUTORIAL DE PRIMEIRA VEZ + CRÉDITOS no menu
 
-> Edite SÓ `src/`, depois `node build.js` e `node build.js --check`. NÃO mexer em `server.js`, Dockerfile, workflows, `package*.json`, `40-host.js`. NÃO commite. Se travar 2×, pare e reporte. Testes só no Chrome (`tools/teste/lib.py`). Não imprima `game.html`.
+> Edite SÓ `src/`, depois `node build.js` e `node build.js --check`. NÃO mexer em `server.js`, Dockerfile, workflows, `package*.json`, `40-host.js`. NÃO commite. Se travar 2×, pare e reporte. Testes só no Chrome (`tools/teste/lib.py`). Não imprima `game.html`. Textos em português do Brasil, curtos, sem exagero.
 
-## Objetivo
-Nas opções (painel `#opp`, em `src/index.html` linha ~25) novo botão **"AJUSTAR HUD"**. Ao tocar: fecha `#opp` e entra em MODO EDIÇÃO; o jogador arrasta cada bloco do HUD para onde quiser e muda o tamanho de cada um separadamente. Funciona com mouse (PC) e toque (celular). O layout fica salvo e vale nas próximas partidas.
+## Parte A — Tutorial de primeira vez
+Ao começar a partida (`snap.ph==1`), se o jogador nunca viu/pulou o tutorial (`LS 'tut'` != '1'), mostrar um painel NO CENTRO da tela (classe `.pn`, mesmo visual de terror dos outros painéis, z-index acima do HUD/`#inp`) ANTES de ele poder jogar: enquanto aberto, a entrada do jogo não age (stopPropagation nos pointerdown do painel; teclas WASD/setas não movem — ignorar `pushMove`/teclas enquanto `TUT_ON`). O jogo pode seguir rodando por trás (no multiplayer não dá para pausar).
+Cada página = título + print simples (imagem ~320 px de largura) + 1–3 linhas de explicação EMBAIXO. Indicador "n/7". Botões embaixo: **SEGUIR** (última página vira "ENTENDI") e **PULAR**. Pular OU terminar → `LS.set('tut','1')` e nunca mais abre sozinho. (Depois, com contas, vira registro por conta; por ora só localStorage.)
+Reabrir: botão **COMO JOGAR** no painel de opções `#opp` (Esc no PC / ⚙ no celular) abre o mesmo painel a qualquer hora (sem gravar nada além de `tut`).
+Páginas (confira cada fato no código por grep em `src/js/` antes de escrever; não invente):
+1. **Andar e atirar** — PC: WASD/setas anda; mouse mira e clica/atira. Celular: joystick na tela anda, toque mira/atira (a arma atira sozinha para onde o personagem olha — confira em `50-cliente.js`).
+2. **Minimapa** — o mapa no canto superior direito. Legenda COM ÍCONES em print (recorte do minimapa e/ou dos rótulos): HOSPITAL = curas; POLÍCIA = armas; MERCADO = itens/dinheiro; AREA SEGURA = abrigo com torretas. No PC aparecem como texto; no celular como pontinho colorido com a inicial (`89g-glhud.js` ~linha 94). Explicar também os outros pontos (você/aliados, zumbis, boss, itens, loja) conferindo cores em `ghMini` (`89g-glhud.js`) — só o que existir.
+3. **Melhoria de armas** — item "Melhoria da arma" (k==6, `40-host.js:45`, nível até 6, aumenta o carregador/dano — confira `magOf`) e onde comprar (`SH` em `00-base.js`, loja abre depois do boss).
+4. **Área Segura** — prédio `'r'`: torretas no telhado matam zumbis na rua; quando o boss está pendente/vivo a porta fecha, as torretas desligam e quem está dentro é levado para fora; spawn sempre ali (confira em `10-mapa.js`/`40-host.js`/`RETOMADA.md` seção sessão 15).
+5. **Subir de nível** — XP vem de matar zumbis; cada nível: +8 vida máxima, mais velocidade, resistência e empurrão (`giveXp`, `40-host.js:36`); onde ver (estrela dourada e barra de XP no HUD).
+6. **Itens de cura** — Bandagem, Analgésico (pílula), Kit de cura, Desfibrilador (revive aliado caído, uso manual) com ícone de cada (use `weaponIcon`/GLB já existentes ou recorte do print) e 1 linha cada (confira o efeito real em `40-host.js` função de usar item: valores de cura, tempo).
+7. **HUD das armas (inventário)** — slots no canto inferior esquerdo; trocar de arma (toque/tecla/2º dedo no celular), arrastar o slot para fora solta o item; kit/bandagem usa segurando (celular); botão ⚙ ao lado. Mencionar o botão AJUSTAR HUD das opções (mover/redimensionar o HUD).
 
-## Blocos editáveis (id → o que é)
-- `gh2` — status do canto superior esquerdo (relógio, vida, nível/XP, buffs). O pai é 0×0, os filhos são `position:absolute`: o retângulo é a UNIÃO dos `getBoundingClientRect()` dos filhos.
-- `gmm` — minimapa (`transform-origin:100% 0`).
-- `gsc` — placar "Abates" (`transform-origin:100% 0`).
-- `wb` — slots de arma (`transform-origin:left bottom`). O botão ⚙ `#opt` já acompanha `#wb` via `optPos()` (`50-cliente.js:36`): chame `optPos()` depois de cada mudança.
-NÃO editar: joystick (dinâmico), elementos do mundo (`#gw`).
+### Prints
+Gerar com Chrome headless (`tools/teste/lib.py`, solo, `?pid=` novo), recortando só a parte relevante (ex.: o minimapa para a página 2, os slots para a 7, o canto de vida/XP para a 5). PNG ou JPEG pequeno, ≤ 30 KB cada, salvos em `src/assets/tutorial/NN.png`; embutidos pelo `build.js` via CSS: `background-image:url(data:image/png;base64,@@GLB:assets/tutorial/NN.png@@)` em classes `.tp1..tp7` (o `build.js` já substitui `@@GLB:` no CSS, linha 16). Para a página 1 (andar/atirar) vale um print da cena com o personagem. Prints simples, sem anotações elaboradas.
 
-## Como fazer (arquivo NOVO `src/js/89q-hudedit.js`, carrega depois de `89p`; confira a ordem em `build.js`)
-1. Aplicar o layout com as propriedades CSS individuais `translate` e `scale` no `style` do elemento (compõem com o `transform` que já existe; NÃO sobrescrever `transform`). Layout: `{id:{x,y,s}}` (x,y em px, s multiplicador, padrão 0,0,1; s limitado a 0,5–2,5). Guardar em `LS 'hudlay'` (JSON, try/catch). Aplicar ao carregar a página e após `resize` (reclampar para caber na tela).
-2. Modo edição (`hudEdit(true)`): classe `hed` no `body`; para cada bloco criar um `div.hbox` fixo (z-index 60) sobre o retângulo atual do bloco, com borda tracejada e rótulo curto (VIDA/XP, MAPA, PLACAR, ARMAS), `pointer-events:auto`, `touch-action:none`. Arrastar com Pointer Events (`setPointerCapture`) muda `x,y` do bloco; ao arrastar, recalcular o retângulo e reposicionar a caixa. Clamp: o retângulo do bloco nunca sai da tela. Tocar/clicar numa caixa a SELECIONA (borda mais forte).
-3. Barra de ferramentas fixa (`#hbar`, z-index 61, no centro de baixo, fonte do jogo) com: `−` e `+` (mudam `s` do bloco SELECIONADO em passos de 10%; bloco selecionado inicial = o primeiro), `RESTAURAR` (zera tudo, pede confirmação simples com `confirm`), `PRONTO` (sai do modo edição e salva). No PC também: roda do mouse sobre uma caixa muda a escala.
-4. Em modo edição, `#wb button` e demais clicáveis não podem reagir (CSS `.hed #wb,.hed #opt{pointer-events:none}`); o `#inp` (entrada do jogo) não deve disparar tiro/movimento sob a barra e as caixas — as caixas e a barra ficam acima do `#inp` e chamam `e.stopPropagation()` nos pointerdown.
-5. O jogo continua rodando durante a edição (não pausar). Mostrar os blocos mesmo se vazios (se `#gh2` estiver `display:none`, a caixa usa o retângulo salvo/estimado de 220×140 px na posição padrão).
-6. Estilo em `src/style.css` (borda `2px dashed #f2c230`, fundo `rgba(242,194,48,.08)`, rótulo pequeno; botões grandes o bastante para o dedo: ≥44 px de altura em `.mob`).
+## Parte B — Créditos no lugar de COMO JOGAR
+1. No menu principal (`src/index.html` linha ~34) o botão `COMO JOGAR` (`show('how')`) vira **CRÉDITOS** (`show('cred')`) na MESMA posição; ids/ordem dos demais botões intactos. A tela `s-how` vira `s-cred` (mantendo `← VOLTAR`). Apague o texto antigo de "Como jogar" (agora vive no tutorial). Procure referências a `'how'`/`s-how` em `src/js/*.js` e atualize.
+2. Conteúdo (títulos em negrito, linhas separadas):
+   - **Programação:** `Vinicius` (link `https://github.com/Trincamen`, `target=_blank rel=noopener`) · `Claude (Anthropic)`
+   - **Modelagem:** Claude (Anthropic)
+   - **Sons:** Claude (Anthropic)
+   - **Músicas:** uma linha por faixa:
+     - Pufino — Metal Is Trash
+     - Zambolino — Rotten Bones
+     - Nebulite — Iron Pulse
+     - (as 3 acima: Music provided by Free To Use — freetouse.com)
+     - Música do boss: Ashen Circuit — elevenlabs.io
+3. Também um link/botão pequeno "Créditos" no painel `#opp` NÃO é necessário.
 
 ## Critério de pronto
-- `node build.js` + `node build.js --check` ok; `node --check` do script gerado ok; `window.__err` vazio.
-- Teste Chrome headless (`tools/teste/lib.py`, solo): abrir opções → clicar AJUSTAR HUD → arrastar `gmm` 100 px para a esquerda e `wb` 50 px para cima, `+` duas vezes no `gsc` → `PRONTO`; conferir via `getBoundingClientRect` que mudaram e que `LS hudlay` guarda; recarregar a página e conferir que o layout persiste; `RESTAURAR` volta ao original. Repetir em emulação de celular (390×844, eventos de toque/ponteiro). Prints em `/tmp/opencode/hudedit/`.
-- Sem layout salvo, nada muda no jogo (bytes do comportamento atual intactos).
-- Devolver ≤5 linhas: sucesso/falha, arquivos alterados, caminhos dos prints.
+- `node build.js` e `node build.js --check` ok; `node --check` do script gerado ok; `window.__err` vazio; `game.html` com tamanho razoável (some só as 7 imagens).
+- Teste Chrome (desktop 1500×950 e emulação celular 390×844): `?pid=novo` → entra na partida → painel aparece no centro; SEGUIR avança as 7 páginas (print + texto em cada); na última "ENTENDI" fecha, `LS tut=='1'`; recarregar + nova partida → NÃO aparece; limpar `tut` + PULAR → fecha e grava; botão COMO JOGAR nas opções reabre; WASD não anda enquanto o painel está aberto e anda depois; menu principal mostra CRÉDITOS (sem COMO JOGAR) e a tela de créditos tem todas as linhas e o link. Prints do teste em `/tmp/opencode/tutorial/`.
+- Devolver ≤5 linhas: sucesso/falha, arquivos alterados, caminhos dos prints, e qualquer fato do jogo que você não conseguiu confirmar no código.

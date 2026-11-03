@@ -3,7 +3,7 @@ let PING=-1,PING_K=0;
 setInterval(()=>{if(!host&&ws&&ws.readyState===1)try{send({t:'pg',id,k:Math.round(performance.now())})}catch(e){}},1500); // ping: o host devolve o carimbo no snapshot
 function specHud(s){let e=document.getElementById('gspec');if(!e){e=document.createElement('div');e.id='gspec';e.style.cssText='position:fixed;left:50%;bottom:9%;transform:translateX(-50%);z-index:5;pointer-events:none;color:#e8d9b0;font:700 18px sans-serif;text-shadow:0 2px 6px #000;letter-spacing:1px;display:none';document.body.appendChild(e)}
  const m=s.ph==1&&me&&me[7]&&s.sp?s.P.find(p=>p[0]==s.sp):null,t=m?'ESPECTANDO: '+m[1]+'   (\u2190 \u2192 ou toque para trocar)':'';if(e.dataset.t!==t){e.dataset.t=t;e.textContent=t;e.style.display=t?'block':'none'}}
-function onSnap(s){snap=s;if(s.pk&&s.pk!==PING_K){PING_K=s.pk;PING=Math.max(0,Math.round(performance.now()-s.pk))}me=s.P.find(p=>p[0]==id);specHud(s);if(s.sd&&s.sd!=curSd){curSd=s.sd;O=genMap(s.sd);BLD=O.B;buildOB();DECOR=genDecor(s.sd);decorObs();buildOB();FIRES=O.FR;DD={};POP={};FL2=[];PT=[]}if(s.I){IL=s.I;const ks={};for(const e of IL)ks[e[4]]=1;for(const u in ITD)if(!ks[u])delete ITD[u]}if(s.ZM)ZMM=s.ZM;for(const p of s.P){const lv=LVP[p[0]];if(lv!=null&&p[9]>lv)LUE.push({pid:p[0],t:Date.now()});LVP[p[0]]=p[9]}
+function onSnap(s){snap=s;if(s.pk&&s.pk!==PING_K){PING_K=s.pk;PING=Math.max(0,Math.round(performance.now()-s.pk))}me=s.P.find(p=>p[0]==id);specHud(s);if(typeof tutCheck=='function')tutCheck(s);if(s.sd&&s.sd!=curSd){curSd=s.sd;O=genMap(s.sd);BLD=O.B;buildOB();DECOR=genDecor(s.sd);decorObs();buildOB();FIRES=O.FR;DD={};POP={};FL2=[];PT=[]}if(s.I){IL=s.I;const ks={};for(const e of IL)ks[e[4]]=1;for(const u in ITD)if(!ks[u])delete ITD[u]}if(s.ZM)ZMM=s.ZM;for(const p of s.P){const lv=LVP[p[0]];if(lv!=null&&p[9]>lv)LUE.push({pid:p[0],t:Date.now()});LVP[p[0]]=p[9]}
  $('menu').style.display=s.ph==0?'flex':'none';$('opt').style.display=s.ph==1?'block':'none';if(s.ph!=1)$('opp').style.display='none';if(s.ph==1&&!hintT)hintT=Date.now();if(s.ph==0&&$('s-lobby').style.display!='block')show('lobby');$('end').style.display=s.ph==2?'flex':'none';
  if(s.ph==0){$('pl').innerHTML=s.P.map(p=>`<div style="color:${p[2]}">● ${p[1]}</div>`).join('');$('mp').textContent=minP;$('st').disabled=s.P.length<minP}
  if(s.ph==2){$('er').textContent='Vocês sobreviveram '+fmt(s.gt);$('nb').style.display=host?'':'none'}
@@ -36,13 +36,13 @@ function setCtl(m){ctl=m;LS.set('ctl',m);joy=null;ctlBtns();pushMove()}
 function optPos(){const o=$('opt'),w=$('wb');if(o&&w){const r=w.getBoundingClientRect();o.style.left=(r.right+8)+'px';o.style.right='auto'}}addEventListener('resize',optPos);
 function optOpen(){const p=$('opp'),o=p.style.display!='block';p.style.display=o?'block':'none';if(o){$('vol3').value=AU.vol*100;$('mvol3').value=AU.mv*100;ctlBtns()}}
 ctlBtns();
-function pushMove(){if(!snap||snap.ph!=1)return;let x=0,y=0;
+function pushMove(){if(TUT_ON)return;if(!snap||snap.ph!=1)return;let x=0,y=0;
  if(joy){const dx=joy.x-joy.x0,dy=joy.y-joy.y0,L=Math.hypot(dx,dy),R_=JR();if(L>8){const m=Math.min(1,(L-8)/(R_-8));x=dx/L*m;y=dy/L*m}}
  if(!x&&!y){x=(KS.KeyD||KS.ArrowRight?1:0)-(KS.KeyA||KS.ArrowLeft?1:0);y=(KS.KeyS||KS.ArrowDown?1:0)-(KS.KeyW||KS.ArrowUp?1:0);const L=Math.hypot(x,y);if(L>1){x/=L;y/=L}}
  const now=Date.now(),ch=Math.abs(x-mvLast[0])>.06||Math.abs(y-mvLast[1])>.06;
  if(ch||((x||y)&&now-mvT0>200)){mvLast=[x,y];mvT0=now;send({t:'m',id,x:+x.toFixed(2),y:+y.toFixed(2)})}}
 // M3: handlers de ponteiro em funções nomeadas, usados pelo canvas 2D (#c) E pela camada #inp do modo GL
-function onPD(e){if(me&&me[7]&&snap&&snap.ph==1&&e.target&&e.target.id!='opt')send({t:'sp',id,d:1});if(!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});
+function onPD(e){if(TUT_ON)return;if(me&&me[7]&&snap&&snap.ph==1&&e.target&&e.target.id!='opt')send({t:'sp',id,d:1});if(!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});
  if(!snap||snap.ph!=1)return;const[_wx,_wy]=s2w(e.clientX,e.clientY),wx=_wx,wy=_wy;
  const rel=!!(me&&!me[7]&&me[22]>0);
  if(rel&&e.pointerType=='touch')send({t:'r',id,f:rlSend()}); // celular: tocar em QUALQUER lugar da tela é o toque da recarga ativa
@@ -51,7 +51,7 @@ function onPD(e){if(me&&me[7]&&snap&&snap.ph==1&&e.target&&e.target.id!='opt')se
  if(ctl=='tap'){send({t:'i',id,x:wx,y:wy});return}
  if(wantJoy(e)&&e.clientY>innerHeight*.5&&!joy){joy={id:e.pointerId,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,t0:Date.now(),mx:0};try{e.currentTarget.setPointerCapture(e.pointerId)}catch(_){}pushMove();return}
  send({t:'i',id,x:wx,y:wy,f:1})}
-function onPM(e){if(ctl=='tap'){if(e.buttons||e.pressure>0){const n=Date.now();if(n-lastTap>80){lastTap=n;if(snap&&snap.ph==1){const[_tx,_ty]=s2w(e.clientX,e.clientY);send({t:'i',id,x:_tx,y:_ty})}}}return}
+function onPM(e){if(TUT_ON)return;if(ctl=='tap'){if(e.buttons||e.pressure>0){const n=Date.now();if(n-lastTap>80){lastTap=n;if(snap&&snap.ph==1){const[_tx,_ty]=s2w(e.clientX,e.clientY);send({t:'i',id,x:_tx,y:_ty})}}}return}
  if(joy&&e.pointerId==joy.id){joy.x=e.clientX;joy.y=e.clientY;joy.mx=Math.max(joy.mx,Math.hypot(joy.x-joy.x0,joy.y-joy.y0));pushMove()}}
 function cycleWeapon(){if(!me)return;const s=me[14],cs=me[16];for(let k=1;k<s.length;k++){const i=(cs+k)%s.length;if(s[i]&&s[i][0]<6){send({t:'u',id,n:i});return}}}
 function useHeal(){if(!me||me[5]>=me[6])return;const s=me[14];for(let i=0;i<s.length;i++)if(s[i]&&(s[i][0]==10||s[i][0]==12)){send({t:'u',id,n:i});return}}
@@ -61,7 +61,7 @@ C.onpointerdown=onPD;C.onpointermove=onPM;C.onpointerup=C.onpointercancel=onPU;
 // com glLive a entrada vai para #inp (cobre a tela); o canvas 2D pode ficar 1x1 (c2d=0) sem perder clique/toque
 function glInp(v){try{const I=$('inp');if(I)I.style.display=v?'block':'none';C.style.pointerEvents=v?'none':''}catch(e){}}
 const MK=['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'];
-addEventListener('keydown',e=>{if(e.target.tagName=='INPUT'||!snap||snap.ph!=1)return;if(e.key=='Escape'){optOpen();return}
+addEventListener('keydown',e=>{if(e.target.tagName=='INPUT'||!snap||snap.ph!=1)return;if(TUT_ON)return;if(e.key=='Escape'){optOpen();return}
  if(me&&me[7]&&(e.code=='ArrowLeft'||e.code=='ArrowRight')){e.preventDefault();send({t:'sp',id,d:e.code=='ArrowLeft'?-1:1});return}
  if(me&&me[23]&&(e.code=='Enter'||e.code=='NumpadEnter')){e.preventDefault();ofr(1);return}
  if(me&&me[23]&&e.code=='Escape'){e.preventDefault();ofr(0);return}
