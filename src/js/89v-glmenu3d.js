@@ -125,13 +125,13 @@ function mn3Build(){
    lo.position.set(Math.cos(a)*.14,.06+i*.035,Math.sin(a)*.14);
    lo.rotation.set(.4*Math.sin(a+1.05),a,0);R.add(lo)}}
  const CC=[0xff8c2a,0xffb43a,0xffd76a,0xff9a30];
- for(let i=0;i<4;i++){const a=i*1.57+.5,f=new THREE.Mesh(new THREE.ConeGeometry(.17,.80,6),
+ for(let i=0;i<4;i++){const a=i*1.57+.5,f=new THREE.Mesh(new THREE.ConeGeometry(.15,.55,6),
   new THREE.MeshBasicMaterial({color:CC[i],fog:false}));
-  f.position.set(Math.cos(a)*.07,.40+(i%2)*.12,Math.sin(a)*.07);
+  f.position.set(Math.cos(a)*.07,.28+(i%2)*.08,Math.sin(a)*.07);
   f.rotation.set((i%2?1:-1)*.5,0,(i%3?1:-1)*.45);
   f.userData={ry:f.rotation.y,ph:i*1.7};MN3.flm.push(f);R.add(f)}
  MN3.flh=new THREE.Mesh(new THREE.SphereGeometry(.16,8,6),new THREE.MeshBasicMaterial({color:0xffe4a0,fog:false}));
- MN3.flh.position.set(0,.34,0);R.add(MN3.flh);
+ MN3.flh.position.set(0,.24,0);R.add(MN3.flh);
  {const NS=mn3Lite()?14:40,PS=new Float32Array(NS*3);
   for(let i=0;i<NS;i++)MN3.spkd.push({y:Math.random()*.7,vy:.8+Math.random()*1.8,
    x:(Math.random()-.5)*.12,z:(Math.random()-.5)*.12,ph:Math.random()*7,top:.05+Math.random()*.5});
@@ -208,10 +208,9 @@ function mn3Build(){
     a:(.40+.60*(1-Math.min(1,Math.hypot(ex-.5,ey-.5))))*(.40+.60*v3),
     pc:2400+7000*v5,ph:v2,os:900+1400*v4,os2:1500+2200*v5})}}
  // GLBs do jogo: poste (índice 8), cerca (26), rua_reta (CEN_RGLB 0)
- try{if(typeof CENGLB!=='undefined'&&CENGLB[8])mn3Glb(CENGLB[8],M=>{MN3.pole=M;if(M&&M.grp&&MN3.scn)MN3.scn.add(M.grp);if(MN3.scn)mn3Place()})}catch(e){}
- try{if(typeof CEN_RGLB!=='undefined'&&CEN_RGLB[0])mn3Glb(CEN_RGLB[0],M=>{
-  MN3.street=M.grp;MN3.sbb=M.bb;MN3.scn.add(M.grp);if(MN3.scn)mn3Place()})}catch(e){}
- mn3Extras();
+ // sem poste, rua nem casas (pedido do usuário): só grama, fogueira, jogador e os olhos
+ MN3.glowObj.visible=MN3.coreObj.visible=MN3.dust.visible=MN3.fL3.visible=false;
+ for(const f of MN3.fogS)f.visible=false;
  return 1}
 // ---------- câmera/projeção: FOV 40, y=.60, eixo no alvo levantado 14,1° (horizonte 0.845H) ----------
 function mn3CamPose(){const c=MN3.cam;
@@ -224,13 +223,13 @@ function mn3Place(){
  mn3CamPose();MN3.ck=innerWidth+'x'+innerHeight;
  const p=new THREE.Vector3(),q=new THREE.Vector3(),up=new THREE.Vector3(0,1,0);
  // jogador: pé (0.723,.92) d 11.7; fogo (0.645,.923) d 10.9 → origem do root no fogo
- const fk=Math.max(1,1.58/Math.max(.4,innerWidth/innerHeight)); // tela estreita: afasta o fogo p/ não cobrir o jogador
- mn3RP(.723,.92,11.7,p);mn3RP(.723-.078*fk,.923,10.9,q);
+ if(innerWidth<innerHeight)mn3Ground(.72,.935,p);else mn3Ground(.66,.955,p); // celular em pé: um pouco mais longe p/ caber o fogo
+ q.set(p.x-1.18,0,p.z+.83); // jogador+fogo perto da câmera
  MN3.root.position.set(q.x,0,q.z);
  MN3.pg.position.set(p.x-q.x,0,p.z-q.z);
  MN3.pg.rotation.y=-1.9; // de perfil para a fogueira (aprovado a olho; atan2 até o fogo deixava de frente p/ a câmera)
 
- MN3.flT.set(q.x-p.x,.38,q.z-p.z).applyAxisAngle(up,-MN3.pg.rotation.y);
+ MN3.flT.set(q.x-p.x,.80,q.z-p.z).applyAxisAngle(up,-MN3.pg.rotation.y);
  MN3.fL1.position.set(q.x,.55,q.z);MN3.fL2.position.set(q.x,.12,q.z);
  // poste: pé em (.795,.885) d 13.2; lâmpada em (.715,.284) d 13.2; escala mede o glb
  const PO=MN3.pole;
@@ -330,7 +329,7 @@ function glMenuFrame(t){
   // chamas (cintilar) + miolo quente
   for(let i=0;i<MN3.flm.length;i++){const f=MN3.flm[i],pd=1+.15*Math.sin(w*.0111+f.userData.ph)+.06*Math.sin(w*.031+f.userData.ph*2);
    f.scale.set(pd,.85+.3*fl,pd);f.rotation.y=f.userData.ry+w*.00035*(i%2?1:-1)}
-  MN3.flh.scale.setScalar(1+.25*fl);MN3.flh.position.y=.30+.12*fl;
+  MN3.flh.scale.setScalar(1+.25*fl);MN3.flh.position.y=.20+.08*fl;
   MN3.spk.material.opacity=Math.min(1,.35+.55*fl);
   {const P=MN3.spk.geometry.attributes.position;
    for(let i=0;i<MN3.spkd.length;i++){const s=MN3.spkd[i];s.y+=s.vy*(innerWidth<640?.9:.55)*.016;
