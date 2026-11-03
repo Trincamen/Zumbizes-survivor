@@ -466,9 +466,15 @@ function draw(){requestAnimationFrame(draw);const _n=performance.now();
  const _p0=pfStart();ZBUD=0;const s=snap,t=Date.now(),dtf=Math.min(.1,(t-LT)/1000);LT=t;FR++;DT_=dtf;
  // M7a: com glLive e partida em andamento (ph==1) o canvas 2D (#c) fica OCULTO e NADA de 2D é desenhado —
  // só 3D (glFrame/glRenderNow) e DOM (glHudFrame/89i). No menu (ph==0) e fora da partida o #c reaparece e desenha.
- const G3=!!(glLive&&s&&s.ph==1);if(glLive)glC2D(G3?0:1);
+ const G3=!!(glLive&&s&&s.ph==1);
+ if(!s||s.ph==0){
+  if(glLive){glHudShow(0);
+   if(typeof glMenuFrame==='function'){let g3=0;try{g3=glMenuFrame(t)}catch(e){g3=0}
+    if(g3){glC2D(0);const _d=performance.now()-_n;DRAW_MS=DRAW_MS?DRAW_MS*.9+_d*.1:_d;return}}
+   glC2D(1)}
+  menuScene(t);{const _d=performance.now()-_n;DRAW_MS=DRAW_MS?DRAW_MS*.9+_d*.1:_d}return}
+ if(glLive)glC2D(G3?0:1);
  if(!G3){X.setTransform(ZO*DPR,0,0,ZO*DPR,0,0);if(glLive)X.clearRect(0,0,W,H);else{X.fillStyle='#000';X.fillRect(0,0,W,H)}}
- if(!s||s.ph==0){if(glLive)glHudShow(0);menuScene(t);{const _d=performance.now()-_n;DRAW_MS=DRAW_MS?DRAW_MS*.9+_d*.1:_d}return}
  if(FR%180==0){for(const k in RP)if(RP[k].u<FR-120)delete RP[k];zsClean()}
  let mr=me?sm('p'+id,me[3],me[4],dtf):null;if(me&&me[7]&&s.sp){const tg=s.P.find(p=>p[0]==s.sp&&!p[7]);if(tg)mr=sm('p'+tg[0],tg[3],tg[4],dtf)}if(mr){cx=mr.x;cy=mr.y}meB=bAt(cx,cy);audioFrame(s,t,mr);ox=Math.round(W/2-cx);oy=Math.round(H/2-cy);
  const shx=(Math.random()-.5)*QK*14,shy=(Math.random()-.5)*QK*14;GL_SHX=shx;GL_SHY=shy;

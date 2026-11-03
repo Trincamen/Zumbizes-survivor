@@ -72,6 +72,18 @@ function pgLoco(ph,b){const w=PG.CLP.walk_aim,r=PG.CLP.run_aim,TM=PG.TMT,TR=PG.T
   if(x0*x1+y0*y1+z0*z1+w0*w1<0){x1=-x1;y1=-y1;z1=-z1;w1=-w1}
   const nx=x0+(x1-x0)*b,ny=y0+(y1-y0)*b,nz=z0+(z1-z0)*b,nw=w0+(w1-w0)*b,l=Math.hypot(nx,ny,nz,nw)||1;
   R[i4]=nx/l;R[i4+1]=ny/l;R[i4+2]=nz/l;R[i4+3]=nw/l}}
+// FK (forward kinematics): recompõe WRT/WT a partir da pose local PGT/PGR. Extraído do pgSolve
+// (mesmo laço, tal e qual) para reuso no menu 3D (89u-glmenu.js usa pgSolve e sobrescreve a pose).
+function pgFK(){const R=PG.WRT,Wt=PG.WT,PGT=PG.PGT,PGR=PG.PGR,PAR=PG.PAR;
+ for(const i of PG.ORD){const qx=PGR[i*4],qy=PGR[i*4+1],qz=PGR[i*4+2],qw=PGR[i*4+3],x2=qx+qx,y2=qy+qy,z2=qz+qz,xx=qx*x2,xy=qx*y2,xz=qx*z2,yy=qy*y2,yz=qy*z2,zz=qz*z2,wx=qw*x2,wy=qw*y2,wz=qw*z2,
+  l0=1-(yy+zz),l1=xy-wz,l2=xz+wy,l3=xy+wz,l4=1-(xx+zz),l5=yz-wx,l6=xz-wy,l7=yz+wx,l8=1-(xx+yy),
+  tx=PGT[i*3],ty=PGT[i*3+1],tz=PGT[i*3+2],p=PAR[i];
+  if(p<0){R[i*9]=l0;R[i*9+1]=l1;R[i*9+2]=l2;R[i*9+3]=l3;R[i*9+4]=l4;R[i*9+5]=l5;R[i*9+6]=l6;R[i*9+7]=l7;R[i*9+8]=l8;Wt[i*3]=tx;Wt[i*3+1]=ty;Wt[i*3+2]=tz}
+  else{const pr=p*9,a0=R[pr],a1=R[pr+1],a2=R[pr+2],a3=R[pr+3],a4=R[pr+4],a5=R[pr+5],a6=R[pr+6],a7=R[pr+7],a8=R[pr+8];
+   R[i*9]=a0*l0+a1*l3+a2*l6;R[i*9+1]=a0*l1+a1*l4+a2*l7;R[i*9+2]=a0*l2+a1*l5+a2*l8;
+   R[i*9+3]=a3*l0+a4*l3+a5*l6;R[i*9+4]=a3*l1+a4*l4+a5*l7;R[i*9+5]=a3*l2+a4*l5+a5*l8;
+   R[i*9+6]=a6*l0+a7*l3+a8*l6;R[i*9+7]=a6*l1+a7*l4+a8*l7;R[i*9+8]=a6*l2+a7*l5+a8*l8;
+   Wt[i*3]=a0*tx+a1*ty+a2*tz+Wt[p*3];Wt[i*3+1]=a3*tx+a4*ty+a5*tz+Wt[p*3+1];Wt[i*3+2]=a6*tx+a7*ty+a8*tz+Wt[p*3+2]}}}
 // POSE (tudo menos a rasterização): atualiza PGS[o.k], a amostragem de clipes (PG.PGT/PGR), o IK da mão esquerda,
 // o yaw suavizado e as matrizes por nó PG.WRT (3x3) / PG.WT (translação) e a boca do cano. drawPlayer (2D) e
 // drawPlayerGL (89d-gljogador.js, 3D) chamam ESTA função, então as duas vistas têm a mesma pose.
@@ -102,16 +114,7 @@ function pgSolve(x,y,o){const t=o.t||Date.now(),s=o.s||1;
  if(st.lt){st.lt.set(PG.PGT);st.lr.set(PG.PGR)}
  const tgt=o.aim!=null?o.aim:(o.fa==null?0:o.fa),psi=Math.PI/2-tgt;
  if(st.yaw==null)st.yaw=psi;st.yaw+=ad(psi,st.yaw)*Math.min(1,DT_*14);
- const R=PG.WRT,Wt=PG.WT,PGT=PG.PGT,PGR=PG.PGR,PAR=PG.PAR;
- for(const i of PG.ORD){const qx=PGR[i*4],qy=PGR[i*4+1],qz=PGR[i*4+2],qw=PGR[i*4+3],x2=qx+qx,y2=qy+qy,z2=qz+qz,xx=qx*x2,xy=qx*y2,xz=qx*z2,yy=qy*y2,yz=qy*z2,zz=qz*z2,wx=qw*x2,wy=qw*y2,wz=qw*z2,
-  l0=1-(yy+zz),l1=xy-wz,l2=xz+wy,l3=xy+wz,l4=1-(xx+zz),l5=yz-wx,l6=xz-wy,l7=yz+wx,l8=1-(xx+yy),
-  tx=PGT[i*3],ty=PGT[i*3+1],tz=PGT[i*3+2],p=PAR[i];
-  if(p<0){R[i*9]=l0;R[i*9+1]=l1;R[i*9+2]=l2;R[i*9+3]=l3;R[i*9+4]=l4;R[i*9+5]=l5;R[i*9+6]=l6;R[i*9+7]=l7;R[i*9+8]=l8;Wt[i*3]=tx;Wt[i*3+1]=ty;Wt[i*3+2]=tz}
-  else{const pr=p*9,a0=R[pr],a1=R[pr+1],a2=R[pr+2],a3=R[pr+3],a4=R[pr+4],a5=R[pr+5],a6=R[pr+6],a7=R[pr+7],a8=R[pr+8];
-   R[i*9]=a0*l0+a1*l3+a2*l6;R[i*9+1]=a0*l1+a1*l4+a2*l7;R[i*9+2]=a0*l2+a1*l5+a2*l8;
-   R[i*9+3]=a3*l0+a4*l3+a5*l6;R[i*9+4]=a3*l1+a4*l4+a5*l7;R[i*9+5]=a3*l2+a4*l5+a5*l8;
-   R[i*9+6]=a6*l0+a7*l3+a8*l6;R[i*9+7]=a6*l1+a7*l4+a8*l7;R[i*9+8]=a6*l2+a7*l5+a8*l8;
-   Wt[i*3]=a0*tx+a1*ty+a2*tz+Wt[p*3];Wt[i*3+1]=a3*tx+a4*ty+a5*tz+Wt[p*3+1];Wt[i*3+2]=a6*tx+a7*ty+a8*tz+Wt[p*3+2]}}
+ pgFK();const R=PG.WRT,Wt=PG.WT;
  if(!o.dead){const fg=(typeof WFG!=='undefined'&&WFG[o.w])||.35,ox=Wt[18],oy=Wt[19],oz=Wt[20],gx=Wt[24]+R[73]*.05+R[74]*fg,gy=Wt[25]+R[75]*.05+R[77]*fg,gz=Wt[26]+R[76]*.05+R[80]*fg;
   let dx=gx-ox,dy=gy-oy,dz=gz-oz;const gl=Math.hypot(dx,dy,dz);
   if(gl>1e-4){dx/=gl;dy/=gl;dz/=gl;
