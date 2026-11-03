@@ -132,13 +132,26 @@ function pgSolve(x,y,o){const t=o.t||Date.now(),s=o.s||1;
   st.mzW=[x+mrx*S,y+mrz*S,mry*S]; // mundo (x,y) + ALTURA em px (para o w2s do 3D): o 2D usa st.mz, o 3D projeta mzW
   st.mzt=t}
  return st}
+// FK (forward kinematics): recompõe WRT/WT a partir da pose local PGT/PGR — mesmo laço do pgSolve,
+// exposto para quem chama pgSolve e depois sobrescreve a pose (menu 2D: jogador sentado).
+function pgFK(){const R=PG.WRT,Wt=PG.WT,PGT=PG.PGT,PGR=PG.PGR,PAR=PG.PAR;
+ for(const i of PG.ORD){const qx=PGR[i*4],qy=PGR[i*4+1],qz=PGR[i*4+2],qw=PGR[i*4+3],x2=qx+qx,y2=qy+qy,z2=qz+qz,xx=qx*x2,xy=qx*y2,xz=qx*z2,yy=qy*y2,yz=qy*z2,zz=qz*z2,wx=qw*x2,wy=qw*y2,wz=qw*z2,
+  l0=1-(yy+zz),l1=xy-wz,l2=xz+wy,l3=xy+wz,l4=1-(xx+zz),l5=yz-wx,l6=xz-wy,l7=yz+wx,l8=1-(xx+yy),
+  tx=PGT[i*3],ty=PGT[i*3+1],tz=PGT[i*3+2],p=PAR[i];
+  if(p<0){R[i*9]=l0;R[i*9+1]=l1;R[i*9+2]=l2;R[i*9+3]=l3;R[i*9+4]=l4;R[i*9+5]=l5;R[i*9+6]=l6;R[i*9+7]=l7;R[i*9+8]=l8;Wt[i*3]=tx;Wt[i*3+1]=ty;Wt[i*3+2]=tz}
+  else{const pr=p*9,a0=R[pr],a1=R[pr+1],a2=R[pr+2],a3=R[pr+3],a4=R[pr+4],a5=R[pr+5],a6=R[pr+6],a7=R[pr+7],a8=R[pr+8];
+   R[i*9]=a0*l0+a1*l3+a2*l6;R[i*9+1]=a0*l1+a1*l4+a2*l7;R[i*9+2]=a0*l2+a1*l5+a2*l8;
+   R[i*9+3]=a3*l0+a4*l3+a5*l6;R[i*9+4]=a3*l1+a4*l4+a5*l7;R[i*9+5]=a3*l2+a4*l5+a5*l8;
+   R[i*9+6]=a6*l0+a7*l3+a8*l6;R[i*9+7]=a6*l1+a7*l4+a8*l7;R[i*9+8]=a6*l2+a7*l5+a8*l8;
+   Wt[i*3]=a0*tx+a1*ty+a2*tz+Wt[p*3];Wt[i*3+1]=a3*tx+a4*ty+a5*tz+Wt[p*3+1];Wt[i*3+2]=a6*tx+a7*ty+a8*tz+Wt[p*3+2]}}}
 function drawPlayer(x,y,o){
  if(!PG){const t=o.t||Date.now(),s=o.s||1;person(x,y,{s,fa:o.fa,ph:t/150,sh:o.c,pn:'#223',sk:'#e8bb98',hr:'#321',ey:'#111',gun:o.gun,ring:o.ring,aim:o.aim,rec:o.shot?Math.max(0,1-(t-o.shot)/130):0});return}
- const s=o.s||1,st=pgSolve(x,y,o),NN=PG.NN,R=PG.WRT,Wt=PG.WT,
+ // nosolve: usa a pose já montada (pgSolve + sobrescrita + pgFK) — só o menu 2D usa
+ const s=o.s||1,st=o.nosolve?(PGS[o.k]||pgSolve(x,y,o)):pgSolve(x,y,o),NN=PG.NN,R=PG.WRT,Wt=PG.WT,
   S=27*s,cy_=Math.cos(st.yaw),sy_=Math.sin(st.yaw),XY=PG.XY,CL=PG.CL,DP=PG.DP,OR=PG.OR,TOT=PG.TOT;
  let fc=0;
  const pcC=rgbOf(pgHex(o.c||'#3a5a8a')),pcG=rgbOf(pgHex(o.gun||'#333'));
- for(let ni=0;ni<NN;ni++){const g=(ni===PG.WS&&typeof WPG!=='undefined'&&WPG[o.w])||PG.GEO[ni];if(!g)continue;
+ for(let ni=0;ni<NN;ni++){if(o.noweap&&ni===PG.WS)continue;const g=(ni===PG.WS&&typeof WPG!=='undefined'&&WPG[o.w])||PG.GEO[ni];if(!g)continue;
   const o9=ni*9,m0=R[o9],m1=R[o9+1],m2=R[o9+2],m3=R[o9+3],m4=R[o9+4],m5=R[o9+5],m6=R[o9+6],m7=R[o9+7],m8=R[o9+8],tx=Wt[ni*3],ty=Wt[ni*3+1],tz=Wt[ni*3+2],P=g.P;
   for(let f=0;f<g.n&&fc<TOT;f++){const b=f*9;
    for(let k=0;k<3;k++){const p3=b+k*3,vx=P[p3],vy=P[p3+1],vz=P[p3+2],

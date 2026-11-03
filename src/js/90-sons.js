@@ -307,12 +307,8 @@ function menuScene(t){
     X.globalAlpha=.16*(1-fy*.45)*(1-Math.abs(ux))*fl;
     X.fillRect(px,py,p.s,p.s)}}
   X.globalCompositeOperation='source-over';X.globalAlpha=1}
- // jogador do jogo em contra-luz, dentro do cone
- const px=W*.723,py=H*.92;
- X.fillStyle='rgba(0,0,0,.45)';
- X.beginPath();X.ellipse(px+W*.018,py+1,W*.026,H*.007,0,0,7);X.fill();
- X.beginPath();X.ellipse(px+W*.050,py+3,W*.050,H*.010,.05,0,7);X.fill();
- try{drawPlayer(px,py,{k:'menu',s:H*.20/46,fa:-2.5,aim:-2.5,c:'#1e2430',gun:'#3a3d44',ring:null,shot:0,dead:false,idle:true,t:t,w:0})}catch(e){}
+ // acampamento 2D: fogueira + jogador sentado no tronco, virado para o fogo (89u-menucampo.js)
+ try{mcCamp(t)}catch(e){if(typeof window!=='undefined')window.__mcerr=String(e&&e.stack||e)}
  // vinheta por cima de tudo
  if(MSC.vig)X.drawImage(MSC.vig,0,0,W,H);
  X.globalAlpha=.025;X.fillStyle='#000';for(let i=0;i<2;i++)X.fillRect((t/7+i*W*.41)%W,(t/11+i*H*.31)%H,W*.22,1);X.globalAlpha=1;
