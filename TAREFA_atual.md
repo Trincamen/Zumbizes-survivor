@@ -41,3 +41,13 @@ Só editar `src/js/89u-glmenu.js` (e o mínimo em outros se inevitável). Tudo n
 5. **Luz:** cena mais legível: aumentar um pouco hemisférica/luar e a névoa clara perto do fogo; personagem, banco e tenda visíveis. Sem estourar: continuar noite.
 6. Modo LITE/`GQ`: menos zumbis (3) e sem janelas animadas.
 7. Rebuild com `node build.js --release` e `--release --check` no fim. Prints desktop 1500×950 e 390×844 em `/tmp/opencode/menu3d/r2_*.png` (2 prints com ~2 s de intervalo para ver zumbis mexendo). Relatar ≤5 linhas.
+
+## RODADA 3 — pedido do usuário (prevalece): fundo feio, refazer
+Só `src/js/89u-glmenu.js`. NÃO mexer no personagem, pose, graveto/linguiça, fogueira, banco, faíscas, luz do fogo (usuário aprovou).
+1. **Devolver a BARRACA/tenda** (a da rodada 1: pirâmide achatada de pano, ao fundo perto da fogueira, lado esquerdo-centro da fogueira, visível e iluminada pelo fogo; mochila continua).
+2. **Remover** os prédios grandes/caixas escuras próximos de agora (ficaram feios: blocos pretos enormes cortando a tela).
+3. **Vista de LONGE da cidade:** skyline distante, pequena na tela, bem atrás do acampamento, num horizonte baixo: dezenas (30–50) de prédios finos de alturas variadas em 3 camadas de profundidade (mais longe = mais claro/azulado e mais baixo contraste, efeito de neblina atmosférica), janelas minúsculas acesas esparsas (textura canvas pequena ou `Points`, sem 1 mesh por janela), alguns pontos de luz vermelha de aviso no topo de 2–3 torres, um brilho alaranjado/avermelhado difuso no horizonte atrás da cidade (gradiente no fundo da cena ou faixa), talvez fumaça fina subindo de 1–2 pontos. Céu com gradiente (azul escuro → azul-petróleo no horizonte) e algumas estrelas. Cidade no centro/direita do quadro, sem invadir a coluna do texto do menu (esquerda) e sem cobrir o personagem.
+4. **Chão:** terreno ondulado suave levando à cidade (colina baixa em silhueta) para o acampamento parecer num morro olhando a cidade; sem blocos pretos.
+5. **Zumbis:** manter só ~3–4, pequenos, em silhueta na meia-distância (entre o acampamento e a cidade), andando devagar; no LITE 2. Se ficarem feios/poluídos, reduza para 2.
+6. Câmera/escala: acampamento igual ao atual; só a profundidade do fundo muda (ajuste `fog`/`far`).
+7. LITE: menos prédios/sem fumaça. `node build.js --release` e `--release --check` no fim. Prints desktop 1500×950 e 390×844 em `/tmp/opencode/menu3d/r3_*.png`. Relatar ≤5 linhas.
