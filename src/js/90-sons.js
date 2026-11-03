@@ -464,7 +464,9 @@ function draw(){requestAnimationFrame(draw);const _n=performance.now();
  // só 3D (glFrame/glRenderNow) e DOM (glHudFrame/89i). No menu (ph==0) e fora da partida o #c reaparece e desenha.
  const G3=!!(glLive&&s&&s.ph==1);if(glLive)glC2D(G3?0:1);
  if(!G3){X.setTransform(ZO*DPR,0,0,ZO*DPR,0,0);if(glLive)X.clearRect(0,0,W,H);else{X.fillStyle='#000';X.fillRect(0,0,W,H)}}
- if(!s||s.ph==0){if(glLive)glHudShow(0);menuScene(t);{const _d=performance.now()-_n;DRAW_MS=DRAW_MS?DRAW_MS*.9+_d*.1:_d}return}
+ if(!s||s.ph==0){if(glLive)glHudShow(0);
+  try{if(typeof glMenuFrame==='function'&&glMenuFrame(t)){glC2D(0);{const _d=performance.now()-_n;DRAW_MS=DRAW_MS?DRAW_MS*.9+_d*.1:_d}return}}catch(e){console.warn('glmenu3d hook',e)}
+  menuScene(t);{const _d=performance.now()-_n;DRAW_MS=DRAW_MS?DRAW_MS*.9+_d*.1:_d}return}
  if(FR%180==0){for(const k in RP)if(RP[k].u<FR-120)delete RP[k];zsClean()}
  let mr=me?sm('p'+id,me[3],me[4],dtf):null;if(me&&me[7]&&s.sp){const tg=s.P.find(p=>p[0]==s.sp&&!p[7]);if(tg)mr=sm('p'+tg[0],tg[3],tg[4],dtf)}if(mr){cx=mr.x;cy=mr.y}meB=bAt(cx,cy);audioFrame(s,t,mr);ox=Math.round(W/2-cx);oy=Math.round(H/2-cy);
  const shx=(Math.random()-.5)*QK*14,shy=(Math.random()-.5)*QK*14;GL_SHX=shx;GL_SHY=shy;
